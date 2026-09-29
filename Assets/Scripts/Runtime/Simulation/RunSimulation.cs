@@ -213,7 +213,8 @@ namespace Game.Simulation
                 if (o.Active && !o.Knocked && ObstacleCatalog.IsKnockable(o.Kind) && o.Along >= along - 5f && o.Along <= along + 30f)
                     Obstacles.Despawn(i); // the owning chunk sees the slot as no longer its own (generation check)
             }
-            Board.Restart(p, yaw);
+            float resumeSpeed = Board.Board.State.TargetSpeed * Tuning.respawnSpeedFraction;
+            Board.Restart(p, yaw, resumeSpeed);
             Projection = Road.Project(p, ref _projectionHint);
             Distance = Projection.Along;
         }

@@ -75,6 +75,8 @@ namespace Game.Simulation
         // ---------------- Crash ----------------
         [TuningRange("Crash", 0.5f, 6f)] public float crashRestartDelay = 2.5f;
         [TuningRange("Crash", 1f, 40f)] public float crashDeceleration = 14f;
+        /// <summary>After a crash the board resumes at this fraction of its previous cruise speed (not from zero).</summary>
+        [TuningRange("Crash", 0f, 1f)] public float respawnSpeedFraction = 0.6f;
 
         // ---------------- Players ----------------
         [TuningRange("Players", 0.15f, 0.6f)] public float playerRadius = 0.33f;

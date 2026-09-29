@@ -22,6 +22,8 @@ namespace Game.Simulation
         public float Roll;
         /// <summary>Roll caused by leaning into the turn (without wobble / tip).</summary>
         public float LeanRoll;
+        /// <summary>Roll from uneven ground under the wheels (one side on a ramp). Visual only, not danger.</summary>
+        public float GroundRoll;
 
         public float Lateral;
         public float Longitudinal;
@@ -219,7 +221,7 @@ namespace Game.Simulation
             if (s.Danger >= 1f) s.Tip += dt / Math.Max(t.crashTipTime, 1e-3f);
             else s.Tip -= dt / Math.Max(t.tipRecoveryTime, 1e-3f);
             s.Tip = SimMath.Clamp01(s.Tip);
-            s.Roll = s.LeanRoll
+            s.Roll = s.LeanRoll + s.GroundRoll
                      + s.Wobble * t.wobbleMaxRollDeg * SimMath.Deg2Rad * wobbleWave
                      + MathF.Sign(s.Steering) * s.Tip * t.tipExtraRollDeg * SimMath.Deg2Rad;
 
@@ -239,10 +241,19 @@ namespace Game.Simulation
         {
             ref BoardState s = ref State;
             Vector2 fwd = SimMath.HeadingToDirection(s.Yaw);
+            var right = new Vector2(fwd.Y, -fwd.X);
             float axle = t.boardLength * 0.35f;
+            float track = t.HalfWidth * 0.8f;
             float probeFrom = s.Position.Y + 3f;
-            GroundSample front = ground.Sample(s.Position.X + fwd.X * axle, s.Position.Z + fwd.Y * axle, probeFrom);
-            GroundSample rear = ground.Sample(s.Position.X - fwd.X * axle, s.Position.Z - fwd.Y * axle, probeFrom);
+            // four wheel contacts: a board half on a ramp rides up on that side and tilts
+            GroundSample fl = SampleAt(ground, s.Position, fwd * axle - right * track, probeFrom);
+            GroundSample fr = SampleAt(ground, s.Position, fwd * axle + right * track, probeFrom);
+            GroundSample rl = SampleAt(ground, s.Position, -fwd * axle - right * track, probeFrom);
+            GroundSample rr = SampleAt(ground, s.Position, -fwd * axle + right * track, probeFrom);
+            GroundSample front = Pair(fl, fr), rear = Pair(rl, rr);
+            GroundSample left = Pair(fl, rl), rightSide = Pair(fr, rr);
+            float groundRollTarget = left.Found && rightSide.Found ? MathF.Atan2(left.Height - rightSide.Height, 2f * track) : 0f;
+            s.GroundRoll += (groundRollTarget - s.GroundRoll) * SimMath.LagAlpha(dt, 0.06f);
 
             bool found = front.Found || rear.Found;
             float groundY = front.Found && rear.Found ? (front.Height + rear.Height) * 0.5f
@@ -291,6 +302,17 @@ namespace Game.Simulation
                 ForceCrash();
                 ev.Crashed = true;
             }
+        }
+
+        static GroundSample SampleAt(IGroundProvider ground, Vector3 center, Vector2 offset, float probeFrom) =>
+            ground.Sample(center.X + offset.X, center.Z + offset.Y, probeFrom);
+
+        /// <summary>Average of two contacts (either one if the other has no ground under it).</summary>
+        static GroundSample Pair(in GroundSample a, in GroundSample b)
+        {
+            if (a.Found && b.Found)
+                return new GroundSample { Found = true, Height = (a.Height + b.Height) * 0.5f, Surface = a.Surface == SurfaceKind.Offroad || b.Surface == SurfaceKind.Offroad ? SurfaceKind.Offroad : SurfaceKind.Road };
+            return a.Found ? a : b;
         }
 
         void StepCrashed(float dt, BoardTuningData t, IGroundProvider ground)

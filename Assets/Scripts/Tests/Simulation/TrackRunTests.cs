@@ -49,11 +49,11 @@ namespace Game.Tests
             {
                 BoardState b = run.Board.Board.State;
                 float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * b.Speed) * SimMath.Deg2Rad;
-                float hint = run.Road.SteerHint(b.Position, b.Yaw, b.Speed, maxYawRate, ref hintCache);
+                float hint = run.Road.PredictiveSteerHint(b, maxYawRate, 1.0f, ref hintCache);
                 var ctx = new BotContext
                 {
                     Players = run.Board.Players, ActivePlayerCount = run.Board.ActivePlayerCount, Board = b, Tuning = t,
-                    SteerHint = hint, Time = run.Board.Time, Dt = dt,
+                    SteerHint = hint, BrakeHint = run.Road.BrakeHint(run.Distance, b.Speed, t), Time = run.Board.Time, Dt = dt,
                 };
                 for (int i = 0; i < slots.Length; i++) { ctx.Self = i; inputs[i] = bots[i].Decide(ctx); }
 
@@ -114,6 +114,23 @@ namespace Game.Tests
             Assert.AreEqual(0, r.Crashes);
             Assert.That(r.MaxAbsLateral, Is.LessThan(TestRoadLayout.RoadWidth * 0.5f), "must stay on the asphalt");
             Assert.IsTrue(r.Airborne, "the planned line runs over the ramp");
+        }
+
+        [TestCase(1)]
+        [TestCase(42)]
+        [TestCase(1234)]
+        public void EndlessRoad_CooperativeCrewsNeverCrash_MixedCrewFinishes(int seed)
+        {
+            TrackRunResult solo = TrackRunner.Run(TrackRunner.All(BotBehavior.Cooperative, 1), null, 5000f, 900f, seed);
+            TrackRunResult coop = TrackRunner.Run(TrackRunner.All(BotBehavior.Cooperative, 6), null, 5000f, 900f, seed);
+            TrackRunResult mixed = TrackRunner.Run(TrackRunner.Mixed(6), null, 5000f, 900f, seed);
+            TestContext.WriteLine($"seed {seed} solo:  {solo}");
+            TestContext.WriteLine($"seed {seed} coop:  {coop}");
+            TestContext.WriteLine($"seed {seed} mixed: {mixed}");
+            Assert.IsTrue(solo.Completed && coop.Completed && mixed.Completed);
+            Assert.AreEqual(0, solo.Crashes, "solo cooperative");
+            Assert.AreEqual(0, coop.Crashes, "6 cooperative");
+            Assert.That(mixed.Crashes, Is.LessThanOrEqualTo(2), "mixed crews may crash, but rarely");
         }
 
         [Test]

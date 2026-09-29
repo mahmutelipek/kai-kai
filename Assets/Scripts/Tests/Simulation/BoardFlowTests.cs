@@ -8,12 +8,12 @@ namespace Game.Tests
     /// <summary>Sloped plane with one ramp wedge across the road (headless stand-in for the test-scene ramp).</summary>
     public sealed class RampGround : IGroundProvider
     {
-        public float Grade = 0.05f, RampStart = 60f, RampLength = 8f, RampHeight = 1.3f;
+        public float Grade = 0.05f, RampStart = 60f, RampLength = 8f, RampHeight = 1.3f, RampLateral = 0f, RampHalfWidth = 2.5f;
 
         public GroundSample Sample(float x, float z, float searchFromHeight)
         {
             float h = -Grade * z;
-            if (z >= RampStart && z <= RampStart + RampLength && Math.Abs(x) < 2.5f)
+            if (z >= RampStart && z <= RampStart + RampLength && Math.Abs(x - RampLateral) < RampHalfWidth)
                 h += RampHeight * (z - RampStart) / RampLength;
             return GroundSample.At(h);
         }
@@ -50,6 +50,35 @@ namespace Game.Tests
             Assert.IsTrue(trace.AllFinite);
             Assert.That(airTime, Is.GreaterThan(0.3f));
             if (hard) Assert.That(staggeredOnLanding, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void Ramp_UnderOneSideOnly_TiltsTheBoard_NoCrash()
+        {
+            BoardTuningData t = BoardScenario.TuningAtSpeed(15f);
+            // ramp covers x in [0.6, 3.6]: only the right wheels (x = +0.96) ride up
+            BoardSimulation sim = BoardScenario.Create(6, t, new RampGround { RampLateral = 2.1f, RampHalfWidth = 1.5f });
+            float maxGroundRollDeg = 0f;
+            ScenarioTrace trace = BoardScenario.Run(sim, 8f, null, onStep: (s, ev) =>
+                maxGroundRollDeg = Math.Max(maxGroundRollDeg, Math.Abs(s.Board.State.GroundRoll) * SimMath.Rad2Deg));
+            TestContext.WriteLine($"half-on ramp: max ground roll {maxGroundRollDeg:F1} deg, crashed {trace.Crashed}");
+            Assert.That(maxGroundRollDeg, Is.GreaterThan(5f), "one side on the ramp must tilt the board");
+            Assert.IsFalse(trace.Crashed);
+            Assert.IsTrue(trace.AllFinite);
+        }
+
+        [Test]
+        public void Respawn_KeepsPartOfTheMomentum()
+        {
+            BoardTuningData t = new BoardTuningData();
+            var run = new RunSimulation(t, 5, 6);
+            run.Board.Board.State.TargetSpeed = 30f;
+            run.Board.CrashNow();
+            run.Respawn(run.Distance);
+            float expected = 30f * t.respawnSpeedFraction;
+            TestContext.WriteLine($"after crash at cruise 30 m/s: resumes at {run.Board.Board.State.Speed:F1} m/s");
+            Assert.That(run.Board.Board.State.Speed, Is.EqualTo(expected).Within(0.01f));
+            Assert.IsFalse(run.Board.Board.State.Crashed);
         }
 
         [Test]

@@ -83,6 +83,7 @@ namespace Game
                 Board = board,
                 Tuning = sim.Tuning,
                 SteerHint = LastSteerHint,
+                BrakeHint = _run != null ? _run.Road.BrakeHint(_run.Distance, board.Speed, sim.Tuning) : 0f,
                 Time = sim.Time,
                 Dt = dt,
             };
@@ -133,7 +134,7 @@ namespace Game
             BoardState s = sim.Board.State;
             BoardTuningData t = sim.Tuning;
             float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * s.Speed) * Mathf.Deg2Rad;
-            return _run.Road.SteerHint(s.Position, s.Yaw, s.Speed, maxYawRate, ref _roadHint);
+            return _run.Road.PredictiveSteerHint(s, maxYawRate, 1.0f, ref _roadHint);
         }
     }
 }

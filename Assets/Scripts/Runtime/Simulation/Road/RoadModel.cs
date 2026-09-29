@@ -124,6 +124,56 @@ namespace Game.Simulation
         }
 
         /// <summary>
+        /// 0..1: how much the road ahead asks the crew to slow down (curves tighter than the safe steering at this
+        /// speed, or dodges on the planned line). Used by cooperative bots and, later, warning feedback.
+        /// </summary>
+        public float BrakeHint(float along, float speed, BoardTuningData t)
+        {
+            if (speed < 12f || Chunks.Count == 0) return 0f;
+            float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * speed) * SimMath.Deg2Rad;
+            float stability = SimMath.Lerp(t.stabilityFactorLowSpeed, t.stabilityFactorHighSpeed, speed / t.stabilityReferenceSpeed);
+            float safeSteer = 0.6f * t.crashThreshold / stability;
+            float horizon = Math.Max(40f, speed * 3.5f);
+            float maxCurvature = 0f, maxSlope = 0f;
+            Sample(along, out _, out float prevYaw, out _);
+            float prevLateral = PlannedLateral(along);
+            for (float s = 4f; s <= horizon; s += 4f)
+            {
+                Sample(along + s, out _, out float yaw, out _);
+                float lateral = PlannedLateral(along + s);
+                maxCurvature = Math.Max(maxCurvature, Math.Abs(SimMath.WrapAngle(yaw - prevYaw)) / 4f);
+                maxSlope = Math.Max(maxSlope, Math.Abs(lateral - prevLateral) / 4f);
+                prevYaw = yaw;
+                prevLateral = lateral;
+            }
+            float required = speed * maxCurvature / Math.Max(maxYawRate, 1e-3f);
+            float curve = SimMath.InverseLerp(0.7f, 0.95f, required / Math.Max(safeSteer, 1e-3f));
+            float weave = speed > 24f ? SimMath.InverseLerp(0.02f, 0.04f, maxSlope) : 0f;
+            return Math.Max(curve, weave);
+        }
+
+        /// <summary>
+        /// Steering request (-1..1) toward the planned line using pure pursuit from the pose the board will have
+        /// after the crew's response delay (walking + smoothing + yaw response). Tracks the line much tighter than
+        /// plain pursuit; used by cooperative bots and the scripted ideal driver.
+        /// </summary>
+        public float PredictiveSteerHint(in BoardState b, float maxYawRate, float responseDelay, ref int hint)
+        {
+            float T = responseDelay;
+            float yawP = b.Yaw + b.YawRate * T;
+            Vector2 dir = SimMath.HeadingToDirection(b.TravelYaw + b.YawRate * T * 0.5f);
+            var posP = new Vector3(b.Position.X + dir.X * b.Speed * T, b.Position.Y, b.Position.Z + dir.Y * b.Speed * T);
+            RoadProjection pp = Project(posP, ref hint);
+            if (!pp.Valid) return 0f;
+            float lookAhead = 6f + 0.35f * b.Speed;
+            float targetAlong = pp.Along + lookAhead;
+            Vector3 target = WorldPoint(targetAlong, PlannedLateral(targetAlong), out _);
+            float alpha = SimMath.WrapAngle(MathF.Atan2(target.X - posP.X, target.Z - posP.Z) - yawP);
+            float desiredYawRate = 2f * Math.Max(b.Speed, 1f) * MathF.Sin(alpha) / lookAhead;
+            return SimMath.Clamp(desiredYawRate / Math.Max(maxYawRate, 1e-3f), -1f, 1f);
+        }
+
+        /// <summary>
         /// Pure-pursuit steering request (-1..1, steering units) toward the planned line: what the road "asks for".
         /// Only cooperative-minded bots and the scripted ideal driver use it; the board never auto-steers.
         /// </summary>

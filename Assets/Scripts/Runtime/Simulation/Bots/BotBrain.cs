@@ -24,6 +24,8 @@ namespace Game.Simulation
         public BoardTuningData Tuning;
         /// <summary>Steering the road currently asks for, -1..1 (0 when unknown). Only cooperative bots care.</summary>
         public float SteerHint;
+        /// <summary>0..1 how much the road ahead asks to slow down (see RoadModel.BrakeHint).</summary>
+        public float BrakeHint;
         public float Time;
         public float Dt;
     }
@@ -147,7 +149,11 @@ namespace Game.Simulation
 
         protected override Vector2 ChooseTarget(in BotContext ctx, PlayerSim self)
         {
-            return new Vector2(RoadHelpX(ctx, self), LaneZ(ctx));
+            // curve or dodge ahead: squeeze the lanes into the tail half to brake, without piling up
+            float lane = LaneZ(ctx);
+            float braking = -0.55f * ctx.Tuning.HalfLength + lane * 0.35f;
+            float z = lane + (braking - lane) * SimMath.Clamp01(ctx.BrakeHint);
+            return new Vector2(RoadHelpX(ctx, self), z);
         }
 
         protected override bool WantsToJump(in BotContext ctx) => false;
@@ -185,7 +191,7 @@ namespace Game.Simulation
             if (ctx.Board.Danger > 0.9f && MathF.Sign(ctx.Board.Steering) == MathF.Sign(_side))
                 return new Vector2(_side * t.HalfWidth * 0.2f, _z);
             float personal = _side * t.HalfWidth * _depth;
-            return new Vector2(_pushing ? personal : BlendTowardRoad(personal, ctx, self, 0.8f), _z);
+            return new Vector2(_pushing ? personal : BlendTowardRoad(personal, ctx, self, 0.55f), _z);
         }
     }
 
@@ -203,7 +209,7 @@ namespace Game.Simulation
                 BoardTuningData t = ctx.Tuning;
                 Target = new Vector2(t.HalfWidth * RandomRange(-0.85f, 0.85f), t.HalfLength * RandomRange(-0.75f, 0.75f));
             }
-            return new Vector2(BlendTowardRoad(Target.X, ctx, self, 0.65f), Target.Y);
+            return new Vector2(BlendTowardRoad(Target.X, ctx, self, 0.4f), Target.Y);
         }
 
         protected override bool WantsToJump(in BotContext ctx) => Rng.NextDouble() < 0.6;
@@ -227,7 +233,7 @@ namespace Game.Simulation
                 RetargetTimer = RandomRange(1.5f, 3.5f);
                 _side = RandomRange(-0.8f, 0.8f);
             }
-            return new Vector2(BlendTowardRoad(_side * t.HalfWidth, ctx, self, 0.5f), t.HalfLength * 0.75f);
+            return new Vector2(BlendTowardRoad(_side * t.HalfWidth, ctx, self, 0.3f), t.HalfLength * 0.75f);
         }
     }
 
@@ -247,7 +253,7 @@ namespace Game.Simulation
                 RetargetTimer = RandomRange(2f, 4f);
                 Target = new Vector2(t.HalfWidth * RandomRange(-0.3f, 0.3f), -t.HalfLength * 0.8f);
             }
-            return new Vector2(BlendTowardRoad(Target.X, ctx, self, 0.85f), Target.Y);
+            return new Vector2(BlendTowardRoad(Target.X, ctx, self, 0.7f), Target.Y);
         }
 
         protected override bool WantsToJump(in BotContext ctx) => false;

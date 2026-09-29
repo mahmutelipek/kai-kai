@@ -64,6 +64,16 @@ namespace Game.Simulation
             PlaceInFormation();
         }
 
+        /// <summary>Restart keeping some momentum: resumes the speed ramp at <paramref name="cruiseSpeed"/>.</summary>
+        public void Restart(Vector3 position, float yaw, float cruiseSpeed)
+        {
+            BoardTuningData t = Tuning;
+            cruiseSpeed = Math.Max(cruiseSpeed, t.startSpeed);
+            float runTime = t.speedRampPerSecond > 1e-4f ? (cruiseSpeed - t.startSpeed) / t.speedRampPerSecond : 0f;
+            Board.Reset(position, yaw, cruiseSpeed, runTime);
+            PlaceInFormation();
+        }
+
         /// <summary>Default start formation: two columns, spread along the deck.</summary>
         public void PlaceInFormation()
         {

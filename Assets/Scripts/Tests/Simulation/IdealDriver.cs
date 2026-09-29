@@ -49,22 +49,8 @@ namespace Game.Tests
             PlacePlayers(sim, lateral, longitudinal, dt);
         }
 
-        /// <summary>Pure pursuit on the planned line from the pose the board will have after the response delay.</summary>
-        float PredictiveSteer(in BoardState b, float maxYawRate)
-        {
-            float T = ResponseDelay;
-            float yawP = b.Yaw + b.YawRate * T;
-            Vector2 dir = SimMath.HeadingToDirection(b.TravelYaw + b.YawRate * T * 0.5f);
-            var posP = new Vector3(b.Position.X + dir.X * b.Speed * T, b.Position.Y, b.Position.Z + dir.Y * b.Speed * T);
-            RoadProjection pp = _run.Road.Project(posP, ref _predictHint);
-            if (!pp.Valid) return 0f;
-            float lookAhead = 6f + 0.35f * b.Speed;
-            float targetAlong = pp.Along + lookAhead;
-            Vector3 target = _run.Road.WorldPoint(targetAlong, _run.Road.PlannedLateral(targetAlong), out _);
-            float alpha = SimMath.WrapAngle(MathF.Atan2(target.X - posP.X, target.Z - posP.Z) - yawP);
-            float desiredYawRate = 2f * Math.Max(b.Speed, 1f) * MathF.Sin(alpha) / lookAhead;
-            return desiredYawRate / Math.Max(maxYawRate, 1e-3f);
-        }
+        float PredictiveSteer(in BoardState b, float maxYawRate) =>
+            _run.Road.PredictiveSteerHint(b, maxYawRate, ResponseDelay, ref _predictHint);
 
         float MaxLineSlopeAhead(float speed)
         {
