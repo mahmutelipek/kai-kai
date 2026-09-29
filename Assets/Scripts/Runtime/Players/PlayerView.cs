@@ -18,7 +18,7 @@ namespace Game
         Transform _pose, _armL, _armR, _marker;
         bool _detached;
         Vector3 _flightVelocity, _spin;
-        float _flightTime, _popTimer, _facingYaw;
+        float _flightTime, _popTimer, _facingYaw, _celebrateTimer;
 
         public int Slot => _slot;
 
@@ -37,6 +37,8 @@ namespace Game
             _boardView = boardView;
             _router = router;
             transform.SetParent(boardView.DeckTop, false);
+            // cheer after a clean landing (the board is still upright)
+            board.Landed += speed => { if (speed > 3f && board.Simulation != null && !board.State.Crashed) _celebrateTimer = 1.1f; };
 
             Color main = MaterialLibrary.PlayerColors[slot % MaterialLibrary.PlayerColors.Length];
             Color accent = Color.Lerp(main, Color.white, 0.55f);
@@ -132,15 +134,19 @@ namespace Game
             float shake = p.StaggerTimer > 0f ? Mathf.Sin(Time.time * 40f) * 12f : 0f;
             _pose.localRotation = Quaternion.Euler(0f, _facingYaw, 0f) * Quaternion.Euler(leanForward, 0f, counterRoll + shake);
 
-            // crouch with speed and danger; pop after respawn
+            // crouch with speed and danger, stretch while jumping; pop after respawn
             float crouch = 1f - 0.12f * speedNorm - 0.15f * board.Wobble;
+            float stretch = p.Height > 0.05f ? (p.VerticalVelocity > 0f ? 1.15f : 1.05f) : 1f;
             _popTimer = Mathf.Max(0f, _popTimer - Time.deltaTime);
             float pop = 1f + Mathf.Sin(_popTimer / 0.3f * Mathf.PI) * 0.25f;
-            _pose.localScale = new Vector3(pop, crouch * pop, pop);
+            float thin = stretch > 1f ? 0.93f : 1f;
+            _pose.localScale = new Vector3(pop * thin, crouch * pop * stretch, pop * thin);
 
-            // arms: balance out wide at speed, flail when wobbling
-            float spread = 15f + 35f * speedNorm + 90f * board.Wobble;
-            float flail = board.Wobble * Mathf.Sin(Time.time * 18f + _slot) * 40f;
+            // arms: balance out wide at speed, flail when wobbling, up in the air when cheering
+            _celebrateTimer = Mathf.Max(0f, _celebrateTimer - Time.deltaTime);
+            float cheer = _celebrateTimer > 0f && board.Wobble < 0.1f ? Mathf.Sin(Mathf.Min(1f, _celebrateTimer / 1.1f) * Mathf.PI) : 0f;
+            float spread = Mathf.Lerp(15f + 35f * speedNorm + 90f * board.Wobble, 160f, cheer);
+            float flail = board.Wobble * Mathf.Sin(Time.time * 18f + _slot) * 40f + cheer * Mathf.Sin(Time.time * 14f + _slot) * 15f;
             _armL.localRotation = Quaternion.Euler(0f, 0f, -spread - flail);
             _armR.localRotation = Quaternion.Euler(0f, 0f, spread - flail);
 

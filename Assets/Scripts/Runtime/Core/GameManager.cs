@@ -25,6 +25,7 @@ namespace Game
         public RunManager Run { get; private set; }
         public CameraController CameraRig { get; private set; }
         public DebugOverlay Overlay { get; private set; }
+        public GameFeel Feel { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
         public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true,
@@ -65,6 +66,9 @@ namespace Game
             for (int i = 0; i < Game.Simulation.BoardSimulation.MaxPlayers; i++) PlayerView.Create(i, Board, BoardView, InputRouter);
 
             CameraRig = CameraController.Create(Board);
+            SpeedLines.Create(CameraRig.GetComponent<Camera>(), Board);
+            Feel = gameObject.AddComponent<GameFeel>();
+            Feel.Initialize(Board);
             Run = gameObject.AddComponent<RunManager>();
             Run.Initialize(Board, CameraRig, roadMode, seed);
 

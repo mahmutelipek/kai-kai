@@ -8,7 +8,9 @@ namespace Game
     {
         BoardController _board;
         Transform[] _wheels;
+        Transform _visual;
         float _wheelAngle;
+        float _squash, _squashVelocity;
 
         /// <summary>Parent for anything that stands on the deck; local (0, 0, 0) is deck-top centre.</summary>
         public Transform DeckTop { get; private set; }
@@ -29,6 +31,8 @@ namespace Game
 
             var visual = new GameObject("Visual").transform;
             visual.SetParent(transform, false);
+            _visual = visual;
+            board.Landed += speed => _squashVelocity -= Mathf.Clamp(speed * 0.12f, 0f, 1.6f);
 
             // deck: middle slab + round nose and tail
             float deckY = deckTop - deckThickness * 0.5f;
@@ -74,6 +78,12 @@ namespace Game
             if (s.Grounded || s.Crashed) _wheelAngle += s.Speed / r * Mathf.Rad2Deg * Time.deltaTime;
             _wheelAngle %= 360f;
             for (int i = 0; i < _wheels.Length; i++) _wheels[i].localRotation = Quaternion.Euler(_wheelAngle, 0f, 0f);
+
+            // landing squash-and-stretch spring (visual only)
+            float dt = Time.deltaTime;
+            _squashVelocity += (-160f * _squash - 12f * _squashVelocity) * dt;
+            _squash = Mathf.Clamp(_squash + _squashVelocity * dt, -0.3f, 0.3f);
+            _visual.localScale = new Vector3(1f - _squash * 0.4f, 1f + _squash, 1f - _squash * 0.2f);
         }
     }
 }
