@@ -84,6 +84,7 @@ namespace Game
                 Tuning = sim.Tuning,
                 SteerHint = LastSteerHint,
                 BrakeHint = _run != null ? _run.Road.BrakeHint(_run.Distance, board.Speed, sim.Tuning) : 0f,
+                NitroAvailable = _run != null && _run.NitroCharges > 0,
                 Time = sim.Time,
                 Dt = dt,
             };
@@ -100,7 +101,7 @@ namespace Game
                         break;
                     case InputSourceKind.Bot:
                         ctx.Self = i;
-                        into[i] = _bots[i].Decide(ctx);
+                        into[i] = _bots[i] is GreedyFrontBot greedy ? greedy.DecideWithNitro(ctx) : _bots[i].Decide(ctx);
                         break;
                     default:
                         into[i] = PlayerInputState.None;

@@ -73,6 +73,10 @@ namespace Game.Simulation
         public float Direction;
 
         public float HitCooldown;
+        /// <summary>Closest the board footprint came while passing (near-miss tracking).</summary>
+        public float MinClearance;
+        public bool NearMissEvaluated;
+        public bool HitByBoard;
         public Vector3 KnockVelocity;
         public float KnockTime;
     }

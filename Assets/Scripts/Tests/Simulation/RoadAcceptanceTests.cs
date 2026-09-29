@@ -27,7 +27,7 @@ namespace Game.Tests
 
         static SoakStats Soak(int seed, List<ChunkLogEntry> log)
         {
-            var t = new BoardTuningData();
+            var t = new BoardTuningData { livesPerRun = 0 };
             var road = new RoadModel();
             var obstacles = new ObstacleField();
             var generator = new RoadGenerator(t, road, obstacles, new DifficultyManager(t)) { Log = log };
@@ -159,7 +159,7 @@ namespace Game.Tests
 
         public static DriveResult DriveIdeal(int seed, float distance, int players = 6, Action<RunSimulation> perStep = null)
         {
-            var t = new BoardTuningData();
+            var t = new BoardTuningData { livesPerRun = 0 };
             var run = new RunSimulation(t, seed, players);
             var driver = new IdealDriver(run);
             var none = new PlayerInputState[BoardSimulation.MaxPlayers];
@@ -234,7 +234,7 @@ namespace Game.Tests
         [Test]
         public void M2_4_SteadyState_NoAllocations_StepTimeStats()
         {
-            var t = new BoardTuningData();
+            var t = new BoardTuningData { livesPerRun = 0 };
             var run = new RunSimulation(t, 42, 6);
             var driver = new IdealDriver(run);
             var none = new PlayerInputState[BoardSimulation.MaxPlayers];

@@ -67,6 +67,28 @@ namespace Game.Simulation
         [TuningRange("Difficulty", 500f, 30000f)] public float difficultyFullDistance = 8000f;
         [TuningRange("Difficulty", 0f, 1f)] public float difficultySpeedCapBonus = 0.25f;
 
+        // ---------------- Nitro (M3) ----------------
+        [TuningRange("Nitro", 0.5f, 8f)] public float nitroDuration = 3f;
+        [TuningRange("Nitro", 0f, 30f)] public float nitroSpeedBonus = 12f;
+        [TuningRange("Nitro", 0f, 30f)] public float nitroAcceleration = 10f;
+        /// <summary>Stability multiplier while boosting: >1 means the same weight shift is more dangerous.</summary>
+        [TuningRange("Nitro", 1f, 3f)] public float nitroInstability = 1.35f;
+
+        // ---------------- Scoring (M3) ----------------
+        [TuningRange("Score", 0f, 10f)] public float pointsPerMeter = 1f;
+        [TuningRange("Score", 0f, 100f)] public float coinPoints = 10f;
+        [TuningRange("Score", 0f, 1000f)] public float diamondPoints = 100f;
+        [TuningRange("Score", 0f, 500f)] public float nearMissPoints = 50f;
+        [TuningRange("Score", 0f, 1000f)] public float airtimePointsPerSecond = 100f;
+        [TuningRange("Score", 1f, 30f)] public float comboStep = 10f;
+        [TuningRange("Score", 1f, 20f)] public float comboMaxMultiplier = 6f;
+        [TuningRange("Score", 0.5f, 15f)] public float comboIdleTime = 4f;
+        [TuningRange("Score", 0f, 10f)] public float comboDrainPerSecond = 2f;
+        [TuningRange("Score", 0f, 5f)] public float nearMissDistance = 1.2f;
+        [TuningRange("Score", 0f, 30f)] public float nearMissMinSpeed = 10f;
+        [TuningRange("Score", 0f, 2f)] public float minScoredAirtime = 0.35f;
+        [TuningRange("Score", 0f, 10f)] public float livesPerRun = 3f;
+
         // ---------------- Vertical ----------------
         [TuningRange("Vertical", 5f, 40f)] public float gravity = 20f;
         [TuningRange("Vertical", 1f, 20f)] public float hardLandingSpeed = 6f;

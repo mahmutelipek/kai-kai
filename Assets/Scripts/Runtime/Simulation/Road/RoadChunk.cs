@@ -51,6 +51,8 @@ namespace Game.Simulation
         public readonly List<int> ObstacleSlots = new List<int>(32);
         /// <summary>Pool generation per slot: a slot freed early (knocked, traffic left) may be reused by another chunk.</summary>
         public readonly List<int> ObstacleGenerations = new List<int>(32);
+        public readonly List<int> PickupSlots = new List<int>(48);
+        public readonly List<int> PickupGenerations = new List<int>(48);
         /// <summary>Reachable, obstacle-free lateral line per sample (filled by RoadPlanner).</summary>
         public readonly List<float> PlannedLateral = new List<float>(160);
 
@@ -79,6 +81,8 @@ namespace Game.Simulation
             Ramps.Clear();
             ObstacleSlots.Clear();
             ObstacleGenerations.Clear();
+            PickupSlots.Clear();
+            PickupGenerations.Clear();
             PlannedLateral.Clear();
             RoofStart = RoofEnd = 0f;
 

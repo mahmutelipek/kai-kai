@@ -26,6 +26,7 @@ namespace Game
         public CameraController CameraRig { get; private set; }
         public DebugOverlay Overlay { get; private set; }
         public GameFeel Feel { get; private set; }
+        public HUDController Hud { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
         public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true,
@@ -57,6 +58,9 @@ namespace Game
             BoardView = BoardView.Create(Board);
             RoadView = RoadView.Create(transform, Board.Run.Road);
             ObstacleViews.Create(transform, Board.Run.Obstacles);
+            PickupViews.Create(transform, Board.Run.Pickups);
+            Board.Run.HighScores = new Game.Simulation.HighScoreManager(new Game.Simulation.FileHighScoreStore(
+                System.IO.Path.Combine(Application.persistentDataPath, "highscores.txt")));
 
             InputRouter = Board.gameObject.AddComponent<PlayerInputRouter>();
             InputRouter.Initialize(Board.Run, botsEnabled);
@@ -77,6 +81,8 @@ namespace Game
             var tuningPanel = gameObject.AddComponent<TuningPanel>();
             tuningPanel.Initialize(tuning);
             gameObject.AddComponent<GameHotkeys>().Initialize(Board, InputRouter, Run, Overlay, tuningPanel);
+            Hud = gameObject.AddComponent<HUDController>();
+            Hud.Initialize(Board, Run, InputRouter, Overlay);
         }
 
         static void EnsureLight()

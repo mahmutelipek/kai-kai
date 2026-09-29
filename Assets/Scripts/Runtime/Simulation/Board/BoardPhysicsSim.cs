@@ -43,6 +43,9 @@ namespace Game.Simulation
         public float RunTime;
         public float LastGroundHeight;
 
+        /// <summary>Seconds of nitro boost left (0 = off).</summary>
+        public float NitroTimer;
+
         public bool Grounded;
         public SurfaceKind Surface;
         public bool Crashed;
@@ -122,11 +125,19 @@ namespace Game.Simulation
             State.YawRate += yawKick;
         }
 
+        /// <summary>Starts the nitro boost (duration from tuning).</summary>
+        public void StartNitro(float duration)
+        {
+            if (State.Crashed) return;
+            State.NitroTimer = Math.Max(State.NitroTimer, duration);
+        }
+
         public void ForceCrash()
         {
             if (State.Crashed) return;
             State.Crashed = true;
             State.CrashTimer = 0f;
+            State.NitroTimer = 0f;
             State.CrashDirection = State.Steering >= 0f ? 1f : -1f;
         }
 
@@ -149,6 +160,13 @@ namespace Game.Simulation
             s.RunTime += dt;
             float cap = t.softCapSpeed * Math.Max(SpeedCapMultiplier, 0.1f);
             s.TargetSpeed = Math.Min(t.startSpeed + t.speedRampPerSecond * s.RunTime, cap);
+            bool nitro = s.NitroTimer > 0f;
+            if (nitro)
+            {
+                s.NitroTimer = Math.Max(0f, s.NitroTimer - dt);
+                s.TargetSpeed += t.nitroSpeedBonus;
+                cap += t.nitroSpeedBonus;
+            }
 
             // 1) smoothed steering: heavy, delayed, momentum-like
             s.Steering += (weight.RawSteering - s.Steering) * SimMath.LagAlpha(dt, t.steeringSmoothingTime);
@@ -156,7 +174,8 @@ namespace Game.Simulation
             // 2) danger: speed and front weight lower stability
             float speedNorm = SimMath.Clamp01(s.Speed / Math.Max(t.stabilityReferenceSpeed, 1e-3f));
             float stability = SimMath.Lerp(t.stabilityFactorLowSpeed, t.stabilityFactorHighSpeed, speedNorm)
-                              * (1f + t.frontWeightInstability * Math.Max(0f, s.Longitudinal) * speedNorm);
+                              * (1f + t.frontWeightInstability * Math.Max(0f, s.Longitudinal) * speedNorm)
+                              * (nitro ? t.nitroInstability : 1f);
             s.Danger = Math.Abs(s.Steering) * stability / t.crashThreshold;
             s.Wobble = SimMath.SmoothStep(t.wobbleStartFraction, 1f, s.Danger);
             s.Grip = 1f - t.gripLossMax * s.Wobble;
@@ -197,7 +216,8 @@ namespace Game.Simulation
                               + t.frontAcceleration * Math.Max(0f, s.Longitudinal) * fade
                               - t.rearBraking * Math.Max(0f, -s.Longitudinal)
                               - (s.Surface == SurfaceKind.Offroad ? t.offroadDrag : 0f)
-                              - SlipSpeedLoss * MathF.Abs(MathF.Sin(slip)) * s.Speed;
+                              - SlipSpeedLoss * MathF.Abs(MathF.Sin(slip)) * s.Speed
+                              + (nitro && s.Speed < s.TargetSpeed ? t.nitroAcceleration : 0f);
                 float newSpeed = Math.Max(s.Speed + accel * dt, Math.Min(t.minSpeed, s.Speed));
                 s.Acceleration = (newSpeed - s.Speed) / dt;
                 s.Speed = newSpeed;

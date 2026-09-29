@@ -3,7 +3,7 @@
 Co-op endless downhill party game prototype (Unity 6, URP). 1–6 players stand on one giant longboard (2–6 is the real game; 1 is a solo test mode).
 There is no steering input: **the board is steered only by where the players stand.**
 
-Current state: **Milestone 2 – endless procedural road** (primitive placeholder art). Milestone 1 (core board control) is done.
+Current state: **Milestone 3 – pickups, scoring, combo** (primitive placeholder art). Milestones 1–2 are done.
 
 ---
 
@@ -29,18 +29,35 @@ when URP is active and fall back to `Standard` otherwise.
 |---|---|
 | WASD / arrows | Move your player on the deck (W = toward the nose) |
 | Space | Jump (airborne players weigh 25 %) |
+| E | Fire a stored nitro (any player's action button can do it) |
 | Tab | Switch which player the keyboard controls |
 | Gamepad | Each connected gamepad takes over one more player (left stick / d-pad, A/Cross = jump) |
 | B | Bots on / off (bots drive every slot not taken by keyboard / gamepad) |
 | C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative*. Every bot keeps its own lane along the deck; all but the stubborn ones partly follow the road |
 | 1 – 6 | Number of players on the board. The game starts **solo (1 player)**: you alone steer the board, which is the clearest way to feel the mechanic. Add players / bots with 2–6 |
-| R | Restart the run (endless: new random road) |
+| R | Restart the run (endless: new random road). On the end screen also Space / gamepad A |
 | M | Switch between the endless road and the M1 test track |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |
 
 Crash → players are thrown off → the board respawns on the free line of the road ~2.5 s later (10 m back).
 The M1 test track (M key) is ~2.5 km: straight, left curve, straight, right curve, long straight with cones and a ramp.
+
+## Pickups, score and combo (Milestone 3)
+
+- **Coins** in lines along the planned safe line; **diamonds** on risky lines (grazing a barrier, the outside of a
+  hard curve, next to a wall or debris, or high above a ramp landing – only reachable in the air);
+  **nitro** about once per kilometre: stored (max 2), fired by any player's action button. Nitro = +12 m/s target
+  speed and +35 % instability for 3 s (`nitro*` tuning).
+- **Score** = (distance + coins + diamonds + near misses + airtime) × combo multiplier at the moment each point is earned.
+  Multiplier = 1 + combo / `comboStep` (10), capped at `comboMaxMultiplier` (×6).
+- **Combo** +1 coin, +3 diamond, +2 near miss, +2 clean landing, +3 hard section survived, +1 nitro pickup.
+  It drains after `comboIdleTime` (4 s) without events; a light hit (cone, crate, pothole) halves it;
+  a heavy hit, a player falling off or a crash resets it.
+- **Near miss**: passing a solid obstacle or car within `nearMissDistance` (1.2 m) at ≥ 10 m/s without touching it.
+- **Clean landing**: board comes down balanced (below the wobble zone), nobody thrown off, no crash.
+- **Run end**: `livesPerRun` (3) crashes end the run → end screen with the breakdown and best score. 0 = endless practice.
+- **High score** (best score, best distance) is stored in `Application.persistentDataPath/highscores.txt`.
 
 ## Endless road (Milestone 2)
 
@@ -121,6 +138,11 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 | | heavyStaggerTime / heavyFallThreshold | 0.7 s / 0.55 | Players beyond 55 % of the deck toward the impact fall off |
 | | potholeSpeedLoss / wallScrapeSpeedLoss / wallCrashLateralSpeed | 0.06 / 0.12 / 11 m/s | |
 | Difficulty | difficultyFullDistance / difficultySpeedCapBonus | 8000 m / 0.25 | |
+| Crash | respawnSpeedFraction | 0.6 | After a crash the board resumes at 60 % of its previous cruise speed |
+| Nitro | nitroDuration / nitroSpeedBonus / nitroAcceleration / nitroInstability | 3 s / 12 m/s / 10 m/s² / 1.35 | |
+| Score | pointsPerMeter / coinPoints / diamondPoints / nearMissPoints / airtimePointsPerSecond | 1 / 10 / 100 / 50 / 100 | Base points |
+| | comboStep / comboMaxMultiplier / comboIdleTime / comboDrainPerSecond | 10 / 6 / 4 s / 2 per s | |
+| | nearMissDistance / nearMissMinSpeed / minScoredAirtime / livesPerRun | 1.2 m / 10 m/s / 0.35 s / 3 | |
 | Players | playerRadius / playerHeight | 0.33 / 1.1 m | |
 | | playerMoveSpeed / GroundAcceleration / AirAcceleration | 3.6 m/s / 20 / 6 m/s² | |
 | | playerJumpVelocity / playerGravity / playerJumpCooldown | 4.5 m/s / 14 m/s² / 0.25 s | |
@@ -135,6 +157,7 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 **In Unity:** *Window → General → Test Runner → PlayMode → Run All*. `Game.Tests` contains
 - `BoardAcceptanceTests` / `BoardFlowTests` — the Milestone 1 acceptance tests on the engine-independent simulation
 - `TrackRunTests` — bot crews drive the whole M1 test track headless (same layout, ramp and respawn rules as the scene)
+- `ScoringAcceptanceTests` — Milestone 3: score and combo rules, near miss and airtime detection, nitro, high score persistence
 - `RoadAcceptanceTests` — Milestone 2: 10 km soak on 5 seeds with a validity check at every chunk join, scripted
   ideal driver over 10 km, difficulty curve (set `DOWNHILL_REPORT_DIR` to also write `M2_difficulty_curve.csv`),
   allocation and step-time measurement
@@ -164,7 +187,9 @@ Assets/Scripts/
       Bots/                     BotBrain + 6 behaviours
       Road/                     RoadGenerator, RoadChunkLibrary, RoadChunk, RoadModel (ground/projection),
                                 RoadPlanner (traversability), DifficultyManager, TestRoadLayout (M1 track)
-      Obstacles/                ObstacleField (pool, traffic, collision), ObstacleTypes (kinds, severity)
+      Obstacles/                ObstacleField (pool, traffic, collision, near misses), ObstacleTypes (kinds, severity)
+      Pickups/PickupField.cs    coin / diamond / nitro pool and collection
+      Scoring/                  ScoreManager (score + combo rules), HighScoreManager + FileHighScoreStore
       RunSimulation.cs          one authoritative run: road + obstacles + difficulty + board
       Input/PlayerInputState.cs the only input the sim reads
       Tuning/BoardTuningData.cs every tuning value
@@ -173,6 +198,9 @@ Assets/Scripts/
     Input/                      PlayerInputRouter (keyboard / gamepads / bots), LocalDeviceInput
     Road/                       RoadView + ChunkView (pooled chunk meshes)
     Obstacles/ObstacleViews.cs  pooled primitive models mirroring the obstacle pool
+    Pickups/PickupViews.cs      spinning coins, diamonds, nitro bottles
+    UI/HUDController.cs         HUD (reference layout), event popups, end-of-run screen
+    CameraRig/                  CameraController, GameFeel (hit-stop, crash slow-mo), SpeedLines
     CameraRig/CameraController.cs
     Core/                       GameManager (bootstrap), RunManager, GameHotkeys
     DebugTools/                 DebugOverlay (F1), TuningPanel (F2)

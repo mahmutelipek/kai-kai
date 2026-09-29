@@ -14,6 +14,20 @@ namespace Game.Simulation
         public bool Crashed;
         public bool Respawned;
         public int PlayersThrownOff;
+        public int Coins, Diamonds, NitroPickups, NearMisses;
+        public bool NitroStarted;
+        public bool Landed;
+        public float Airtime;
+        public bool CleanLanding;
+        public bool SectionCleared;
+        /// <summary>This step the run ended (no lives left).</summary>
+        public bool RunEnded;
+    }
+
+    public enum RunState
+    {
+        Running,
+        Ended,
     }
 
     /// <summary>
@@ -28,6 +42,10 @@ namespace Game.Simulation
         public readonly BoardTuningData Tuning;
         public readonly RoadModel Road = new RoadModel();
         public readonly ObstacleField Obstacles = new ObstacleField();
+        public readonly PickupField Pickups = new PickupField();
+        public readonly ScoreManager Score;
+        /// <summary>Optional: set by the host to persist best score / distance.</summary>
+        public HighScoreManager HighScores;
         public readonly DifficultyManager Difficulty;
         public readonly RoadGenerator Generator;
         public readonly BoardSimulation Board;
@@ -35,6 +53,17 @@ namespace Game.Simulation
         public readonly List<ImpactEvent> LastImpacts = new List<ImpactEvent>(8);
 
         readonly List<ImpactEvent> _hits = new List<ImpactEvent>(8);
+        readonly List<PickupEvent> _collected = new List<PickupEvent>(8);
+        readonly List<int> _nearMisses = new List<int>(4);
+        /// <summary>Pickups collected in the last step.</summary>
+        public readonly List<PickupEvent> LastPickups = new List<PickupEvent>(8);
+        /// <summary>Obstacle slots near-missed in the last step.</summary>
+        public readonly List<int> LastNearMisses = new List<int>(4);
+        float _airtime;
+        bool _wasCrashed;
+        float _scoredDistance;
+        int _sectionSerial = -1;
+        bool _sectionClean;
         IList<FixedChunkSpec> _fixedTrack;
         int _projectionHint;
         float _wallCooldown;
@@ -47,12 +76,21 @@ namespace Game.Simulation
         public float DifficultyLevel { get; private set; }
         public int Crashes { get; private set; }
         public int Seed => Generator.Seed;
+        public RunState State { get; private set; }
+        public int NitroCharges { get; private set; }
+        public const int MaxNitroCharges = 2;
+        public int LivesLeft { get; private set; }
+        /// <summary>0 = endless practice (unlimited respawns).</summary>
+        public int LivesPerRun => (int)Tuning.livesPerRun;
+        public bool NewBestScore { get; private set; }
+        public bool NewBestDistance { get; private set; }
 
         public RunSimulation(BoardTuningData tuning, int seed, int players, IList<FixedChunkSpec> fixedTrack = null)
         {
             Tuning = tuning;
             Difficulty = new DifficultyManager(tuning);
-            Generator = new RoadGenerator(tuning, Road, Obstacles, Difficulty);
+            Score = new ScoreManager(tuning);
+            Generator = new RoadGenerator(tuning, Road, Obstacles, Difficulty, Pickups);
             Board = new BoardSimulation(tuning, Road, players);
             Reset(seed, fixedTrack);
         }
@@ -66,6 +104,16 @@ namespace Game.Simulation
             _projectionHint = 0;
             Distance = MaxDistance = 0f;
             Crashes = 0;
+            Score.Reset();
+            State = RunState.Running;
+            NitroCharges = 0;
+            LivesLeft = LivesPerRun;
+            NewBestScore = NewBestDistance = false;
+            _airtime = 0f;
+            _wasCrashed = false;
+            _scoredDistance = 0f;
+            _sectionSerial = -1;
+            _sectionClean = true;
             Road.Sample(0.5f, out Vector3 p, out float yaw, out _);
             Board.Restart(p, yaw);
             Projection = Road.Project(p, ref _projectionHint);
@@ -78,21 +126,32 @@ namespace Game.Simulation
         public void SetTuning(BoardTuningData tuning)
         {
             Board.Tuning = tuning;
+            Score.SetTuning(tuning);
         }
 
         public RunStepEvents Step(float dt, IReadOnlyList<PlayerInputState> inputs)
         {
             var ev = new RunStepEvents();
             LastImpacts.Clear();
-            if (!(dt > 0f)) return ev;
+            LastPickups.Clear();
+            LastNearMisses.Clear();
+            if (!(dt > 0f) || State == RunState.Ended) return ev;
+
+            // nitro: any player pressing the action button fires a stored charge
+            if (NitroCharges > 0 && Board.Board.State.NitroTimer <= 0f && !Board.Board.State.Crashed && AnyAction(inputs))
+            {
+                NitroCharges--;
+                Board.Board.StartNitro(Tuning.nitroDuration);
+                ev.NitroStarted = true;
+            }
 
             Generator.Update(Distance);
             DifficultyLevel = Difficulty.At(Distance);
             Board.Board.SpeedCapMultiplier = _fixedTrack == null ? Difficulty.SpeedCapMultiplier(DifficultyLevel) : 1f;
             Obstacles.Step(dt, Road, Distance, Board.Board.State.Speed);
+            Pickups.Step(dt);
 
             ev.Sim = Board.Step(dt, inputs);
-            if (ev.Sim.Board.Crashed) { ev.Crashed = true; Crashes++; }
 
             ref BoardState s = ref Board.Board.State;
             Projection = Road.Project(s.Position, ref _projectionHint);
@@ -101,13 +160,126 @@ namespace Game.Simulation
 
             ResolveObstacles(ref ev);
             ResolveWalls(dt, ref ev);
+            UpdateScoring(dt, ref ev);
 
             if (Board.RestartDue)
             {
-                Respawn(Distance - RespawnBackOff);
-                ev.Respawned = true;
+                if (LivesPerRun > 0 && LivesLeft <= 0) EndRun(ref ev);
+                else
+                {
+                    Respawn(Distance - RespawnBackOff);
+                    ev.Respawned = true;
+                }
             }
             return ev;
+        }
+
+        static bool AnyAction(IReadOnlyList<PlayerInputState> inputs)
+        {
+            if (inputs == null) return false;
+            for (int i = 0; i < inputs.Count; i++) if (inputs[i].Action) return true;
+            return false;
+        }
+
+        void UpdateScoring(float dt, ref RunStepEvents ev)
+        {
+            BoardState s = Board.Board.State;
+
+            // pickups
+            Pickups.Collect(s, Tuning, Distance, _collected);
+            for (int i = 0; i < _collected.Count; i++)
+            {
+                LastPickups.Add(_collected[i]);
+                switch (_collected[i].Kind)
+                {
+                    case PickupKind.Coin: Score.OnCoin(); ev.Coins++; break;
+                    case PickupKind.Diamond: Score.OnDiamond(); ev.Diamonds++; break;
+                    default:
+                        NitroCharges = Math.Min(MaxNitroCharges, NitroCharges + 1);
+                        Score.OnNitroPickup();
+                        ev.NitroPickups++;
+                        break;
+                }
+            }
+
+            // near misses
+            Obstacles.TrackNearMisses(s, Tuning, Distance, _nearMisses);
+            for (int i = 0; i < _nearMisses.Count; i++) { LastNearMisses.Add(_nearMisses[i]); Score.OnNearMiss(); ev.NearMisses++; }
+
+            // airtime and landings
+            if (!s.Grounded && !s.Crashed) _airtime += dt;
+            if (ev.Sim.Board.Landed)
+            {
+                bool clean = IsCleanLanding(s.Danger, ev.Sim.PlayersFell, s.Crashed, Tuning);
+                ev.Landed = true;
+                ev.Airtime = _airtime;
+                ev.CleanLanding = clean && _airtime >= Tuning.minScoredAirtime;
+                Score.OnLanding(_airtime, clean);
+                _airtime = 0f;
+            }
+            if (s.Crashed) _airtime = 0f;
+
+            // one place counts crashes, whatever caused them (tipping, obstacle, wall, falling off, external)
+            if (s.Crashed && !_wasCrashed)
+            {
+                ev.Crashed = true;
+                Crashes++;
+                LivesLeft = Math.Max(0, LivesLeft - 1);
+            }
+            _wasCrashed = s.Crashed;
+
+            // collisions and falls break the combo
+            if (ev.Crashed) { Score.OnCrash(); _sectionClean = false; }
+            else
+            {
+                if (ev.HeavyHits > 0) { Score.OnHeavyHit(); _sectionClean = false; }
+                else if (ev.Sim.PlayersFell > 0) Score.OnPlayerFell();
+                if (ev.LightHits > 0 || ev.Bumps > 0) Score.OnLightHit();
+            }
+
+            // surviving a hard section
+            RoadChunk chunk = Projection.Chunk;
+            if (chunk != null && chunk.Serial != _sectionSerial)
+            {
+                RoadChunk previous = FindChunk(_sectionSerial);
+                if (previous != null && previous.Definition.IsIntense && _sectionClean && chunk.Serial > _sectionSerial)
+                {
+                    Score.OnSectionCleared();
+                    ev.SectionCleared = true;
+                }
+                _sectionSerial = chunk.Serial;
+                _sectionClean = true;
+            }
+
+            // distance: only new ground counts (respawning backwards does not score twice)
+            float progressed = Math.Max(0f, MaxDistance - _scoredDistance);
+            _scoredDistance = Math.Max(_scoredDistance, MaxDistance);
+            Score.Tick(dt, progressed);
+        }
+
+        /// <summary>
+        /// A landing is clean when the board comes down balanced (below the wobble zone), nobody is thrown off and it
+        /// does not crash. A hard landing still staggers everyone but does not spoil it.
+        /// </summary>
+        public static bool IsCleanLanding(float danger, int playersFell, bool crashed, BoardTuningData t) =>
+            !crashed && playersFell == 0 && danger < t.wobbleStartFraction;
+
+        RoadChunk FindChunk(int serial)
+        {
+            for (int i = 0; i < Road.Chunks.Count; i++) if (Road.Chunks[i].Serial == serial) return Road.Chunks[i];
+            return null;
+        }
+
+        void EndRun(ref RunStepEvents ev)
+        {
+            State = RunState.Ended;
+            ev.RunEnded = true;
+            if (HighScores != null)
+            {
+                HighScores.Submit(Score.Score, MaxDistance, out bool bestScore, out bool bestDistance);
+                NewBestScore = bestScore;
+                NewBestDistance = bestDistance;
+            }
         }
 
         void ResolveObstacles(ref RunStepEvents ev)
@@ -141,8 +313,6 @@ namespace Game.Simulation
                 {
                     hit.Severity = ImpactSeverity.Crash;
                     Board.CrashNow();
-                    ev.Crashed = true;
-                    Crashes++;
                 }
                 else
                 {
@@ -184,8 +354,6 @@ namespace Game.Simulation
             if (into > Tuning.wallCrashLateralSpeed)
             {
                 Board.CrashNow();
-                ev.Crashed = true;
-                Crashes++;
                 return;
             }
             if (into > 0f) velocity -= outward * into * 1.2f;
@@ -203,6 +371,7 @@ namespace Game.Simulation
         /// <summary>Puts the board back on the planned (free) line a little before <paramref name="along"/>.</summary>
         public void Respawn(float along)
         {
+            Generator.Update(Math.Max(along, 0f)); // make sure the road exists there (teleports / test hooks)
             along = SimMath.Clamp(along, Road.StartAlong + 1f, Road.EndAlong - 1f);
             float lateral = Road.PlannedLateral(along);
             Vector3 p = Road.WorldPoint(along, lateral, out float yaw);
@@ -215,6 +384,7 @@ namespace Game.Simulation
             }
             float resumeSpeed = Board.Board.State.TargetSpeed * Tuning.respawnSpeedFraction;
             Board.Restart(p, yaw, resumeSpeed);
+            _wasCrashed = false;
             Projection = Road.Project(p, ref _projectionHint);
             Distance = Projection.Along;
         }

@@ -31,6 +31,8 @@ namespace Game
         /// <summary>Landing speed in m/s.</summary>
         public event Action<float> Landed;
         public event Action Respawned;
+        /// <summary>Raised after every simulation step with that step's events (HUD popups, audio later).</summary>
+        public event Action<RunStepEvents> Stepped;
 
         public static BoardController Create(BoardTuning tuning, int seed, int playerCount, IList<FixedChunkSpec> fixedTrack)
         {
@@ -70,6 +72,7 @@ namespace Game
             else if (ev.HeavyHits > 0 || ev.WallScrapes > 0) Impact?.Invoke(0.6f);
             else if (ev.LightHits > 0 || ev.Bumps > 0) Impact?.Invoke(0.25f);
             if (ev.Sim.Board.Landed) Landed?.Invoke(ev.Sim.Board.LandingSpeed);
+            Stepped?.Invoke(ev);
         }
 
         void ApplyPose()

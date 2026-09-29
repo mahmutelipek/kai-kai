@@ -26,6 +26,8 @@ namespace Game.Simulation
         public float SteerHint;
         /// <summary>0..1 how much the road ahead asks to slow down (see RoadModel.BrakeHint).</summary>
         public float BrakeHint;
+        /// <summary>A stored nitro charge can be fired (Action).</summary>
+        public bool NitroAvailable;
         public float Time;
         public float Dt;
     }
@@ -234,6 +236,14 @@ namespace Game.Simulation
                 _side = RandomRange(-0.8f, 0.8f);
             }
             return new Vector2(BlendTowardRoad(_side * t.HalfWidth, ctx, self, 0.3f), t.HalfLength * 0.75f);
+        }
+
+        /// <summary>Greedy for speed: fires the nitro as soon as the road looks straight-ish.</summary>
+        public PlayerInputState DecideWithNitro(in BotContext ctx)
+        {
+            PlayerInputState input = Decide(ctx);
+            if (ctx.NitroAvailable && ctx.BrakeHint < 0.05f && ctx.Board.Danger < 0.3f && Rng.NextDouble() < 0.02) input.Action = true;
+            return input;
         }
     }
 

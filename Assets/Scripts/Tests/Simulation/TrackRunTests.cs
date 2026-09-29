@@ -36,7 +36,7 @@ namespace Game.Tests
         public static TrackRunResult Run(BotBehavior[] slots, IList<FixedChunkSpec> fixedTrack, float targetDistance,
                                          float maxSeconds = 600f, int seed = 1, BoardTuningData tuning = null)
         {
-            BoardTuningData t = tuning ?? new BoardTuningData();
+            BoardTuningData t = tuning ?? new BoardTuningData { livesPerRun = 0 }; // practice: unlimited respawns
             var run = new RunSimulation(t, seed, slots.Length, fixedTrack);
             var bots = new BotBrain[slots.Length];
             for (int i = 0; i < slots.Length; i++) bots[i] = BotBrain.Create(slots[i], 1000 + i * 17);

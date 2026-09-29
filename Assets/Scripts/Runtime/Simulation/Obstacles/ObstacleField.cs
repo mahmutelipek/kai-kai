@@ -38,6 +38,7 @@ namespace Game.Simulation
                 int generation = Items[i].Generation + 1;
                 Items[i] = template;
                 Items[i].Active = true;
+                Items[i].MinClearance = float.PositiveInfinity;
                 Items[i].Generation = generation;
                 _cursor = (i + 1) % Capacity;
                 ActiveCount++;
@@ -156,6 +157,7 @@ namespace Game.Simulation
                 var obsCenter = new Vector2(o.Position.X, o.Position.Z);
                 if (!Overlap(boardCenter, board.Yaw, boardHalf, obsCenter, o.Yaw, o.HalfExtents, out Vector2 normal, out float depth)) continue;
 
+                o.HitByBoard = true;
                 float closing = Vector2.Dot(boardVel - o.Velocity, -normal);
                 hits.Add(new ImpactEvent
                 {
@@ -168,6 +170,59 @@ namespace Game.Simulation
                 });
             }
             return hits.Count;
+        }
+
+        /// <summary>
+        /// Near misses: while the board passes a solid obstacle (or car) the closest gap is tracked; once the board is
+        /// past it, a gap under nearMissDistance at speed without a hit counts once.
+        /// </summary>
+        public int TrackNearMisses(in BoardState board, BoardTuningData t, float boardAlong, List<int> nearMisses)
+        {
+            nearMisses.Clear();
+            if (board.Crashed) return 0;
+            var boardCenter = new Vector2(board.Position.X, board.Position.Z);
+            var boardHalf = new Vector2(t.HalfWidth, t.HalfLength);
+            for (int i = 0; i < Capacity; i++)
+            {
+                ref Obstacle o = ref Items[i];
+                if (!o.Active || o.Knocked || o.NearMissEvaluated) continue;
+                if (ObstacleCatalog.IsKnockable(o.Kind) || o.Kind == ObstacleKind.Pothole) continue;
+                float relAlong = boardAlong - o.Along;
+                if (relAlong < -20f) continue;
+                if (relAlong <= o.HalfExtents.Y + t.boardLength + 2f)
+                {
+                    if (Math.Abs(relAlong) < 15f + o.HalfExtents.Y && board.Position.Y <= o.Position.Y + o.Height)
+                    {
+                        float gap = Gap(boardCenter, board.Yaw, boardHalf, new Vector2(o.Position.X, o.Position.Z), o.Yaw, o.HalfExtents);
+                        o.MinClearance = Math.Min(o.MinClearance, gap);
+                    }
+                    continue;
+                }
+                o.NearMissEvaluated = true;
+                if (!o.HitByBoard && o.MinClearance < t.nearMissDistance && board.Speed >= t.nearMissMinSpeed) nearMisses.Add(i);
+            }
+            return nearMisses.Count;
+        }
+
+        /// <summary>Separation between two oriented rectangles along the best separating axis (0 when touching).</summary>
+        public static float Gap(Vector2 ca, float yawA, Vector2 ha, Vector2 cb, float yawB, Vector2 hb)
+        {
+            Vector2 ax = new Vector2(MathF.Cos(yawA), -MathF.Sin(yawA)), az = new Vector2(MathF.Sin(yawA), MathF.Cos(yawA));
+            Vector2 bx = new Vector2(MathF.Cos(yawB), -MathF.Sin(yawB)), bz = new Vector2(MathF.Sin(yawB), MathF.Cos(yawB));
+            Vector2 d = ca - cb;
+            float gap = 0f;
+            gap = Math.Max(gap, AxisGap(ax, d, ax, az, ha, bx, bz, hb));
+            gap = Math.Max(gap, AxisGap(az, d, ax, az, ha, bx, bz, hb));
+            gap = Math.Max(gap, AxisGap(bx, d, ax, az, ha, bx, bz, hb));
+            gap = Math.Max(gap, AxisGap(bz, d, ax, az, ha, bx, bz, hb));
+            return gap;
+        }
+
+        static float AxisGap(Vector2 axis, Vector2 d, Vector2 ax, Vector2 az, Vector2 ha, Vector2 bx, Vector2 bz, Vector2 hb)
+        {
+            float ra = ha.X * Math.Abs(Vector2.Dot(ax, axis)) + ha.Y * Math.Abs(Vector2.Dot(az, axis));
+            float rb = hb.X * Math.Abs(Vector2.Dot(bx, axis)) + hb.Y * Math.Abs(Vector2.Dot(bz, axis));
+            return Math.Abs(Vector2.Dot(d, axis)) - ra - rb;
         }
 
         /// <summary>2D separating-axis test between two oriented rectangles. Normal points from B toward A.</summary>

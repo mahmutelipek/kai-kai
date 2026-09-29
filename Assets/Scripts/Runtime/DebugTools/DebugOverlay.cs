@@ -66,6 +66,7 @@ namespace Game
             Line($"grounded {s.Grounded}  surface {s.Surface}  crashed {s.Crashed}");
             Line($"distance {_run.Distance:0} m (best {_run.BestDistance:0})   lateral {_run.LateralOffset:+0.0;-0.0} m   crashes {_run.Crashes}");
             Line($"chunk         {_run.CurrentChunk}   difficulty {_board.Run.DifficultyLevel:0.00}   seed {_run.Seed} ({_run.Mode})");
+            Line($"score {_board.Run.Score.Score:0}  combo {_board.Run.Score.Combo} (x{_board.Run.Score.Multiplier})  nitro {_board.Run.NitroCharges} ({s.NitroTimer:0.0}s)  lives {_board.Run.LivesLeft}/{_board.Run.LivesPerRun}  {_board.Run.State}");
             Line($"road          {_board.Run.Road.Chunks.Count} chunks, {_board.Run.Obstacles.ActiveCount} obstacles, speed cap x{_board.Run.Board.Board.SpeedCapMultiplier:0.00}");
             Line($"road steer hint {_router.LastSteerHint:+0.00;-0.00} (cooperative bots only)");
             GUILayout.Space(6);

@@ -30,6 +30,7 @@ namespace Game
         public float impactShake = 0.35f;
         public float wobbleShake = 0.05f;
         public float landingDipPerMs = 0.03f;
+        public float nitroFovBoost = 8f;
 
         Camera _camera;
         BoardController _board;
@@ -125,7 +126,8 @@ namespace Game
             float bank = -s.Roll * Mathf.Rad2Deg * bankFactor;
             transform.rotation = look * Quaternion.Euler(0f, 0f, bank);
 
-            _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, Mathf.Lerp(fovMin, fovMax, speedNorm), 1f - Mathf.Exp(-4f * dt));
+            float fovTarget = Mathf.Lerp(fovMin, fovMax, speedNorm) + (s.NitroTimer > 0f ? nitroFovBoost : 0f);
+            _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fovTarget, 1f - Mathf.Exp(-4f * dt));
 
             // kick spring (landing dip, impact recoil)
             const float stiffness = 90f, damping = 14f;

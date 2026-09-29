@@ -151,6 +151,26 @@ namespace Game.Tests
         }
 
         [UnityTest]
+        public IEnumerator LastLife_EndsRun_ShowsEndScreen_RestartStartsFresh()
+        {
+            var tuning = BoardTuning.CreateDefault();
+            tuning.data.livesPerRun = 1;
+            _gm = GameManager.Create(tuning, 6, bots: false, keyboard: false, mode: RoadMode.TestTrack);
+            Pin("CCCCCC");
+            yield return new WaitForSeconds(3f);
+            Assert.That(_gm.Board.Run.Score.Score, Is.GreaterThan(0f), "distance scores");
+            _gm.Board.Simulation.CrashNow();
+            float t = 0f;
+            while (_gm.Board.Run.State != RunState.Ended && t < 6f) { t += Time.deltaTime; yield return null; }
+            Assert.AreEqual(RunState.Ended, _gm.Board.Run.State, "no lives left: run over");
+            Assert.IsTrue(_gm.Hud.Visible);
+            _gm.Run.RestartRun();
+            yield return null;
+            Assert.AreEqual(RunState.Running, _gm.Board.Run.State);
+            Assert.AreEqual(0f, _gm.Board.Run.Score.Score, 1e-3);
+        }
+
+        [UnityTest]
         public IEnumerator Endless_ViewsFollowSimulation_FrameTimeAndGcReport()
         {
             Start(RoadMode.Endless, bots: true);

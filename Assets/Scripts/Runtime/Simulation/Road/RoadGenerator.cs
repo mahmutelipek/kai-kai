@@ -45,12 +45,16 @@ namespace Game.Simulation
         readonly BoardTuningData _tuning;
         readonly RoadModel _road;
         readonly ObstacleField _obstacles;
+        readonly PickupField _pickups;
         readonly DifficultyManager _difficulty;
+        float _nextNitroAlong;
         readonly RoadPlanner _planner = new RoadPlanner();
         readonly Stack<RoadChunk> _pool = new Stack<RoadChunk>();
         IList<FixedChunkSpec> _fixed;
         int _fixedIndex;
         Random _rng;
+        /// <summary>Separate stream for pickups so pickup rules never change the road layout of a seed.</summary>
+        Random _pickupRng;
         int _serial;
         ChunkKind _lastKind;
         bool _lastIntense;
@@ -61,11 +65,12 @@ namespace Game.Simulation
         public int ChunksCreated { get; private set; }
         public int PooledChunks => _pool.Count;
 
-        public RoadGenerator(BoardTuningData tuning, RoadModel road, ObstacleField obstacles, DifficultyManager difficulty)
+        public RoadGenerator(BoardTuningData tuning, RoadModel road, ObstacleField obstacles, DifficultyManager difficulty, PickupField pickups = null)
         {
             _tuning = tuning;
             _road = road;
             _obstacles = obstacles;
+            _pickups = pickups;
             _difficulty = difficulty;
             // pre-fill the pool so the endless road never allocates chunks mid-run (~6 are ever alive at once)
             for (int i = 0; i < PrewarmChunks; i++) { _pool.Push(new RoadChunk()); ChunksCreated++; }
@@ -77,8 +82,11 @@ namespace Game.Simulation
             for (int i = _road.Chunks.Count - 1; i >= 0; i--) Recycle(_road.Chunks[i]);
             _road.Chunks.Clear();
             _obstacles.Clear();
+            _pickups?.Clear();
+            _nextNitroAlong = 600f;
             Seed = seed;
             _rng = new Random(seed);
+            _pickupRng = new Random(unchecked(seed * 7919 + 17));
             _fixed = fixedTrack;
             _fixedIndex = 0;
             // serials keep counting across runs so views can never confuse an old chunk with a new one
@@ -104,6 +112,14 @@ namespace Game.Simulation
                 if (chunk.Owns(_obstacles, i)) _obstacles.Despawn(chunk.ObstacleSlots[i]);
             chunk.ObstacleSlots.Clear();
             chunk.ObstacleGenerations.Clear();
+            if (_pickups != null)
+                for (int i = 0; i < chunk.PickupSlots.Count; i++)
+                {
+                    int slot = chunk.PickupSlots[i];
+                    if (_pickups.Items[slot].Active && _pickups.Items[slot].Generation == chunk.PickupGenerations[i]) _pickups.Despawn(slot);
+                }
+            chunk.PickupSlots.Clear();
+            chunk.PickupGenerations.Clear();
             _pool.Push(chunk);
         }
 
@@ -143,6 +159,7 @@ namespace Game.Simulation
                 removed++;
             }
 
+            if (_pickups != null) PlacePickups(chunk, d);
             _lastKind = chunk.Kind;
             _lastIntense = chunk.Definition.IsIntense;
             Log?.Add(new ChunkLogEntry
@@ -566,6 +583,98 @@ namespace Game.Simulation
                     Place(chunk, ObstacleKind.Cone, start - 3f, 0f);
                     break;
                 }
+            }
+        }
+
+        // ------------------------------------------------------------------ pickups
+
+        void AddPickup(RoadChunk chunk, PickupKind kind, float localAlong, float lateral, float hover)
+        {
+            int slot = _pickups.Spawn(kind, chunk.Serial, chunk.StartAlong + localAlong, lateral, hover, _road);
+            if (slot < 0) return;
+            chunk.PickupSlots.Add(slot);
+            chunk.PickupGenerations.Add(_pickups.Items[slot].Generation);
+        }
+
+        float PRange(float min, float max) => min + (float)_pickupRng.NextDouble() * (max - min);
+
+        float PlannedAt(RoadChunk chunk, float localAlong) => _road.PlannedLateral(chunk.StartAlong + localAlong);
+
+        /// <summary>
+        /// Coin lines follow the planned (safe) line; diamonds sit on risky lines (grazing a barrier, the outside
+        /// of a hard curve, next to a wall or debris, high above a ramp landing); nitro roughly every kilometre.
+        /// </summary>
+        void PlacePickups(RoadChunk chunk, float d)
+        {
+            float L = chunk.Length;
+            int lines = _pickupRng.NextDouble() < 0.75 ? 1 + (_pickupRng.NextDouble() < 0.35 ? 1 : 0) : 0;
+            for (int line = 0; line < lines; line++)
+            {
+                int count = _pickupRng.Next(6, 11);
+                float spacing = 3.5f;
+                float start = PRange(25f, Math.Max(26f, L - 25f - count * spacing));
+                for (int k = 0; k < count; k++)
+                {
+                    float a = start + k * spacing;
+                    AddPickup(chunk, PickupKind.Coin, a, PlannedAt(chunk, a), 1.0f);
+                }
+            }
+
+            if (_pickupRng.NextDouble() < SimMath.Lerp(0.3f, 0.65f, d)) PlaceDiamond(chunk);
+
+            if (chunk.EndAlong >= _nextNitroAlong)
+            {
+                float a = SimMath.Clamp(_nextNitroAlong - chunk.StartAlong, 30f, L - 30f);
+                AddPickup(chunk, PickupKind.Nitro, a, PlannedAt(chunk, a), 1.1f);
+                _nextNitroAlong = chunk.StartAlong + a + PRange(900f, 1300f);
+            }
+        }
+
+        void PlaceDiamond(RoadChunk chunk)
+        {
+            float L = chunk.Length;
+            switch (chunk.Kind)
+            {
+                case ChunkKind.Ramp:
+                    if (chunk.Ramps.Count > 0)
+                    {
+                        RampFeature r = chunk.Ramps[0];
+                        // only reachable in the air off the ramp
+                        AddPickup(chunk, PickupKind.Diamond, r.Along - chunk.StartAlong + r.Length + 4f, r.Lateral, 3.6f);
+                    }
+                    break;
+                case ChunkKind.HardCurve:
+                {
+                    float a = L * 0.5f;
+                    AddPickup(chunk, PickupKind.Diamond, a, MathF.Sign(chunk.Shape.Turn) * (HalfWidthAt(chunk, a) - 0.9f), 1.0f);
+                    break;
+                }
+                case ChunkKind.Narrow:
+                {
+                    float a = L * 0.5f;
+                    float side = _pickupRng.NextDouble() < 0.5 ? -1f : 1f;
+                    AddPickup(chunk, PickupKind.Diamond, a, side * (HalfWidthAt(chunk, a) - 0.8f), 1.0f);
+                    break;
+                }
+                case ChunkKind.PartialBarriers:
+                case ChunkKind.BrokenRoad:
+                case ChunkKind.Fork:
+                    // graze the first blocking obstacle: the diamond sits just outside its edge
+                    for (int k = 0; k < chunk.ObstacleSlots.Count; k++)
+                    {
+                        if (!chunk.Owns(_obstacles, k)) continue;
+                        ref Obstacle o = ref _obstacles.Items[chunk.ObstacleSlots[k]];
+                        if (!ObstacleCatalog.BlocksCorridor(o.Kind) || o.Motion != ObstacleMotion.Static) continue;
+                        float a = o.Along - chunk.StartAlong;
+                        float hw = HalfWidthAt(chunk, a);
+                        float plan = PlannedAt(chunk, a);
+                        float side = plan >= o.Lateral ? 1f : -1f;
+                        float lateral = o.Lateral + side * (o.HalfExtents.X + 0.5f);
+                        if (Math.Abs(lateral) > hw - 0.5f) continue;
+                        AddPickup(chunk, PickupKind.Diamond, a, lateral, 1.0f);
+                        break;
+                    }
+                    break;
             }
         }
 
