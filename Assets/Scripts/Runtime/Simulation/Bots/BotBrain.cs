@@ -51,13 +51,13 @@ namespace Game.Simulation
 
             RetargetTimer -= ctx.Dt;
             JumpTimer -= ctx.Dt;
-            Target = ChooseTarget(ctx, self);
+            Vector2 target = ChooseTarget(ctx, self);
 
-            float maxX = ctx.Tuning.HalfWidth - ctx.Tuning.playerRadius;
-            float maxZ = ctx.Tuning.HalfLength - ctx.Tuning.playerRadius;
-            Target = new Vector2(SimMath.Clamp(Target.X, -maxX, maxX), SimMath.Clamp(Target.Y, -maxZ, maxZ));
+            float maxX = ctx.Tuning.HalfWidth - ctx.Tuning.playerRadius - EdgeMargin;
+            float maxZ = ctx.Tuning.HalfLength - ctx.Tuning.playerRadius - 0.1f;
+            target = new Vector2(SimMath.Clamp(target.X, -maxX, maxX), SimMath.Clamp(target.Y, -maxZ, maxZ));
 
-            var input = new PlayerInputState(Seek(self.LocalPosition, Target));
+            var input = new PlayerInputState(Seek(self.LocalPosition, target));
             if (JumpTimer <= 0f)
             {
                 input.Jump = WantsToJump(ctx);
@@ -69,6 +69,35 @@ namespace Game.Simulation
         protected abstract Vector2 ChooseTarget(in BotContext ctx, PlayerSim self);
 
         protected virtual bool WantsToJump(in BotContext ctx) => Rng.NextDouble() < 0.3;
+
+        /// <summary>How far from the deck edge this bot keeps its target (stubborn bots go right to the edge).</summary>
+        protected virtual float EdgeMargin => 0.12f;
+
+        /// <summary>
+        /// Lateral spot that would give the road what it asks for (and back off when the board gets dangerous).
+        /// Proportional correction on the board's current lateral weight.
+        /// </summary>
+        protected static float RoadHelpX(in BotContext ctx, PlayerSim self)
+        {
+            BoardTuningData t = ctx.Tuning;
+            float wantedSteer = SimMath.Clamp(ctx.SteerHint, -0.6f, 0.6f);
+            if (ctx.Board.Danger > 0.55f) wantedSteer = 0f; // safety first
+            float wantedLateral = SimMath.SignedPow(wantedSteer, 1f / Math.Max(t.steeringExponent, 0.1f));
+            float error = wantedLateral - ctx.Board.Lateral;
+            return self.LocalPosition.X + error * t.HalfWidth * 2f;
+        }
+
+        /// <summary>Own lane along the deck so bots do not all pile onto the same spot.</summary>
+        protected static float LaneZ(in BotContext ctx)
+        {
+            int n = Math.Max(1, ctx.ActivePlayerCount);
+            float t = n == 1 ? 0.5f : ctx.Self / (float)(n - 1);
+            return SimMath.Lerp(-0.6f, 0.6f, t) * ctx.Tuning.HalfLength;
+        }
+
+        /// <summary>Blend a personal preference toward the road-helping spot (0 = ignores the road, 1 = fully cooperative).</summary>
+        protected static float BlendTowardRoad(float personalX, in BotContext ctx, PlayerSim self, float awareness) =>
+            personalX + (RoadHelpX(ctx, self) - personalX) * SimMath.Clamp01(awareness);
 
         protected static Vector2 Seek(Vector2 from, Vector2 to)
         {
@@ -110,36 +139,30 @@ namespace Game.Simulation
         }
     }
 
-    /// <summary>Tries to give the road what it asks for and to pull the board back out of danger.</summary>
+    /// <summary>Gives the road what it asks for and pulls the board back out of danger.</summary>
     public sealed class CooperativeBot : BotBrain
     {
         public override BotBehavior Behavior => BotBehavior.Cooperative;
         public CooperativeBot(int seed) : base(seed) { }
 
-        protected override Vector2 ChooseTarget(in BotContext ctx, PlayerSim self)
-        {
-            BoardTuningData t = ctx.Tuning;
-            float wantedSteer = SimMath.Clamp(ctx.SteerHint, -0.6f, 0.6f);
-            if (ctx.Board.Danger > 0.55f) wantedSteer = 0f; // safety first
-            float wantedLateral = SimMath.SignedPow(wantedSteer, 1f / Math.Max(t.steeringExponent, 0.1f));
-            float error = wantedLateral - ctx.Board.Lateral;
-            float x = self.LocalPosition.X + error * t.HalfWidth * 1.5f;
-            return new Vector2(x, 0f);
-        }
+        protected override Vector2 ChooseTarget(in BotContext ctx, PlayerSim self) =>
+            new Vector2(RoadHelpX(ctx, self), LaneZ(ctx));
 
         protected override bool WantsToJump(in BotContext ctx) => false;
     }
 
     /// <summary>
-    /// Wants to be on one side. Alternates between pushing hard at the edge and "resting" nearer the middle,
-    /// on its own random timer, so the two stubborn bots only sometimes cancel out. Ignores danger until
-    /// the board is about to go over.
+    /// Wants to be on one side. Alternates between pushing hard at the edge (ignoring the road) and resting
+    /// nearer the middle (half-helping), on its own random timer, so the two stubborn bots only sometimes
+    /// cancel out. Gives in only when the board is about to go over.
     /// </summary>
     public sealed class StubbornBot : BotBrain
     {
         readonly float _side;
         bool _pushing;
+        float _depth, _z;
         public override BotBehavior Behavior => _side < 0f ? BotBehavior.StubbornLeft : BotBehavior.StubbornRight;
+        protected override float EdgeMargin => 0f;
 
         public StubbornBot(int seed, float side) : base(seed)
         {
@@ -154,16 +177,17 @@ namespace Game.Simulation
             {
                 _pushing = !_pushing;
                 RetargetTimer = _pushing ? RandomRange(3f, 7f) : RandomRange(2f, 5f);
-                float depth = _pushing ? RandomRange(0.75f, 0.95f) : RandomRange(0.1f, 0.35f);
-                Target = new Vector2(_side * t.HalfWidth * depth, t.HalfLength * RandomRange(-0.6f, 0.6f));
+                _depth = _pushing ? RandomRange(0.75f, 0.95f) : RandomRange(0.1f, 0.35f);
+                _z = LaneZ(ctx) + t.HalfLength * RandomRange(-0.2f, 0.2f);
             }
             if (ctx.Board.Danger > 0.9f && MathF.Sign(ctx.Board.Steering) == MathF.Sign(_side))
-                return new Vector2(_side * t.HalfWidth * 0.2f, Target.Y);
-            return Target;
+                return new Vector2(_side * t.HalfWidth * 0.2f, _z);
+            float personal = _side * t.HalfWidth * _depth;
+            return new Vector2(_pushing ? personal : BlendTowardRoad(personal, ctx, self, 0.8f), _z);
         }
     }
 
-    /// <summary>Picks a random spot every few seconds and walks there. Likes jumping.</summary>
+    /// <summary>Picks a random spot every few seconds and walks there, half-minding the road. Likes jumping.</summary>
     public sealed class WandererBot : BotBrain
     {
         public override BotBehavior Behavior => BotBehavior.RandomWanderer;
@@ -175,17 +199,17 @@ namespace Game.Simulation
             {
                 RetargetTimer = RandomRange(1.5f, 3.5f);
                 BoardTuningData t = ctx.Tuning;
-                Target = new Vector2(t.HalfWidth * RandomRange(-0.95f, 0.95f), t.HalfLength * RandomRange(-0.85f, 0.85f));
+                Target = new Vector2(t.HalfWidth * RandomRange(-0.85f, 0.85f), t.HalfLength * RandomRange(-0.75f, 0.75f));
             }
-            return Target;
+            return new Vector2(BlendTowardRoad(Target.X, ctx, self, 0.65f), Target.Y);
         }
 
         protected override bool WantsToJump(in BotContext ctx) => Rng.NextDouble() < 0.6;
     }
 
     /// <summary>
-    /// Crowds the nose for speed and runs to whichever side the board is already leaning toward
-    /// ("where the action is"), which amplifies turns until someone else pushes back.
+    /// Crowds the nose for speed and dashes from side to side after imaginary coins, only minding the road
+    /// a little. (Following the board's lean instead was tested: it drags the board off the road.)
     /// </summary>
     public sealed class GreedyFrontBot : BotBrain
     {
@@ -199,15 +223,13 @@ namespace Game.Simulation
             if (RetargetTimer <= 0f)
             {
                 RetargetTimer = RandomRange(1.5f, 3.5f);
-                float lean = ctx.Board.Lateral;
-                _side = Math.Abs(lean) > 0.05f ? MathF.Sign(lean) : (Rng.NextDouble() < 0.5 ? -1f : 1f);
-                if (Rng.NextDouble() < 0.25) _side = -_side; // sometimes changes its mind
+                _side = RandomRange(-0.8f, 0.8f);
             }
-            return new Vector2(_side * t.HalfWidth * 0.75f, t.HalfLength * 0.85f);
+            return new Vector2(BlendTowardRoad(_side * t.HalfWidth, ctx, self, 0.5f), t.HalfLength * 0.75f);
         }
     }
 
-    /// <summary>Hides at the tail. When the board gets scary it panics toward the uphill side.</summary>
+    /// <summary>Hides at the tail and helps quietly. When the board gets scary it panics to the opposite side.</summary>
     public sealed class ScaredRearBot : BotBrain
     {
         public override BotBehavior Behavior => BotBehavior.ScaredRear;
@@ -223,7 +245,7 @@ namespace Game.Simulation
                 RetargetTimer = RandomRange(2f, 4f);
                 Target = new Vector2(t.HalfWidth * RandomRange(-0.3f, 0.3f), -t.HalfLength * 0.8f);
             }
-            return Target;
+            return new Vector2(BlendTowardRoad(Target.X, ctx, self, 0.85f), Target.Y);
         }
 
         protected override bool WantsToJump(in BotContext ctx) => false;

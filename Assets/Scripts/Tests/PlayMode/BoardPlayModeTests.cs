@@ -95,8 +95,8 @@ namespace Game.Tests
         public IEnumerator Ramp_LaunchesAndLandsWithoutCrash()
         {
             Pin("CCCCCC");
-            _gm.Road.Path.Sample(TestRoad.RampDistance - 40f, out Vector3 p, out float yaw);
-            _gm.Board.Restart(p, yaw);
+            _gm.Road.Path.Sample(TestRoad.RampDistance - 40f, out System.Numerics.Vector3 p, out float yaw);
+            _gm.Board.Restart(p.ToUnity(), yaw);
             _gm.Board.Simulation.Board.State.Speed = 18f;
             bool wasAirborne = false;
             float t = 0f;

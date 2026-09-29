@@ -46,9 +46,9 @@ namespace Game
 
             EnsureLight();
             Road = TestRoad.Build(transform);
-            Road.Path.Sample(0f, out Vector3 start, out float startYaw);
+            Road.Path.Sample(0f, out System.Numerics.Vector3 start, out float startYaw);
 
-            Board = BoardController.Create(tuning, new UnityGroundProvider(), start, startYaw, startPlayerCount);
+            Board = BoardController.Create(tuning, new UnityGroundProvider(), start.ToUnity(), startYaw, startPlayerCount);
             Board.transform.SetParent(transform, true);
             BoardView = BoardView.Create(Board);
 

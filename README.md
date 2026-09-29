@@ -31,7 +31,7 @@ when URP is active and fall back to `Standard` otherwise.
 | Tab | Switch which player the keyboard controls |
 | Gamepad | Each connected gamepad takes over one more player (left stick / d-pad, A/Cross = jump) |
 | B | Bots on / off (bots drive every slot not taken by keyboard / gamepad) |
-| C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative* |
+| C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative*. Every bot keeps its own lane along the deck; all but the stubborn ones partly follow the road |
 | 1 – 6 | Number of players on the board. The game starts **solo (1 player)**: you alone steer the board, which is the clearest way to feel the mechanic. Add players / bots with 2–6 |
 | R | Restart the run at the top |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
@@ -102,6 +102,7 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 
 **In Unity:** *Window → General → Test Runner → PlayMode → Run All*. `Game.Tests` contains
 - `BoardAcceptanceTests` / `BoardFlowTests` — the Milestone 1 acceptance tests on the engine-independent simulation
+- `TrackRunTests` — bot crews drive the whole test road headless (same layout, ramp and respawn rules as the scene)
 - `BoardPlayModeTests` — the same mechanics inside the engine (raycast ground on the test road, crash → respawn, ramp, player views vs deck)
 
 **Without Unity (headless, .NET 8 SDK):**
@@ -126,12 +127,13 @@ Assets/Scripts/
       Board/                    BoardWeightSystem, BoardPhysicsSim, IGroundProvider
       Players/                  PlayerSim (kinematic, board-local), PlayerCrowdSolver
       Bots/                     BotBrain + 6 behaviours
+      Road/                     RoadPath, TestRoadLayout, RoadGround (headless ground for the test road)
       Input/PlayerInputState.cs the only input the sim reads
       Tuning/BoardTuningData.cs every tuning value
     Board/                      BoardController (FixedUpdate host, kinematic Rigidbody), BoardView
     Players/PlayerView.cs       primitive character visuals
     Input/                      PlayerInputRouter (keyboard / gamepads / bots), LocalDeviceInput
-    Road/                       TestRoad (M1 track), RoadPath, UnityGroundProvider, GroundSurface
+    Road/                       TestRoad (builds the M1 track meshes), UnityGroundProvider, GroundSurface
     Obstacles/                  ObstacleBase, ConeObstacle
     CameraRig/CameraController.cs
     Core/                       GameManager (bootstrap), RunManager, GameHotkeys

@@ -139,34 +139,21 @@ namespace Game.Tests
         }
 
         [Test]
-        public void Bots_DisagreeVisibly_AndRunsSurvive()
+        public void Bots_LongRunOnFlatPlane_StaysFinite()
         {
+            // Disagreement is measured on the real track (TrackRunTests); here: 3 minutes of every behaviour, no NaN.
             BoardTuningData t = new BoardTuningData();
             BoardSimulation sim = BoardScenario.Create(6, t);
             var bots = new BotBrain[6];
             for (int i = 0; i < 6; i++) bots[i] = BotBrain.Create(BotBrain.DefaultBehaviorForSlot(i), 1000 + i * 17);
-            int crashes = 0;
-            float wobbleTime = 0f, turningTime = 0f, maxSpeed = 0f;
             ScenarioTrace trace = BoardScenario.Run(sim, 180f, i => bots[i].Decide(new BotContext
             {
                 Self = i, Players = sim.Players, ActivePlayerCount = sim.ActivePlayerCount, Board = sim.Board.State,
                 Tuning = sim.Tuning, SteerHint = 0f, Time = sim.Time, Dt = BoardScenario.Dt,
             }),
-            onStep: (s, ev) =>
-            {
-                if (ev.Board.Crashed) crashes++;
-                BoardState b = s.Board.State;
-                if (b.Wobble > 0f) wobbleTime += BoardScenario.Dt;
-                if (Math.Abs(b.Steering) > 0.05f) turningTime += BoardScenario.Dt;
-                maxSpeed = Math.Max(maxSpeed, b.Speed);
-                if (s.RestartDue) s.Restart(b.Position, b.Yaw);
-            });
-            float std = trace.StdDev(trace.Steering, 0f, 180f);
-            TestContext.WriteLine($"6 bots, 180 s (speed ramps to cap): crashes {crashes}, falls {trace.Falls}, steering std {std:F3}, " +
-                                  $"turning {turningTime / 180f:P0} of the time, wobbling {wobbleTime / 180f:P0}, max speed {maxSpeed:F1} m/s, staggers {trace.Staggers}");
+            onStep: (s, ev) => { if (s.RestartDue) s.Restart(s.Board.State.Position, s.Board.State.Yaw); });
+            TestContext.WriteLine($"6 bots flat plane 180 s: falls {trace.Falls}, staggers {trace.Staggers}, crashed {trace.Crashed}");
             Assert.IsTrue(trace.AllFinite);
-            Assert.That(std, Is.GreaterThan(0.03f), "bots should push the board around");
-            Assert.That(turningTime / 180f, Is.GreaterThan(0.1f));
         }
     }
 }

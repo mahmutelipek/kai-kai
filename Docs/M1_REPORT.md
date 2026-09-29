@@ -74,3 +74,26 @@ Başlangıç değerlerinden hiçbiri değiştirilmedi. Spec'teki başlangıç sa
 1. Siz Unity 6'da açın ve PlayMode testlerini koşturun. Derleme veya paket hatası çıkarsa hata logunu gönderin, düzelteyim.
 2. 5–10 dakika oynayın: steering ağırlığı (0.4 s), 6 kişide tek oyuncunun etkisi, virajlar, crash sıklığı. Beğenmediğiniz değerleri F2 panelinden ayarlayıp bana bildirin.
 3. Onay gelirse Milestone 2: prosedürel yol, chunk kütüphanesi, DifficultyManager.
+
+---
+
+## Revizyon 2 (kullanıcı geri bildirimi sonrası)
+
+**Değişenler**
+- **Solo mod:** 1–6 oyuncu destekleniyor, oyun 1 oyuncuyla başlıyor, 1–6 tuşları oyuncu sayısını değiştiriyor. Solo oyuncu tüm ağırlık modelini tek başına belirliyor.
+- **URP otomatik kurulum:** proje ilk açıldığında pipeline asset'i oluşturulup Graphics ve bütün Quality seviyelerine atanıyor. Built-In uyarısının sebebi buydu.
+- **Ortak yol tanımı:** yol geometrisi (`RoadPath`, `TestRoadLayout`) saf simülasyona taşındı. Unity sahnesi ve headless testler artık aynı yolu kullanıyor. `RoadGround` Unity'deki raycast zeminin headless karşılığı: yol, çim banket, rampa, banketin ötesinde boşluk.
+- **Botlar:** her bot deck üzerinde kendi şeridinde duruyor (önceden hepsi aynı noktaya yığılıyordu). Kenardan güvenlik payı bırakıyorlar. Stubborn olanlar hariç hepsi kişiliğine göre kısmen yolu takip ediyor. Greedy-front artık board'un yattığı tarafa koşmuyor; bu davranış board'u yoldan çıkaran bir pozitif geri besleme yaratıyordu.
+
+**Yeni testler (headless, 34/34 geçti).** Bütün test yolu, yani 2.3 km, iki viraj, rampa ve respawn, sadece oyuncu ağırlığıyla sürüldü:
+
+| Ekip | Sonuç |
+|---|---|
+| 1 cooperative (solo) | 111.7 s'de bitirdi, 0 crash, 0 düşme, hep asfaltta (max yanal 3.8 m), max 33.6 m/s, rampadan uçtu |
+| 2 cooperative | 111.7 s, 0 crash, 0 düşme |
+| 6 cooperative | 111.6 s, 0 crash, 1 düşme (önceden 87) |
+| 6 mixed (slot 0 insan yerine cooperative) | 145.2 s, 0 crash, 20 düşme, sürenin %33'ü çim bankette, max yanal 23 m, direksiyon kavgası 76.7 s (cooperative ekipte 3.7 s) |
+| 1 oyuncudan 6'ya kademeli artış | Yeni oyuncu hiç kimsenin içinde doğmadı, crash yok |
+
+**Hâlâ Unity'de test edilmedi:** yukarıdaki her şey headless ölçüldü. Unity içi davranış (raycast zemin, koniler, görseller) doğrulanmadı.
+**Görsel:** plan gereği M4'te yapılacak (kullanıcı "a yolu" dedi).

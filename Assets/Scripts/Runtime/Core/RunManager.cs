@@ -34,7 +34,7 @@ namespace Game
         {
             if (_board == null || _board.Simulation == null) return;
             BoardState s = _board.State;
-            Distance = _road.Project(s.Position.ToUnity(), ref _roadHint, out float lateral);
+            Distance = _road.Project(s.Position, ref _roadHint, out float lateral);
             LateralOffset = lateral;
 
             if (_board.Simulation.RestartDue) RespawnOnRoad(Distance - RespawnBackOff);
@@ -50,8 +50,8 @@ namespace Game
         void RespawnOnRoad(float distance)
         {
             distance = Mathf.Clamp(distance, 0f, _road.Length - EndOfRoadMargin - 1f);
-            _road.Sample(distance, out Vector3 position, out float yaw);
-            _board.Restart(position, yaw);
+            _road.Sample(distance, out System.Numerics.Vector3 position, out float yaw);
+            _board.Restart(position.ToUnity(), yaw);
             RunDistanceStart = distance;
             if (_camera != null) _camera.Snap();
         }
