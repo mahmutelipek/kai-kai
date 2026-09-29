@@ -81,10 +81,10 @@ namespace Game.Simulation
         {
             BoardTuningData t = ctx.Tuning;
             float wantedSteer = SimMath.Clamp(ctx.SteerHint, -0.6f, 0.6f);
-            if (ctx.Board.Danger > 0.55f) wantedSteer = 0f; // safety first
+            if (ctx.Board.Danger > 0.68f) wantedSteer = 0f; // safety first (wobble starts at 0.7)
             float wantedLateral = SimMath.SignedPow(wantedSteer, 1f / Math.Max(t.steeringExponent, 0.1f));
             float error = wantedLateral - ctx.Board.Lateral;
-            return self.LocalPosition.X + error * t.HalfWidth * 2f;
+            return self.LocalPosition.X + error * t.HalfWidth * 1.5f;
         }
 
         /// <summary>Own lane along the deck so bots do not all pile onto the same spot.</summary>
@@ -145,8 +145,10 @@ namespace Game.Simulation
         public override BotBehavior Behavior => BotBehavior.Cooperative;
         public CooperativeBot(int seed) : base(seed) { }
 
-        protected override Vector2 ChooseTarget(in BotContext ctx, PlayerSim self) =>
-            new Vector2(RoadHelpX(ctx, self), LaneZ(ctx));
+        protected override Vector2 ChooseTarget(in BotContext ctx, PlayerSim self)
+        {
+            return new Vector2(RoadHelpX(ctx, self), LaneZ(ctx));
+        }
 
         protected override bool WantsToJump(in BotContext ctx) => false;
     }

@@ -8,6 +8,7 @@ namespace Game
     public static class MaterialLibrary
     {
         static readonly Dictionary<Color, Material> Cache = new Dictionary<Color, Material>();
+        static readonly Dictionary<Color, Material> GlossyCache = new Dictionary<Color, Material>();
         static Shader _shader;
 
         public static readonly Color Road = new Color(0.27f, 0.28f, 0.31f);
@@ -23,6 +24,25 @@ namespace Game
         public static readonly Color Metal = new Color(0.6f, 0.62f, 0.66f);
         public static readonly Color Skin = new Color(0.96f, 0.78f, 0.62f);
         public static readonly Color Pants = new Color(0.16f, 0.17f, 0.22f);
+        public static readonly Color Concrete = new Color(0.72f, 0.72f, 0.7f);
+        public static readonly Color ConcreteDark = new Color(0.5f, 0.5f, 0.52f);
+        public static readonly Color BridgeSteel = new Color(0.85f, 0.3f, 0.18f);
+        public static readonly Color TunnelInside = new Color(0.36f, 0.34f, 0.32f);
+        public static readonly Color Pothole = new Color(0.08f, 0.08f, 0.09f);
+        public static readonly Color Crate = new Color(0.72f, 0.5f, 0.26f);
+        public static readonly Color CrateFrame = new Color(0.45f, 0.3f, 0.15f);
+        public static readonly Color Glass = new Color(0.25f, 0.35f, 0.45f);
+        public static readonly Color Tire = new Color(0.1f, 0.1f, 0.1f);
+        public static readonly Color Headlight = new Color(1f, 0.95f, 0.6f);
+        public static readonly Color Taillight = new Color(0.9f, 0.1f, 0.1f);
+        public static readonly Color Black = new Color(0.08f, 0.08f, 0.08f);
+
+        /// <summary>Car body colours: bright, well separated from the road and from each other.</summary>
+        public static readonly Color[] CarColors =
+        {
+            new Color(0.95f, 0.8f, 0.15f), new Color(0.2f, 0.45f, 0.9f), new Color(0.9f, 0.9f, 0.92f),
+            new Color(0.85f, 0.2f, 0.2f), new Color(0.3f, 0.75f, 0.45f),
+        };
 
         /// <summary>P1..P6 colors, matching the reference HUD (blue, red, green, yellow, purple, orange).</summary>
         public static readonly Color[] PlayerColors =
@@ -34,6 +54,18 @@ namespace Game
             new Color(0.62f, 0.3f, 0.95f),
             new Color(1f, 0.55f, 0.12f),
         };
+
+        /// <summary>Material with a custom smoothness (e.g. glossy car paint, glass).</summary>
+        public static Material Get(Color color, float smoothness)
+        {
+            if (Mathf.Approximately(smoothness, 0.2f)) return Get(color);
+            if (GlossyCache.TryGetValue(color, out Material m) && m != null) return m;
+            m = new Material(Get(color)) { name = "Glossy " + ColorUtility.ToHtmlStringRGB(color) };
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", smoothness);
+            if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", smoothness);
+            GlossyCache[color] = m;
+            return m;
+        }
 
         public static Material Get(Color color)
         {

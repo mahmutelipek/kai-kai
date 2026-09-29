@@ -28,7 +28,7 @@ namespace Game
         readonly BotBrain[] _bots = new BotBrain[BoardSimulation.MaxPlayers];
         readonly InputSourceKind[] _sources = new InputSourceKind[BoardSimulation.MaxPlayers];
         readonly int[] _gamepadForSlot = new int[BoardSimulation.MaxPlayers];
-        RoadPath _road;
+        RunSimulation _run;
         int _roadHint;
 
         public int KeyboardSlot { get; private set; }
@@ -38,9 +38,9 @@ namespace Game
         public float LastSteerHint { get; private set; }
         public BotPreset Preset { get; private set; }
 
-        public void Initialize(RoadPath road, bool botsEnabled)
+        public void Initialize(RunSimulation run, bool botsEnabled)
         {
-            _road = road;
+            _run = run;
             BotsEnabled = botsEnabled;
             ApplyPreset(BotPreset.Mixed);
         }
@@ -129,11 +129,11 @@ namespace Game
 
         float ComputeSteerHint(BoardSimulation sim)
         {
-            if (_road == null) return 0f;
+            if (_run == null) return 0f;
             BoardState s = sim.Board.State;
             BoardTuningData t = sim.Tuning;
             float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * s.Speed) * Mathf.Deg2Rad;
-            return _road.SteerHint(s.Position, s.Yaw, s.Speed, maxYawRate, ref _roadHint);
+            return _run.Road.SteerHint(s.Position, s.Yaw, s.Speed, maxYawRate, ref _roadHint);
         }
     }
 }

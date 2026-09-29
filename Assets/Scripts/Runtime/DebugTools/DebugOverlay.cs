@@ -54,7 +54,7 @@ namespace Game
             BoardSimulation sim = _board.Simulation;
             BoardState s = sim.Board.State;
 
-            GUILayout.BeginArea(new Rect(10, 10, 400, 540), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10, 10, 420, 580), GUI.skin.box);
             Line($"<b>DEBUG (F1)</b>   players {sim.ActivePlayerCount}   bots {(_router.BotsEnabled ? _router.Preset.ToString() : "off")}   keyboard P{_router.KeyboardSlot + 1}");
             Line($"lateral       {s.Lateral,7:+0.000;-0.000}");
             Line($"longitudinal  {s.Longitudinal,7:+0.000;-0.000}");
@@ -64,8 +64,9 @@ namespace Game
             Line($"speed         {s.Speed,7:0.0} m/s  ({s.Speed * 3.6f:0} km/h)  target {s.TargetSpeed:0.0}");
             Line($"danger        {s.Danger,7:0.00}  wobble {s.Wobble:0.00}  grip {s.Grip:0.00}  tip {s.Tip:0.00}");
             Line($"grounded {s.Grounded}  surface {s.Surface}  crashed {s.Crashed}");
-            Line($"distance {_run.Distance:0} m   lateral offset {_run.LateralOffset:+0.0;-0.0} m   crashes {_run.Crashes}");
-            Line("chunk         n/a (procedural road arrives in M2)");
+            Line($"distance {_run.Distance:0} m (best {_run.BestDistance:0})   lateral {_run.LateralOffset:+0.0;-0.0} m   crashes {_run.Crashes}");
+            Line($"chunk         {_run.CurrentChunk}   difficulty {_board.Run.DifficultyLevel:0.00}   seed {_run.Seed} ({_run.Mode})");
+            Line($"road          {_board.Run.Road.Chunks.Count} chunks, {_board.Run.Obstacles.ActiveCount} obstacles, speed cap x{_board.Run.Board.Board.SpeedCapMultiplier:0.00}");
             Line($"road steer hint {_router.LastSteerHint:+0.00;-0.00} (cooperative bots only)");
             GUILayout.Space(6);
             for (int i = 0; i < sim.ActivePlayerCount; i++)
@@ -75,7 +76,7 @@ namespace Game
                 Line($"P{i + 1} {who,-15} x {p.LocalPosition.X,5:+0.00;-0.00} z {p.LocalPosition.Y,5:+0.00;-0.00} {(p.IsOnBoard ? "" : "FALLEN")} {(p.StaggerTimer > 0f ? "stagger" : "")}");
             }
             GUILayout.Space(6);
-            Line("<i>Tab switch player · B bots · C bot mix · 1-6 player count · R restart · F2 tuning</i>");
+            Line("<i>Tab switch player · B bots · C bot mix · M endless/test track · 1-6 players · R restart · F2 tuning</i>");
             GUILayout.EndArea();
         }
 

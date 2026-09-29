@@ -54,6 +54,19 @@ namespace Game.Simulation
         [TuningRange("Speed", 0f, 20f)] public float offroadDrag = 5f;
         [TuningRange("Speed", 0f, 1f)] public float lightImpactSpeedLoss = 0.08f;
 
+        // ---------------- Obstacles / impacts (M2) ----------------
+        [TuningRange("Impacts", 0f, 1f)] public float heavyImpactSpeedLoss = 0.3f;
+        [TuningRange("Impacts", 5f, 40f)] public float crashImpactSpeed = 16f;
+        [TuningRange("Impacts", 0f, 2f)] public float heavyStaggerTime = 0.7f;
+        [TuningRange("Impacts", 0f, 1f)] public float heavyFallThreshold = 0.55f;
+        [TuningRange("Impacts", 0f, 0.5f)] public float potholeSpeedLoss = 0.06f;
+        [TuningRange("Impacts", 0f, 0.5f)] public float wallScrapeSpeedLoss = 0.12f;
+        [TuningRange("Impacts", 2f, 30f)] public float wallCrashLateralSpeed = 11f;
+
+        // ---------------- Difficulty (M2) ----------------
+        [TuningRange("Difficulty", 500f, 30000f)] public float difficultyFullDistance = 8000f;
+        [TuningRange("Difficulty", 0f, 1f)] public float difficultySpeedCapBonus = 0.25f;
+
         // ---------------- Vertical ----------------
         [TuningRange("Vertical", 5f, 40f)] public float gravity = 20f;
         [TuningRange("Vertical", 1f, 20f)] public float hardLandingSpeed = 6f;

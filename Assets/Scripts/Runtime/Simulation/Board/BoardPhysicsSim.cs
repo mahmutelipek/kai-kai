@@ -66,6 +66,8 @@ namespace Game.Simulation
     public sealed class BoardPhysicsSim
     {
         public BoardState State;
+        /// <summary>Raises the soft speed cap (set each step from difficulty; 1 = tuning value).</summary>
+        public float SpeedCapMultiplier = 1f;
 
         const float WobbleYawRateDeg = 8f;
         const float SlipSpeedLoss = 0.6f;
@@ -102,6 +104,22 @@ namespace Game.Simulation
             State.YawRate += yawKick;
         }
 
+        /// <summary>Collision response: move the board, replace its velocity, nudge the heading. Never used for steering.</summary>
+        public void Deflect(Vector2 positionOffset, Vector2 newVelocity, float yawKick)
+        {
+            if (State.Crashed) return;
+            State.Position.X += positionOffset.X;
+            State.Position.Z += positionOffset.Y;
+            float speed = newVelocity.Length();
+            if (speed > 0.1f)
+            {
+                State.TravelYaw = MathF.Atan2(newVelocity.X, newVelocity.Y);
+                State.Yaw = SimMath.WrapAngle(State.Yaw + SimMath.WrapAngle(State.TravelYaw - State.Yaw) * 0.35f);
+            }
+            State.Speed = speed;
+            State.YawRate += yawKick;
+        }
+
         public void ForceCrash()
         {
             if (State.Crashed) return;
@@ -127,7 +145,8 @@ namespace Game.Simulation
             }
 
             s.RunTime += dt;
-            s.TargetSpeed = Math.Min(t.startSpeed + t.speedRampPerSecond * s.RunTime, t.softCapSpeed);
+            float cap = t.softCapSpeed * Math.Max(SpeedCapMultiplier, 0.1f);
+            s.TargetSpeed = Math.Min(t.startSpeed + t.speedRampPerSecond * s.RunTime, cap);
 
             // 1) smoothed steering: heavy, delayed, momentum-like
             s.Steering += (weight.RawSteering - s.Steering) * SimMath.LagAlpha(dt, t.steeringSmoothingTime);
@@ -166,9 +185,13 @@ namespace Game.Simulation
             // 5) speed
             if (s.Grounded)
             {
-                float fade = 1f - SimMath.SmoothStep(t.softCapSpeed * (1f - t.frontAccelFadeAboveCap),
-                                                     t.softCapSpeed * (1f + t.frontAccelFadeAboveCap), s.Speed);
-                float accel = t.cruiseGain * (s.TargetSpeed - s.Speed)
+                float fade = 1f - SimMath.SmoothStep(cap * (1f - t.frontAccelFadeAboveCap),
+                                                     cap * (1f + t.frontAccelFadeAboveCap), s.Speed);
+                // weight on the tail both brakes and suppresses the downhill pull, so braking works at any speed
+                float rear = Math.Max(0f, -s.Longitudinal);
+                float cruise = t.cruiseGain * (s.TargetSpeed - s.Speed);
+                if (cruise > 0f) cruise *= 1f - rear;
+                float accel = cruise
                               + t.frontAcceleration * Math.Max(0f, s.Longitudinal) * fade
                               - t.rearBraking * Math.Max(0f, -s.Longitudinal)
                               - (s.Surface == SurfaceKind.Offroad ? t.offroadDrag : 0f)

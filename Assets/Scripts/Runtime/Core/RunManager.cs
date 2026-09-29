@@ -1,59 +1,68 @@
+using System.Collections.Generic;
 using Game.Simulation;
 using UnityEngine;
 
 namespace Game
 {
+    public enum RoadMode
+    {
+        /// <summary>Endless procedural road (Milestone 2).</summary>
+        Endless = 0,
+        /// <summary>The fixed Milestone 1 test track.</summary>
+        TestTrack = 1,
+    }
+
     /// <summary>
-    /// Run flow for Milestone 1: tracks distance, respawns the board on the road after a crash,
-    /// restarts at the top when the test road ends or on request.
+    /// Run flow: restart (R) with a new seed, session best distance, snapping the camera after respawns.
+    /// Crash respawns themselves happen inside the RunSimulation.
     /// </summary>
     public sealed class RunManager : MonoBehaviour
     {
-        const float RespawnBackOff = 6f;
-        const float EndOfRoadMargin = 40f;
-
         BoardController _board;
-        RoadPath _road;
         CameraController _camera;
-        int _roadHint;
+        RoadMode _mode;
+        int _fixedSeed;
 
-        public float Distance { get; private set; }
-        public float RunDistanceStart { get; private set; }
-        public float LateralOffset { get; private set; }
-        public int Crashes { get; private set; }
+        public float Distance => _board.Run.Distance;
+        public float LateralOffset => _board.Run.Projection.Lateral;
+        public float BestDistance { get; private set; }
+        public int Crashes => _board.Run.Crashes;
+        public int Seed => _board.Run.Seed;
+        public RoadMode Mode => _mode;
+        public string CurrentChunk => _board.Run.Projection.Chunk != null ? _board.Run.Projection.Chunk.Definition.Name : "-";
 
-        public void Initialize(BoardController board, RoadPath road, CameraController cameraController)
+        public static IList<FixedChunkSpec> TrackFor(RoadMode mode) => mode == RoadMode.TestTrack ? TestRoadLayout.Build() : null;
+
+        /// <summary><paramref name="fixedSeed"/> 0 = random seed every run.</summary>
+        public void Initialize(BoardController board, CameraController cameraController, RoadMode mode, int fixedSeed)
         {
             _board = board;
-            _road = road;
             _camera = cameraController;
-            _board.Crashed += () => Crashes++;
+            _mode = mode;
+            _fixedSeed = fixedSeed;
+            _board.Respawned += () => { if (_camera != null) _camera.Snap(); };
         }
+
+        public static int NewSeed(int fixedSeed) => fixedSeed != 0 ? fixedSeed : Random.Range(1, int.MaxValue);
 
         void Update()
         {
-            if (_board == null || _board.Simulation == null) return;
-            BoardState s = _board.State;
-            Distance = _road.Project(s.Position, ref _roadHint, out float lateral);
-            LateralOffset = lateral;
+            if (_board == null || _board.Run == null) return;
+            BestDistance = Mathf.Max(BestDistance, _board.Run.MaxDistance);
+            // the fixed test track ends: start over at the top
+            if (_mode == RoadMode.TestTrack && Distance > TestRoadLayout.Length - 40f) RestartRun();
+        }
 
-            if (_board.Simulation.RestartDue) RespawnOnRoad(Distance - RespawnBackOff);
-            else if (Distance > _road.Length - EndOfRoadMargin) RestartRun();
+        /// <summary>Switch between the endless road and the M1 test track (starts a new run).</summary>
+        public void ToggleMode()
+        {
+            _mode = _mode == RoadMode.Endless ? RoadMode.TestTrack : RoadMode.Endless;
+            RestartRun();
         }
 
         public void RestartRun()
         {
-            _roadHint = 0;
-            RespawnOnRoad(0f);
-        }
-
-        void RespawnOnRoad(float distance)
-        {
-            distance = Mathf.Clamp(distance, 0f, _road.Length - EndOfRoadMargin - 1f);
-            _road.Sample(distance, out System.Numerics.Vector3 position, out float yaw);
-            _board.Restart(position.ToUnity(), yaw);
-            RunDistanceStart = distance;
-            if (_camera != null) _camera.Snap();
+            _board.RestartRun(NewSeed(_fixedSeed), TrackFor(_mode));
         }
     }
 }

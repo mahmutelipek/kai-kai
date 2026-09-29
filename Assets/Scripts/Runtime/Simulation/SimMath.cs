@@ -58,5 +58,11 @@ namespace Game.Simulation
 
         /// <summary>World-space forward direction (x, z) for a yaw in radians. Yaw 0 = +Z, positive yaw turns right (clockwise from above).</summary>
         public static Vector2 HeadingToDirection(float yaw) => new Vector2(MathF.Sin(yaw), MathF.Cos(yaw));
+
+        /// <summary>3D forward (XZ plane) for a yaw.</summary>
+        public static Vector3 Forward3(float yaw) => new Vector3(MathF.Sin(yaw), 0f, MathF.Cos(yaw));
+
+        /// <summary>3D right (XZ plane) for a yaw.</summary>
+        public static Vector3 Right3(float yaw) => new Vector3(MathF.Cos(yaw), 0f, -MathF.Sin(yaw));
     }
 }

@@ -152,6 +152,46 @@ namespace Game.Simulation
             return events;
         }
 
+        /// <summary>Crash right now (worst-case impact): flips the board and throws everybody off.</summary>
+        public void CrashNow()
+        {
+            if (Board.State.Crashed) return;
+            Board.ForceCrash();
+            for (int i = 0; i < ActivePlayerCount; i++)
+                if (Players[i].IsOnBoard) Players[i].FallOff(float.MaxValue);
+        }
+
+        /// <summary>
+        /// Heavy hit: everybody staggers; players standing toward the impact (beyond heavyFallThreshold of the
+        /// deck extent in that direction) are thrown off. <paramref name="impactDirLocal"/> points from the deck
+        /// centre toward the obstacle in board space (X right, Y nose). Returns how many fell.
+        /// </summary>
+        public int ApplyHeavyImpact(Vector2 impactDirLocal)
+        {
+            BoardTuningData t = Tuning;
+            float len = impactDirLocal.Length();
+            Vector2 dir = len > 1e-4f ? impactDirLocal / len : new Vector2(0f, 1f);
+            int fell = 0;
+            for (int i = 0; i < ActivePlayerCount; i++)
+            {
+                PlayerSim p = Players[i];
+                if (!p.IsOnBoard) continue;
+                var normalized = new Vector2(p.LocalPosition.X / t.HalfWidth, p.LocalPosition.Y / t.HalfLength);
+                if (!p.Pinned && Vector2.Dot(normalized, dir) > t.heavyFallThreshold)
+                {
+                    p.FallOff(t.respawnDelay);
+                    fell++;
+                }
+                else p.Stagger(t.heavyStaggerTime);
+            }
+            return fell;
+        }
+
+        public void StaggerAll(float time)
+        {
+            for (int i = 0; i < ActivePlayerCount; i++) Players[i].Stagger(time);
+        }
+
         public WeightResult ComputeWeight()
         {
             for (int i = 0; i < ActivePlayerCount; i++)

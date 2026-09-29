@@ -1,5 +1,5 @@
 using System;
-using System.Numerics;
+using System.Collections.Generic;
 using Game.Simulation;
 using NUnit.Framework;
 
@@ -12,6 +12,7 @@ namespace Game.Tests
         public bool Completed;
         public int Crashes;
         public int Falls;
+        public int LightHits, Bumps, HeavyHits, WallScrapes;
         public float OffroadTime;
         public float MaxAbsLateral;
         public float MaxSpeed;
@@ -24,69 +25,59 @@ namespace Game.Tests
 
         public override string ToString() =>
             $"{(Completed ? "completed" : "stopped")} {Distance:0} m in {Time:0.0} s, crashes {Crashes}, falls {Falls}, " +
-            $"offroad {OffroadTime:0.0} s, max |lateral| {MaxAbsLateral:0.0} m, max speed {MaxSpeed:0.0} m/s, " +
-            $"max danger {MaxDanger:0.00}, wobble {WobbleTime:0.0} s, disagreement {DisagreementTime:0.0} s, ramp air {Airborne}";
+            $"hits light/bump/heavy/wall {LightHits}/{Bumps}/{HeavyHits}/{WallScrapes}, offroad {OffroadTime:0.0} s, " +
+            $"max |lateral| {MaxAbsLateral:0.0} m, max speed {MaxSpeed:0.0} m/s, max danger {MaxDanger:0.00}, " +
+            $"wobble {WobbleTime:0.0} s, disagreement {DisagreementTime:0.0} s, ramp air {Airborne}";
     }
 
-    /// <summary>Drives the full M1 test road headless (same layout, ramp and respawn rules as the Unity scene).</summary>
+    /// <summary>Drives a RunSimulation with bots (same rules as the Unity scene) and collects metrics.</summary>
     public static class TrackRunner
     {
-        const float RespawnBackOff = 6f;
-        const float EndMargin = 40f;
-
-        public static TrackRunResult Run(BotBehavior[] slots, float maxSeconds = 400f, BoardTuningData tuning = null)
+        public static TrackRunResult Run(BotBehavior[] slots, IList<FixedChunkSpec> fixedTrack, float targetDistance,
+                                         float maxSeconds = 600f, int seed = 1, BoardTuningData tuning = null)
         {
-            RoadPath path = TestRoadLayout.BuildPath();
             BoardTuningData t = tuning ?? new BoardTuningData();
-            var sim = new BoardSimulation(t, new RoadGround(path), slots.Length);
-            path.Sample(0f, out Vector3 start, out float startYaw);
-            sim.Restart(start, startYaw);
-
+            var run = new RunSimulation(t, seed, slots.Length, fixedTrack);
             var bots = new BotBrain[slots.Length];
             for (int i = 0; i < slots.Length; i++) bots[i] = BotBrain.Create(slots[i], 1000 + i * 17);
             var inputs = new PlayerInputState[BoardSimulation.MaxPlayers];
             var result = new TrackRunResult();
-            int hintHint = 0, projHint = 0;
+            int hintCache = 0;
             float dt = BoardScenario.Dt;
 
             while (result.Time < maxSeconds)
             {
-                BoardState b = sim.Board.State;
+                BoardState b = run.Board.Board.State;
                 float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * b.Speed) * SimMath.Deg2Rad;
-                float hint = path.SteerHint(b.Position, b.Yaw, b.Speed, maxYawRate, ref hintHint);
+                float hint = run.Road.SteerHint(b.Position, b.Yaw, b.Speed, maxYawRate, ref hintCache);
                 var ctx = new BotContext
                 {
-                    Players = sim.Players, ActivePlayerCount = sim.ActivePlayerCount, Board = b, Tuning = t,
-                    SteerHint = hint, Time = sim.Time, Dt = dt,
+                    Players = run.Board.Players, ActivePlayerCount = run.Board.ActivePlayerCount, Board = b, Tuning = t,
+                    SteerHint = hint, Time = run.Board.Time, Dt = dt,
                 };
                 for (int i = 0; i < slots.Length; i++) { ctx.Self = i; inputs[i] = bots[i].Decide(ctx); }
 
-                SimStepEvents ev = sim.Step(dt, inputs);
+                RunStepEvents ev = run.Step(dt, inputs);
                 result.Time += dt;
-                b = sim.Board.State;
+                b = run.Board.Board.State;
                 if (!SimMath.IsFinite(b.Position) || !SimMath.IsFinite(b.Yaw)) { result.AllFinite = false; break; }
-                if (ev.Board.Crashed) result.Crashes++;
+                if (ev.Crashed) result.Crashes++;
                 if (!b.Grounded && !b.Crashed) result.Airborne = true;
-                result.Falls += ev.PlayersFell;
+                result.Falls += ev.Sim.PlayersFell;
+                result.LightHits += ev.LightHits; result.Bumps += ev.Bumps; result.HeavyHits += ev.HeavyHits; result.WallScrapes += ev.WallScrapes;
                 result.MaxSpeed = Math.Max(result.MaxSpeed, b.Speed);
                 result.MaxDanger = Math.Max(result.MaxDanger, b.Danger);
                 if (b.Wobble > 0f) result.WobbleTime += dt;
                 if (!b.Crashed && Math.Abs(b.RawSteering - SimMath.Clamp(hint, -0.6f, 0.6f)) > 0.15f) result.DisagreementTime += dt;
 
-                float along = path.Project(b.Position, ref projHint, out float lateral);
-                result.Distance = Math.Max(result.Distance, along);
-                if (!b.Crashed)
+                RoadProjection p = run.Projection;
+                result.Distance = Math.Max(result.Distance, run.Distance);
+                if (!b.Crashed && p.Valid)
                 {
-                    result.MaxAbsLateral = Math.Max(result.MaxAbsLateral, Math.Abs(lateral));
-                    if (Math.Abs(lateral) > path.HalfWidth) result.OffroadTime += dt;
+                    result.MaxAbsLateral = Math.Max(result.MaxAbsLateral, Math.Abs(p.Lateral));
+                    if (Math.Abs(p.Lateral) > p.HalfWidth) result.OffroadTime += dt;
                 }
-
-                if (sim.RestartDue)
-                {
-                    path.Sample(Math.Max(0f, along - RespawnBackOff), out Vector3 p, out float yaw);
-                    sim.Restart(p, yaw);
-                }
-                if (along >= path.Length - EndMargin) { result.Completed = true; break; }
+                if (run.Distance >= targetDistance) { result.Completed = true; break; }
             }
             return result;
         }
@@ -106,29 +97,31 @@ namespace Game.Tests
         }
     }
 
-    /// <summary>The M1 test road must be drivable with nothing but player weight (no auto-steer anywhere).</summary>
+    /// <summary>The M1 test track must be drivable with nothing but player weight (no auto-steer anywhere).</summary>
     public class TrackRunTests
     {
+        static readonly float TrackEnd = TestRoadLayout.Length - 40f;
+
         [TestCase(1)]
         [TestCase(2)]
         [TestCase(6)]
-        public void CooperativeCrew_CompletesTrack_OnTheRoad_WithoutCrash(int players)
+        public void CooperativeCrew_CompletesTestTrack_OnTheRoad_WithoutCrash(int players)
         {
-            TrackRunResult r = TrackRunner.Run(TrackRunner.All(BotBehavior.Cooperative, players));
+            TrackRunResult r = TrackRunner.Run(TrackRunner.All(BotBehavior.Cooperative, players), TestRoadLayout.Build(), TrackEnd);
             TestContext.WriteLine($"{players} cooperative: {r}");
             Assert.IsTrue(r.AllFinite);
             Assert.IsTrue(r.Completed, "must reach the end of the road");
             Assert.AreEqual(0, r.Crashes);
             Assert.That(r.MaxAbsLateral, Is.LessThan(TestRoadLayout.RoadWidth * 0.5f), "must stay on the asphalt");
-            Assert.IsTrue(r.Airborne, "centre line runs over the ramp");
+            Assert.IsTrue(r.Airborne, "the planned line runs over the ramp");
         }
 
         [Test]
         public void MixedBots_DisagreeVisibly_ButMostlyStayOnTheRoad()
         {
             // slot 0 is cooperative here as a stand-in for the human player
-            TrackRunResult mixed = TrackRunner.Run(TrackRunner.Mixed(6));
-            TrackRunResult coop = TrackRunner.Run(TrackRunner.All(BotBehavior.Cooperative, 6));
+            TrackRunResult mixed = TrackRunner.Run(TrackRunner.Mixed(6), TestRoadLayout.Build(), TrackEnd);
+            TrackRunResult coop = TrackRunner.Run(TrackRunner.All(BotBehavior.Cooperative, 6), TestRoadLayout.Build(), TrackEnd);
             TestContext.WriteLine($"mixed 6: {mixed}");
             TestContext.WriteLine($"coop 6:  {coop}");
             Assert.IsTrue(mixed.AllFinite);

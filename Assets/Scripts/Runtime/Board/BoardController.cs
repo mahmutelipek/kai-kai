@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using Game.Simulation;
 using UnityEngine;
 
 namespace Game
 {
     /// <summary>
-    /// Hosts the authoritative BoardSimulation in FixedUpdate and applies its pose to a kinematic Rigidbody.
-    /// It never decides steering itself: pose comes only from the simulation.
+    /// Hosts the authoritative RunSimulation (road, obstacles, board, players) in FixedUpdate and applies the
+    /// board pose to a kinematic Rigidbody. Never decides steering itself; collisions come from the simulation.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public sealed class BoardController : MonoBehaviour
@@ -18,110 +19,91 @@ namespace Game
         IPlayerInputProvider _inputProvider;
         readonly PlayerInputState[] _inputs = new PlayerInputState[BoardSimulation.MaxPlayers];
 
-        public BoardSimulation Simulation { get; private set; }
+        public RunSimulation Run { get; private set; }
+        public BoardSimulation Simulation => Run?.Board;
         public BoardTuning Tuning => _tuning;
-        public BoardState State => Simulation.Board.State;
-        public SimStepEvents LastEvents { get; private set; }
+        public BoardState State => Run.Board.Board.State;
+        public RunStepEvents LastEvents { get; private set; }
 
         public event Action Crashed;
-        public event Action<float> Impact;       // strength 0..1 for camera shake / audio
-        public event Action<float> Landed;       // landing speed m/s
+        /// <summary>Strength 0..1 for camera shake / audio.</summary>
+        public event Action<float> Impact;
+        /// <summary>Landing speed in m/s.</summary>
+        public event Action<float> Landed;
+        public event Action Respawned;
 
-        public static BoardController Create(BoardTuning tuning, IGroundProvider ground, Vector3 position, float yawRad, int playerCount)
+        public static BoardController Create(BoardTuning tuning, int seed, int playerCount, IList<FixedChunkSpec> fixedTrack)
         {
             var go = new GameObject("Board");
             var board = go.AddComponent<BoardController>();
-            board.Initialize(tuning, ground, position, yawRad, playerCount);
+            board._tuning = tuning;
+            board.Run = new RunSimulation(tuning.data, seed, playerCount, fixedTrack);
+            board._rb = go.GetComponent<Rigidbody>();
+            board._rb.isKinematic = true;
+            board._rb.interpolation = RigidbodyInterpolation.Interpolate;
+            board.Teleport();
             return board;
-        }
-
-        void Initialize(BoardTuning tuning, IGroundProvider ground, Vector3 position, float yawRad, int playerCount)
-        {
-            _tuning = tuning;
-            Simulation = new BoardSimulation(tuning.data, ground, playerCount);
-            Simulation.Restart(position.ToSim(), yawRad);
-
-            _rb = GetComponent<Rigidbody>();
-            _rb.isKinematic = true;
-            _rb.interpolation = RigidbodyInterpolation.Interpolate;
-            _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-
-            BoardTuningData t = tuning.data;
-            var box = gameObject.AddComponent<BoxCollider>();
-            box.center = new Vector3(0f, t.deckHeight * 0.55f, 0f);
-            box.size = new Vector3(t.boardWidth, t.deckHeight * 0.9f, t.boardLength);
-
-            transform.SetPositionAndRotation(position, SimConvert.PoseRotation(yawRad, 0f, 0f));
-            _rb.position = transform.position;
-            _rb.rotation = transform.rotation;
         }
 
         public void SetInputProvider(IPlayerInputProvider provider) => _inputProvider = provider;
 
         void FixedUpdate()
         {
-            if (Simulation == null) return;
+            if (Run == null) return;
             // live tuning: the panel edits the ScriptableObject's data object that the simulation references
-            Simulation.Tuning = _tuning.data;
+            if (!ReferenceEquals(Run.Board.Tuning, _tuning.data)) Run.SetTuning(_tuning.data);
 
             for (int i = 0; i < _inputs.Length; i++) _inputs[i] = PlayerInputState.None;
-            _inputProvider?.CollectInputs(Simulation, _inputs, Time.fixedDeltaTime);
+            _inputProvider?.CollectInputs(Run.Board, _inputs, Time.fixedDeltaTime);
 
-            SimStepEvents ev = Simulation.Step(Time.fixedDeltaTime, _inputs);
+            RunStepEvents ev = Run.Step(Time.fixedDeltaTime, _inputs);
             LastEvents = ev;
-            ApplyPose();
 
-            if (ev.Board.Crashed)
+            if (ev.Respawned)
             {
-                Impact?.Invoke(1f);
-                Crashed?.Invoke();
+                Teleport();
+                Respawned?.Invoke();
             }
-            if (ev.Board.Landed) Landed?.Invoke(ev.Board.LandingSpeed);
+            else ApplyPose();
+
+            if (ev.Crashed) { Impact?.Invoke(1f); Crashed?.Invoke(); }
+            else if (ev.HeavyHits > 0 || ev.WallScrapes > 0) Impact?.Invoke(0.6f);
+            else if (ev.LightHits > 0 || ev.Bumps > 0) Impact?.Invoke(0.25f);
+            if (ev.Sim.Board.Landed) Landed?.Invoke(ev.Sim.Board.LandingSpeed);
         }
 
         void ApplyPose()
         {
-            BoardState s = Simulation.Board.State;
+            BoardState s = State;
             _rb.MovePosition(s.Position.ToUnity());
             _rb.MoveRotation(SimConvert.PoseRotation(s.Yaw, s.Pitch, s.Roll));
         }
 
-        /// <summary>Teleports the board (restart / respawn). Resets the speed ramp.</summary>
-        public void Restart(Vector3 position, float yawRad)
+        /// <summary>Snaps the transform to the simulation (no interpolation smear after restarts).</summary>
+        void Teleport()
         {
-            Simulation.Restart(position.ToSim(), yawRad);
-            Quaternion rot = SimConvert.PoseRotation(yawRad, 0f, 0f);
-            transform.SetPositionAndRotation(position, rot);
-            _rb.position = position;
-            _rb.rotation = rot;
+            BoardState s = State;
+            Vector3 p = s.Position.ToUnity();
+            Quaternion r = SimConvert.PoseRotation(s.Yaw, s.Pitch, s.Roll);
+            transform.SetPositionAndRotation(p, r);
+            _rb.position = p;
+            _rb.rotation = r;
         }
 
-        public void ApplyImpact(ImpactSeverity severity, float relativeSpeed)
+        /// <summary>New run (new road from the seed).</summary>
+        public void RestartRun(int seed, IList<FixedChunkSpec> fixedTrack)
         {
-            BoardTuningData t = _tuning.data;
-            switch (severity)
-            {
-                case ImpactSeverity.Light:
-                    Simulation.Board.ApplyImpact(t.lightImpactSpeedLoss, 0f);
-                    Impact?.Invoke(0.25f);
-                    break;
-                case ImpactSeverity.Heavy:
-                    Simulation.Board.ApplyImpact(t.lightImpactSpeedLoss * 3f, 0f);
-                    for (int i = 0; i < Simulation.ActivePlayerCount; i++) Simulation.Players[i].Stagger(t.staggerTime * 2f);
-                    Impact?.Invoke(0.6f);
-                    break;
-                default:
-                    Simulation.Board.ForceCrash();
-                    Impact?.Invoke(1f);
-                    Crashed?.Invoke();
-                    break;
-            }
+            Run.Reset(seed, fixedTrack);
+            Teleport();
+            Respawned?.Invoke();
         }
 
-        void OnCollisionEnter(Collision collision)
+        /// <summary>Test hook: put the board on the road at a distance (planned lateral) with a speed.</summary>
+        public void PlaceOnRoad(float along, float speed)
         {
-            var obstacle = collision.collider.GetComponentInParent<ObstacleBase>();
-            if (obstacle != null) obstacle.NotifyBoardHit(this, collision);
+            Run.Respawn(along);
+            Run.Board.Board.State.Speed = speed;
+            Teleport();
         }
     }
 }

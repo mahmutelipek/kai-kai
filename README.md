@@ -3,7 +3,7 @@
 Co-op endless downhill party game prototype (Unity 6, URP). 1–6 players stand on one giant longboard (2–6 is the real game; 1 is a solo test mode).
 There is no steering input: **the board is steered only by where the players stand.**
 
-Current state: **Milestone 1 – core board control** (primitive placeholder art, test road).
+Current state: **Milestone 2 – endless procedural road** (primitive placeholder art). Milestone 1 (core board control) is done.
 
 ---
 
@@ -16,6 +16,7 @@ Current state: **Milestone 1 – core board control** (primitive placeholder art
 3. On first import `Game.Editor/ProjectSetup` creates `Assets/Settings/BoardTuning.asset` and
    `Assets/Scenes/M1_TestScene.unity` and opens the scene. (Menu **Downhill → Rebuild M1 Test Scene** redoes it.)
 4. Press **Play**. The scene only contains a `GameManager`; road, board, players, camera and debug tools are built from code.
+   `GameManager` fields: road mode (Endless / TestTrack), seed (0 = random each run), start player count, bots, keyboard.
 
 **Render pipeline:** on first open `UrpSetup` creates `Assets/Settings/URP_Pipeline.asset` (+ `URP_Renderer.asset`)
 and assigns it as the default and per-quality-level pipeline (menu **Downhill → Setup URP Pipeline** redoes it).
@@ -33,13 +34,40 @@ when URP is active and fall back to `Standard` otherwise.
 | B | Bots on / off (bots drive every slot not taken by keyboard / gamepad) |
 | C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative*. Every bot keeps its own lane along the deck; all but the stubborn ones partly follow the road |
 | 1 – 6 | Number of players on the board. The game starts **solo (1 player)**: you alone steer the board, which is the clearest way to feel the mechanic. Add players / bots with 2–6 |
-| R | Restart the run at the top |
+| R | Restart the run (endless: new random road) |
+| M | Switch between the endless road and the M1 test track |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |
 
-Crash → players are thrown off → the board respawns on the road ~2.5 s later.
-The test road is ~2.3 km: straight, left curve, straight, right curve, then a long straight with cones and one ramp.
-At the end the run restarts from the top.
+Crash → players are thrown off → the board respawns on the free line of the road ~2.5 s later (10 m back).
+The M1 test track (M key) is ~2.5 km: straight, left curve, straight, right curve, long straight with cones and a ramp.
+
+## Endless road (Milestone 2)
+
+`RoadGenerator` assembles the road from `RoadChunkLibrary` chunks, 450 m ahead of the board, recycling chunks
+150 m behind it (pre-filled pool, no allocation while playing). Chunk types: straight, gentle L/R curve,
+hard L/R curve, S-curve, narrow section (walls), construction area, bridge (no shoulders – falling off = crash),
+tunnel (walls + roof), ramp, broken road (potholes + debris), traffic (same-direction and, later, oncoming cars),
+downhill intersection (cross traffic that waits for a gap), partial barriers (weave), fork (central divider).
+Every chunk has entry/exit sockets, a width profile, edge types and metadata (rating 1–10, earliest distance).
+
+**Always traversable:** after placing a chunk's obstacles, `RoadPlanner` proves a line exists that the board
+centre can follow (asphalt minus inflated obstacles and traffic lanes, lateral change limited to 0.06 m per m).
+If a random layout ever blocks the way, the blocking obstacle is removed. Cooperative bots follow that line.
+
+**Difficulty** (`DifficultyManager`, 0 → 1 over `difficultyFullDistance` = 8 km) raises speed *and* decisions:
+target chunk rating 1.5 → 8, road width 14 → 10 m, obstacle density, traffic speed, oncoming traffic (> 0.55),
+chained hazards such as ramp → hard curve (> 0.65), speed cap +25 %.
+
+**Collision rules** (all inside the simulation, not Unity physics):
+
+| Obstacle | Severity |
+|---|---|
+| cone, construction barrier, crate | light: knocked away, −8 % speed (M3: combo hit) |
+| pothole | bump: −6 % speed, everybody staggers |
+| concrete barrier, parked / moving car, divider, debris | heavy: deflect, −30 % speed, stagger, players on the impact side fall off |
+| heavy obstacle hit with closing speed > 16 m/s | crash |
+| tunnel / narrow walls | scrape: pushed back, speed loss; hitting a wall at > 11 m/s sideways = crash |
 
 ## How steering works
 
@@ -89,6 +117,10 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 | | lightImpactSpeedLoss | 0.08 | Cone hit |
 | Vertical | gravity / hardLandingSpeed | 20 m/s² / 6 m/s | Ramps, hard landings stagger players |
 | Crash | crashRestartDelay / crashDeceleration | 2.5 s / 14 m/s² | |
+| Impacts | heavyImpactSpeedLoss / crashImpactSpeed | 0.3 / 16 m/s | Heavy hit speed loss; closing speed that turns a heavy hit into a crash |
+| | heavyStaggerTime / heavyFallThreshold | 0.7 s / 0.55 | Players beyond 55 % of the deck toward the impact fall off |
+| | potholeSpeedLoss / wallScrapeSpeedLoss / wallCrashLateralSpeed | 0.06 / 0.12 / 11 m/s | |
+| Difficulty | difficultyFullDistance / difficultySpeedCapBonus | 8000 m / 0.25 | |
 | Players | playerRadius / playerHeight | 0.33 / 1.1 m | |
 | | playerMoveSpeed / GroundAcceleration / AirAcceleration | 3.6 m/s / 20 / 6 m/s² | |
 | | playerJumpVelocity / playerGravity / playerJumpCooldown | 4.5 m/s / 14 m/s² / 0.25 s | |
@@ -102,7 +134,10 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 
 **In Unity:** *Window → General → Test Runner → PlayMode → Run All*. `Game.Tests` contains
 - `BoardAcceptanceTests` / `BoardFlowTests` — the Milestone 1 acceptance tests on the engine-independent simulation
-- `TrackRunTests` — bot crews drive the whole test road headless (same layout, ramp and respawn rules as the scene)
+- `TrackRunTests` — bot crews drive the whole M1 test track headless (same layout, ramp and respawn rules as the scene)
+- `RoadAcceptanceTests` — Milestone 2: 10 km soak on 5 seeds with a validity check at every chunk join, scripted
+  ideal driver over 10 km, difficulty curve (set `DOWNHILL_REPORT_DIR` to also write `M2_difficulty_curve.csv`),
+  allocation and step-time measurement
 - `BoardPlayModeTests` — the same mechanics inside the engine (raycast ground on the test road, crash → respawn, ramp, player views vs deck)
 
 **Without Unity (headless, .NET 8 SDK):**
@@ -127,14 +162,17 @@ Assets/Scripts/
       Board/                    BoardWeightSystem, BoardPhysicsSim, IGroundProvider
       Players/                  PlayerSim (kinematic, board-local), PlayerCrowdSolver
       Bots/                     BotBrain + 6 behaviours
-      Road/                     RoadPath, TestRoadLayout, RoadGround (headless ground for the test road)
+      Road/                     RoadGenerator, RoadChunkLibrary, RoadChunk, RoadModel (ground/projection),
+                                RoadPlanner (traversability), DifficultyManager, TestRoadLayout (M1 track)
+      Obstacles/                ObstacleField (pool, traffic, collision), ObstacleTypes (kinds, severity)
+      RunSimulation.cs          one authoritative run: road + obstacles + difficulty + board
       Input/PlayerInputState.cs the only input the sim reads
       Tuning/BoardTuningData.cs every tuning value
-    Board/                      BoardController (FixedUpdate host, kinematic Rigidbody), BoardView
+    Board/                      BoardController (hosts RunSimulation in FixedUpdate, kinematic Rigidbody), BoardView
     Players/PlayerView.cs       primitive character visuals
     Input/                      PlayerInputRouter (keyboard / gamepads / bots), LocalDeviceInput
-    Road/                       TestRoad (builds the M1 track meshes), UnityGroundProvider, GroundSurface
-    Obstacles/                  ObstacleBase, ConeObstacle
+    Road/                       RoadView + ChunkView (pooled chunk meshes)
+    Obstacles/ObstacleViews.cs  pooled primitive models mirroring the obstacle pool
     CameraRig/CameraController.cs
     Core/                       GameManager (bootstrap), RunManager, GameHotkeys
     DebugTools/                 DebugOverlay (F1), TuningPanel (F2)

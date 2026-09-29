@@ -3,28 +3,32 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// Scene bootstrap. Builds the Milestone 1 test setup from code (road, board, players, camera, run flow,
-    /// debug tools) so the scene only needs this one component.
+    /// Scene bootstrap. Builds everything from code (simulation host, road and obstacle views, board, players,
+    /// camera, run flow, debug tools) so the scene only needs this one component.
     /// </summary>
     public sealed class GameManager : MonoBehaviour
     {
         [SerializeField] BoardTuning tuning;
+        [SerializeField] RoadMode roadMode = RoadMode.Endless;
+        [Tooltip("0 = new random road every run")]
+        [SerializeField] int seed = 0;
         // Renamed from playerCount so scenes saved with the old default (6) start solo too.
         [Range(1, 6)] [SerializeField] int startPlayerCount = 1;
         [SerializeField] bool botsEnabled = true;
         [SerializeField] bool keyboardEnabled = true;
 
         public BoardTuning Tuning => tuning;
-        public TestRoad Road { get; private set; }
         public BoardController Board { get; private set; }
         public BoardView BoardView { get; private set; }
+        public RoadView RoadView { get; private set; }
         public PlayerInputRouter InputRouter { get; private set; }
         public RunManager Run { get; private set; }
         public CameraController CameraRig { get; private set; }
         public DebugOverlay Overlay { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
-        public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true)
+        public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true,
+                                         RoadMode mode = RoadMode.Endless, int seed = 0)
         {
             var go = new GameObject("GameManager");
             go.SetActive(false); // configure before Awake runs
@@ -33,6 +37,8 @@ namespace Game
             gm.startPlayerCount = players;
             gm.botsEnabled = bots;
             gm.keyboardEnabled = keyboard;
+            gm.roadMode = mode;
+            gm.seed = seed;
             go.SetActive(true);
             return gm;
         }
@@ -45,15 +51,14 @@ namespace Game
             if (!tuning.data.Validate(out string error)) Debug.LogError("BoardTuning invalid: " + error);
 
             EnsureLight();
-            Road = TestRoad.Build(transform);
-            Road.Path.Sample(0f, out System.Numerics.Vector3 start, out float startYaw);
-
-            Board = BoardController.Create(tuning, new UnityGroundProvider(), start.ToUnity(), startYaw, startPlayerCount);
+            Board = BoardController.Create(tuning, RunManager.NewSeed(seed), startPlayerCount, RunManager.TrackFor(roadMode));
             Board.transform.SetParent(transform, true);
             BoardView = BoardView.Create(Board);
+            RoadView = RoadView.Create(transform, Board.Run.Road);
+            ObstacleViews.Create(transform, Board.Run.Obstacles);
 
             InputRouter = Board.gameObject.AddComponent<PlayerInputRouter>();
-            InputRouter.Initialize(Road.Path, botsEnabled);
+            InputRouter.Initialize(Board.Run, botsEnabled);
             InputRouter.KeyboardEnabled = keyboardEnabled;
             Board.SetInputProvider(InputRouter);
 
@@ -61,7 +66,7 @@ namespace Game
 
             CameraRig = CameraController.Create(Board);
             Run = gameObject.AddComponent<RunManager>();
-            Run.Initialize(Board, Road.Path, CameraRig);
+            Run.Initialize(Board, CameraRig, roadMode, seed);
 
             Overlay = gameObject.AddComponent<DebugOverlay>();
             Overlay.Initialize(Board, BoardView, InputRouter, Run);

@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace Game
 {
-    /// <summary>Local-testing hotkeys: Tab, B, C, 1-6, R, F1, F2.</summary>
+    /// <summary>Local-testing hotkeys: Tab, B, C, M, 1-6, R, F1, F2.</summary>
     public sealed class GameHotkeys : MonoBehaviour
     {
         BoardController _board;
@@ -32,6 +32,7 @@ namespace Game
             if (kb[Key.B].wasPressedThisFrame) _router.BotsEnabled = !_router.BotsEnabled;
             if (kb[Key.C].wasPressedThisFrame) _router.CyclePreset();
             if (kb[Key.R].wasPressedThisFrame) _run.RestartRun();
+            if (kb[Key.M].wasPressedThisFrame) _run.ToggleMode();
             if (kb[Key.F1].wasPressedThisFrame) _overlay.Visible = !_overlay.Visible;
             if (kb[Key.F2].wasPressedThisFrame) _tuningPanel.Visible = !_tuningPanel.Visible;
             for (int i = 0; i < CountKeys.Length; i++)
