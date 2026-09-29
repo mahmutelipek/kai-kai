@@ -9,17 +9,18 @@ Current state: **Milestone 1 – core board control** (primitive placeholder art
 
 ## Opening the project
 
-1. Unity Hub → *Add project from disk* → this folder. Use **Unity 6 LTS (6000.0.x)**; `ProjectVersion.txt`
-   says 6000.0.58f2, and any 6000.0.x should work (Hub will offer to switch).
+1. Unity Hub → *Add project from disk* → this folder. Use a **Unity 6** editor (tested target: 6000.6.3f1;
+   6000.0.58f2 has a known package-signature bug, do not use it). Accept the project upgrade prompt.
 2. Packages resolve from `Packages/manifest.json` (Input System, URP, Test Framework).
    If Unity asks to **enable the new Input System backends / restart**, answer **Yes**.
 3. On first import `Game.Editor/ProjectSetup` creates `Assets/Settings/BoardTuning.asset` and
    `Assets/Scenes/M1_TestScene.unity` and opens the scene. (Menu **Downhill → Rebuild M1 Test Scene** redoes it.)
 4. Press **Play**. The scene only contains a `GameManager`; road, board, players, camera and debug tools are built from code.
 
-**Render pipeline:** materials use `Universal Render Pipeline/Lit` when a URP asset is active and fall back
-to `Standard` otherwise, so the scene renders either way. To get URP: *Assets → Create → Rendering → URP Asset
-(with Universal Renderer)* and assign it in *Project Settings → Graphics* and *Quality*.
+**Render pipeline:** on first open `UrpSetup` creates `Assets/Settings/URP_Pipeline.asset` (+ `URP_Renderer.asset`)
+and assigns it as the default and per-quality-level pipeline (menu **Downhill → Setup URP Pipeline** redoes it).
+If that fails, the Console shows a warning with the manual steps. Materials use `Universal Render Pipeline/Lit`
+when URP is active and fall back to `Standard` otherwise.
 
 ## Controls (local testing)
 

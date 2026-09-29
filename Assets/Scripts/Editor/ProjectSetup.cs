@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 namespace Game.EditorTools
 {
     /// <summary>
-    /// Creates the Milestone 1 scene and the BoardTuning asset the first time the project is opened
+    /// Makes URP the active pipeline and creates the Milestone 1 scene and the BoardTuning asset the first time the project is opened
     /// (and on demand via the Downhill menu), so nothing has to be hand-authored in YAML.
     /// </summary>
     [InitializeOnLoad]
@@ -22,6 +22,7 @@ namespace Game.EditorTools
             EditorApplication.delayCall += () =>
             {
                 if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+                UrpSetup.EnsureUrpActive();
                 if (!File.Exists(ScenePath)) CreateTestScene(openAfterwards: string.IsNullOrEmpty(SceneManager.GetActiveScene().path));
             };
         }
@@ -67,7 +68,7 @@ namespace Game.EditorTools
             Debug.Log("Downhill: created " + ScenePath + " (press Play).");
         }
 
-        static void EnsureFolder(string path)
+        public static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;
             string parent = Path.GetDirectoryName(path).Replace('\\', '/');
