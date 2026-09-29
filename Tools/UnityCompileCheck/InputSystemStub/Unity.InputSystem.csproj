@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Minimal stand-in for com.unity.inputsystem: only the members this project uses, with the real signatures. -->
+  <PropertyGroup><AssemblyName>Unity.InputSystem</AssemblyName></PropertyGroup>
+  <ItemGroup><Compile Include="*.cs" /></ItemGroup>
+</Project>

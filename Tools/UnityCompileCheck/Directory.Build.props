@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <UnityRefs>$(MSBuildThisFileDirectory)refs/</UnityRefs>
+    <Repo>$(MSBuildThisFileDirectory)../../</Repo>
+    
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(UnityRefs)UnityEngine*.dll" Private="false" />
+  </ItemGroup>
+</Project>

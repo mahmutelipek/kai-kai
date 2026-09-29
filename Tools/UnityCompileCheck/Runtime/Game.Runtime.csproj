@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><AssemblyName>Game.Runtime</AssemblyName><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup>
+  <ItemGroup><Compile Include="$(Repo)Assets/Scripts/Runtime/**/*.cs" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../InputSystemStub/Unity.InputSystem.csproj" /></ItemGroup>
+</Project>
