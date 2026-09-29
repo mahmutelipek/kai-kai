@@ -75,7 +75,7 @@ namespace Game
                 Line($"P{i + 1} {who,-15} x {p.LocalPosition.X,5:+0.00;-0.00} z {p.LocalPosition.Y,5:+0.00;-0.00} {(p.IsOnBoard ? "" : "FALLEN")} {(p.StaggerTimer > 0f ? "stagger" : "")}");
             }
             GUILayout.Space(6);
-            Line("<i>Tab switch player · B bots · C bot mix · 2-6 player count · R restart · F2 tuning</i>");
+            Line("<i>Tab switch player · B bots · C bot mix · 1-6 player count · R restart · F2 tuning</i>");
             GUILayout.EndArea();
         }
 

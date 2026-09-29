@@ -19,7 +19,7 @@ namespace Game.Simulation
     public sealed class BoardSimulation
     {
         public const int MaxPlayers = 6;
-        public const int MinPlayers = 2;
+        public const int MinPlayers = 1;
 
         public BoardTuningData Tuning;
         public IGroundProvider Ground;

@@ -9,7 +9,8 @@ namespace Game
     public sealed class GameManager : MonoBehaviour
     {
         [SerializeField] BoardTuning tuning;
-        [Range(2, 6)] [SerializeField] int playerCount = 6;
+        // Renamed from playerCount so scenes saved with the old default (6) start solo too.
+        [Range(1, 6)] [SerializeField] int startPlayerCount = 1;
         [SerializeField] bool botsEnabled = true;
         [SerializeField] bool keyboardEnabled = true;
 
@@ -23,13 +24,13 @@ namespace Game
         public DebugOverlay Overlay { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
-        public static GameManager Create(BoardTuning tuning = null, int players = 6, bool bots = true, bool keyboard = true)
+        public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true)
         {
             var go = new GameObject("GameManager");
             go.SetActive(false); // configure before Awake runs
             var gm = go.AddComponent<GameManager>();
             gm.tuning = tuning;
-            gm.playerCount = players;
+            gm.startPlayerCount = players;
             gm.botsEnabled = bots;
             gm.keyboardEnabled = keyboard;
             go.SetActive(true);
@@ -47,7 +48,7 @@ namespace Game
             Road = TestRoad.Build(transform);
             Road.Path.Sample(0f, out Vector3 start, out float startYaw);
 
-            Board = BoardController.Create(tuning, new UnityGroundProvider(), start, startYaw, playerCount);
+            Board = BoardController.Create(tuning, new UnityGroundProvider(), start, startYaw, startPlayerCount);
             Board.transform.SetParent(transform, true);
             BoardView = BoardView.Create(Board);
 

@@ -1,6 +1,6 @@
 # Downhill Party Board
 
-Co-op endless downhill party game prototype (Unity 6, URP). 2–6 players stand on one giant longboard.
+Co-op endless downhill party game prototype (Unity 6, URP). 1–6 players stand on one giant longboard (2–6 is the real game; 1 is a solo test mode).
 There is no steering input: **the board is steered only by where the players stand.**
 
 Current state: **Milestone 1 – core board control** (primitive placeholder art, test road).
@@ -32,7 +32,7 @@ when URP is active and fall back to `Standard` otherwise.
 | Gamepad | Each connected gamepad takes over one more player (left stick / d-pad, A/Cross = jump) |
 | B | Bots on / off (bots drive every slot not taken by keyboard / gamepad) |
 | C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative* |
-| 2 – 6 | Number of players on the board |
+| 1 – 6 | Number of players on the board. The game starts **solo (1 player)**: you alone steer the board, which is the clearest way to feel the mechanic. Add players / bots with 2–6 |
 | R | Restart the run at the top |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |

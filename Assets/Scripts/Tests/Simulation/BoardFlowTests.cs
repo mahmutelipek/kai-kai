@@ -77,6 +77,41 @@ namespace Game.Tests
             Assert.IsFalse(after.Crashed, "balanced formation after restart must be stable");
         }
 
+        // Solo test mode: one player is the whole weight model.
+        [Test]
+        public void SoloPlayer_CenterStraight_HalfwayTurns_EdgeCrashes()
+        {
+            foreach (float speed in new[] { 8f, 20f, 35f })
+            {
+                ScenarioTrace center = BoardScenario.RunPinned("C", speed, 8f);
+                ScenarioTrace half = BoardScenario.RunPinned("r", speed, 10f);
+                ScenarioTrace edge = BoardScenario.RunPinned("R", speed, 6f);
+                float halfYaw = half.Mean(half.YawRateDeg, 6f, 10f);
+                TestContext.WriteLine($"solo @ {speed}: center {center.MaxAbs(center.YawRateDeg, 3f, 8f):F4} deg/s, " +
+                                      $"half-way {halfYaw:F2} deg/s (max danger {half.MaxDanger:F2}), edge crash at {edge.CrashTime:F2}s");
+                Assert.That(center.MaxAbs(center.YawRateDeg, 3f, 8f), Is.LessThan(1f));
+                Assert.IsFalse(half.Crashed, "half-way out must be a controllable turn");
+                Assert.That(halfYaw, Is.GreaterThan(2f));
+                Assert.IsTrue(edge.Crashed, "standing at the edge alone must crash");
+            }
+        }
+
+        [Test]
+        public void GrowingFromOneToSixPlayers_KeepsEveryoneSafe()
+        {
+            BoardTuningData t = BoardScenario.TuningAtSpeed(15f);
+            BoardSimulation sim = BoardScenario.Create(1, t);
+            for (int n = 1; n <= 6; n++)
+            {
+                sim.SetActivePlayerCount(n);
+                Assert.AreEqual(n, sim.ActivePlayerCount);
+                Assert.That(PlayerCrowdSolver.MinimumSeparation(sim.Players, n, t), Is.GreaterThan(2f * t.playerRadius), "new player spawned inside someone");
+                ScenarioTrace trace = BoardScenario.Run(sim, 2f);
+                Assert.IsTrue(trace.AllFinite);
+                Assert.IsFalse(trace.Crashed);
+            }
+        }
+
         [Test]
         public void PlayerCountChange_RenormalizesSteering()
         {
