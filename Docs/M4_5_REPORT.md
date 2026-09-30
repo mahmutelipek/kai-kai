@@ -42,3 +42,12 @@ Tarih: 2026-09-30
   - Güncellenenler: menü testleri, tuning sabitleme testi.
 - **Unity derleme kontrolü:** 0 hata, 0 uyarı.
 - **Unity'de koşmadı.** Ekran görüntüleri headless önizleme. Önizlemedeki tablo örnek veri.
+
+## 4. Ek tur ("top score podyum gibi olmalı; kaykay hâlâ küçük, karakterler büyük")
+- **Podyum:**
+  - İlk üç skor podyumda duruyor: ortada en yüksek altın #1, solda gümüş #2, sağda bronz #3.
+  - Bloklar sırayla yükseliyor. Üstlerinde madalya, skor, mesafe ve ekip bilgisi var.
+  - 4–10 altta liste halinde. Yeni skor podyumdaysa bloğu nabız gibi atıyor ve NEW etiketi taşıyor; listedeyse satırı sarı yanıyor.
+  - Game over ekranında ve HIGH SCORES menüsünde aynı görünüm kullanılıyor.
+- **Karakterler:** Görsel ölçek 0.88'den **0.72**'ye düştü; sadece görünüm değişti, fizik aynı. Kaykay artık riderlara göre yaklaşık 1.56 kat büyük görünüyor. Karşılaştırma: `Docs/M4/board_size_before_after.jpg`.
+- **Test:** Headless 103/103 geçti, derleme kontrolü 0 hata ve 0 uyarı. Unity'de koşmadı.
