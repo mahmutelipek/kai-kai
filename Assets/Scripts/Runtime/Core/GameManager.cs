@@ -16,6 +16,8 @@ namespace Game
         [Range(1, 6)] [SerializeField] int startPlayerCount = 1;
         [SerializeField] bool botsEnabled = true;
         [SerializeField] bool keyboardEnabled = true;
+        [Tooltip("3-2-1-GO before every run")]
+        [SerializeField] bool startCountdown = true;
 
         public BoardTuning Tuning => tuning;
         public BoardController Board { get; private set; }
@@ -31,7 +33,7 @@ namespace Game
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
         public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true,
-                                         RoadMode mode = RoadMode.Endless, int seed = 0)
+                                         RoadMode mode = RoadMode.Endless, int seed = 0, bool countdown = false)
         {
             var go = new GameObject("GameManager");
             go.SetActive(false); // configure before Awake runs
@@ -42,6 +44,7 @@ namespace Game
             gm.keyboardEnabled = keyboard;
             gm.roadMode = mode;
             gm.seed = seed;
+            gm.startCountdown = countdown;
             go.SetActive(true);
             return gm;
         }
@@ -86,6 +89,7 @@ namespace Game
             Hud = gameObject.AddComponent<HUDController>();
             Hud.Initialize(Board, Run, InputRouter, Overlay);
             gameObject.AddComponent<GameHotkeys>().Initialize(Board, InputRouter, Run, Overlay, tuningPanel, Hud);
+            if (startCountdown) Run.EnableCountdown(Hud);
         }
     }
 }

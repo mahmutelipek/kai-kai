@@ -78,18 +78,19 @@ namespace Game.Tests
         [Test]
         public void M3_1_ComboDecay_IdleDrain()
         {
-            var t = T(); // idle 4 s, drain 2 / s
+            var t = T(); // idle comboIdleTime (5 s), drain 2 / s
             var s = new ScoreManager(t);
             for (int i = 0; i < 10; i++) s.OnCoin();
-            for (int i = 0; i < 38; i++) s.Tick(0.1f, 0f); // 3.8 s idle: nothing lost yet
+            int idleTicks = (int)Math.Round(t.comboIdleTime / 0.1f);
+            for (int i = 0; i < idleTicks - 2; i++) s.Tick(0.1f, 0f); // just before the idle time: nothing lost yet
             Assert.AreEqual(10, s.Combo);
-            for (int i = 0; i < 12; i++) s.Tick(0.1f, 0f); // 5.0 s idle: ~1 s of draining at 2/s
+            for (int i = 0; i < 12; i++) s.Tick(0.1f, 0f); // ~1 s of draining at 2/s
             Assert.That(s.Combo, Is.InRange(7, 9));
             for (int i = 0; i < 100; i++) s.Tick(0.1f, 0f);
             Assert.AreEqual(0, s.Combo, "drains to zero");
             Assert.AreEqual(10, s.BestCombo, "best combo is kept");
             s.OnCoin();
-            for (int i = 0; i < 30; i++) s.Tick(0.1f, 0f);
+            for (int i = 0; i < idleTicks - 10; i++) s.Tick(0.1f, 0f);
             Assert.AreEqual(1, s.Combo, "a new event restarts the idle timer");
         }
 

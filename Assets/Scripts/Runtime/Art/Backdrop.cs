@@ -47,6 +47,7 @@ namespace Game.Art
                 set[i % 2 == 0 ? Pal.FarHill : Pal.FarHill2].Sphere(V(x, SeaLevel - 5f, 1500f + rng.Range(0f, 250f)), id, V(rng.Range(300f, 480f), h * 2f, 260f));
             }
 
+            City(set, ref rng);
             Skyline(set, ref rng, V(330f, SeaLevel, 820f));
             Bridge(set, V(-420f, SeaLevel, 700f), 520f);
 
@@ -75,6 +76,33 @@ namespace Game.Art
                 }
             }
             return set;
+        }
+
+        /// <summary>
+        /// The town below the road on the bay side (reference: rooftops falling toward the water): pastel blocks
+        /// with terracotta or white roofs and a few trees on the slope between the chunk terrain and the shore.
+        /// </summary>
+        static void City(MeshSet set, ref ArtRandom rng)
+        {
+            Quaternion id = Quaternion.Identity;
+            for (float z = -260f; z < 900f; z += 17f)
+            for (float x = 112f; x < 405f; x += 17f)
+            {
+                if (rng.Chance(0.12f)) continue;
+                float px = x + rng.Range(-4f, 4f), pz = z + rng.Range(-4f, 4f);
+                float t = (px - 95f) / (420f - 95f);
+                float ground = -32f + (SeaLevel + 0.5f - -32f) * t;
+                if (rng.Chance(0.15f))
+                {
+                    set[Pal.TreeLeaf].Sphere(V(px, ground + 3f, pz), id, V(7f, 6f, 7f), 3, 6);
+                    continue;
+                }
+                float w = rng.Range(8f, 13f), d = rng.Range(8f, 12f), h = rng.Range(5f, 11f) + (rng.Chance(0.1f) ? 10f : 0f);
+                Quaternion r = Euler(0f, rng.Range(-6f, 6f), 0f);
+                set[Pal.Walls[rng.Range(0, Pal.Walls.Length)]].Box(V(px, ground + h * 0.5f - 1.5f, pz), r, V(w, h + 3f, d));
+                ArtColor roof = rng.Chance(0.65f) ? (rng.Chance(0.5f) ? Pal.Roof : Pal.RoofDark) : Pal.Trim;
+                set[roof].Box(V(px, ground + h - 1.5f + 0.9f, pz), r, V(w + 0.8f, 1.8f, d + 0.8f));
+            }
         }
 
         static void Skyline(MeshSet set, ref ArtRandom rng, Vector3 centre)

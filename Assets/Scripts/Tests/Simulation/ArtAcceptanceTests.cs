@@ -146,6 +146,9 @@ namespace Game.Tests
                 ["frontAcceleration"] = (4f, 6f),
                 ["playerMoveSpeed"] = (3.6f, 4.2f),
                 ["respawnSpeedFraction"] = (0.6f, 0.7f),
+                // M4 follow-up ("more playable"): friendlier near misses and combo idle time
+                ["nearMissDistance"] = (1.2f, 1.5f),
+                ["comboIdleTime"] = (4f, 5f),
             };
             var d = new BoardTuningData();
             float Get(string name) => (float)typeof(BoardTuningData).GetField(name).GetValue(d);
@@ -166,8 +169,8 @@ namespace Game.Tests
 
         // From the M3 defaults (tag m3-done, commit 0fededf) excluding the fields listed above;
         // `git diff 0fededf -- BoardTuningData.cs` shows only those fields changed.
-        const int M3UnchangedFieldCount = 72;
-        const double M3UnchangedWeightedSum = 57895.86000068486;
+        const int M3UnchangedFieldCount = 70;
+        const double M3UnchangedWeightedSum = 57933.40000034869;
 
         [Test]
         public void M4_RiderCountKeys_OneLeavesExactlyOneRider()

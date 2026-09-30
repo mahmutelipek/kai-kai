@@ -101,11 +101,79 @@ function renderIds(s, W, H) {
   return px; // bottom-up rows
 }
 
+// ---------------------------------------------------------------- HUD overlay (Game.Hud.HudLayout draw commands)
+const tintable = new Set(['White', 'Panel', 'Pill', 'Circle', 'Arrow', 'Vignette', 'Heart']);
+function hudTextures(hud) {
+  const out = {};
+  for (const [name, t] of Object.entries(hud.tex)) {
+    const bin = atob(t.b64), px = new Uint8ClampedArray(bin.length);
+    for (let i = 0; i < bin.length; i++) px[i] = bin.charCodeAt(i);
+    const c = document.createElement('canvas'); c.width = t.w; c.height = t.h;
+    c.getContext('2d').putImageData(new ImageData(px, t.w, t.h), 0, 0);
+    out[name] = c;
+  }
+  return out;
+}
+const tintCache = new Map();
+function tinted(texs, name, col) {
+  const key = name + col.join(',');
+  if (tintCache.has(key)) return tintCache.get(key);
+  const src = texs[name], c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  const g = c.getContext('2d');
+  g.drawImage(src, 0, 0);
+  // multiply by the colour like Unity's GUI.color: keep alpha, multiply rgb
+  g.globalCompositeOperation = 'multiply';
+  g.fillStyle = `rgb(${col[0] * 255},${col[1] * 255},${col[2] * 255})`;
+  g.fillRect(0, 0, c.width, c.height);
+  g.globalCompositeOperation = 'destination-in';
+  g.drawImage(src, 0, 0);
+  tintCache.set(key, c);
+  return c;
+}
+function drawHud(glCanvas, hud, W, H) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(glCanvas, 0, 0, W, H);
+  ctx.scale(W / hud.w, H / hud.h);
+  const texs = hudTextures(hud);
+  for (const cmd of hud.cmds) {
+    ctx.save();
+    const px = cmd.x + cmd.w / 2, py = cmd.y + cmd.h / 2;
+    ctx.translate(px, py);
+    ctx.rotate(cmd.rot * Math.PI / 180);
+    ctx.transform(1, 0, cmd.skew, 1, 0, 0);
+    ctx.scale(cmd.scale, cmd.scale);
+    ctx.translate(-px, -py);
+    ctx.globalAlpha = cmd.color[3];
+    if (cmd.text !== undefined) {
+      ctx.font = `italic 900 ${cmd.size}px "Arial Black", Impact, "DejaVu Sans", Arial, sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = ['left', 'center', 'right'][cmd.align];
+      const tx = cmd.align === 0 ? cmd.x : cmd.align === 1 ? cmd.x + cmd.w / 2 : cmd.x + cmd.w;
+      if (cmd.outline > 0) {
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = cmd.outline * 2;
+        const oc = cmd.outlineColor;
+        ctx.strokeStyle = `rgba(${oc[0] * 255},${oc[1] * 255},${oc[2] * 255},${oc[3] / Math.max(cmd.color[3], 0.001)})`;
+        ctx.strokeText(cmd.text, tx, py);
+      }
+      ctx.fillStyle = `rgb(${cmd.color[0] * 255},${cmd.color[1] * 255},${cmd.color[2] * 255})`;
+      ctx.fillText(cmd.text, tx, py);
+    } else if (texs[cmd.tex]) {
+      const img = tintable.has(cmd.tex) || cmd.color[0] < 0.99 || cmd.color[1] < 0.99 || cmd.color[2] < 0.99 ? tinted(texs, cmd.tex, cmd.color) : texs[cmd.tex];
+      ctx.drawImage(img, cmd.x, cmd.y, cmd.w, cmd.h);
+    }
+    ctx.restore();
+  }
+  return c.toDataURL('image/png');
+}
+
 window.renderScene = (data, opts) => {
   const W = opts.width, H = opts.height;
   const s = buildScene(data, W, H);
   s.renderer.render(s.scene, s.cam);
   const result = { tags: s.tags };
+  if (data.hud) { result.png = drawHud(s.renderer.domElement, data.hud, W, H); return result; }
   if (!opts.analyze) return result;
 
   const lit = readPixels(s.renderer, W, H);

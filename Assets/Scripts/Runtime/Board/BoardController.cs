@@ -27,6 +27,8 @@ namespace Game
         public BoardTuning Tuning => _tuning;
         public BoardState State => Run.Board.Board.State;
         public RunStepEvents LastEvents { get; private set; }
+        /// <summary>While true the run does not advance (start countdown). Views keep drawing.</summary>
+        public bool Frozen { get; set; }
 
         public event Action Crashed;
         /// <summary>Strength 0..1 for camera shake / audio.</summary>
@@ -54,7 +56,7 @@ namespace Game
 
         void FixedUpdate()
         {
-            if (Run == null) return;
+            if (Run == null || Frozen) return;
             // live tuning: the panel edits the ScriptableObject's data object that the simulation references
             if (!ReferenceEquals(Run.Board.Tuning, _tuning.data)) Run.SetTuning(_tuning.data);
 

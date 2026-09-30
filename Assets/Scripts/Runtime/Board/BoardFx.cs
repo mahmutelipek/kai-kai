@@ -5,14 +5,15 @@ namespace Game
 {
     /// <summary>
     /// Speed feedback at the wheels (reference image: dust spraying from the big red wheels): dust puffs whose
-    /// rate grows with speed and with carving, and a spark burst on hard impacts / wall scrapes.
+    /// rate grows with speed and with carving, a puff on landing, a spark burst on hard impacts / wall scrapes and a
+    /// blue exhaust while nitro burns.
     /// Visual only (game-feel skill: "feedback off the critical simulation"); pooled particle systems, no spawning.
     /// </summary>
     public sealed class BoardFx : MonoBehaviour
     {
         BoardController _board;
         ParticleSystem[] _dust;
-        ParticleSystem _sparks;
+        ParticleSystem _sparks, _nitro;
         static Material _material;
 
         public static BoardFx Create(BoardController board, BoardView view)
@@ -27,13 +28,25 @@ namespace Game
             for (int xs = -1; xs <= 1; xs += 2)
                 fx._dust[k++] = Dust(board.transform, new Vector3(xs * x, 0.1f, zs * axleZ));
             fx._sparks = Sparks(board.transform);
+            fx._nitro = NitroFlame(board.transform, new Vector3(0f, 0.55f, -t.boardLength * 0.5f - 0.2f));
             board.Impact += fx.OnImpact;
+            board.Landed += fx.OnLanded;
             return fx;
         }
 
         void OnDestroy()
         {
-            if (_board != null) _board.Impact -= OnImpact;
+            if (_board == null) return;
+            _board.Impact -= OnImpact;
+            _board.Landed -= OnLanded;
+        }
+
+        /// <summary>Landing puff from every wheel, bigger for harder landings.</summary>
+        void OnLanded(float speed)
+        {
+            if (speed < 2f) return;
+            int n = Mathf.RoundToInt(Mathf.Clamp(speed * 3f, 6f, 30f));
+            for (int i = 0; i < _dust.Length; i++) _dust[i].Emit(n);
         }
 
         void OnImpact(float strength)
@@ -49,6 +62,8 @@ namespace Game
             float speedNorm = Mathf.Clamp01(s.Speed / Mathf.Max(_board.Tuning.data.softCapSpeed, 1f));
             float carve = Mathf.Clamp01(Mathf.Abs(s.YawRate) * 1.5f);
             float rate = s.Grounded && !s.Crashed ? Mathf.Max(0f, speedNorm - 0.25f) * 70f * (0.5f + carve) : 0f;
+            ParticleSystem.EmissionModule flame = _nitro.emission;
+            flame.rateOverTimeMultiplier = s.NitroTimer > 0f && !s.Crashed ? 140f : 0f;
             for (int i = 0; i < _dust.Length; i++)
             {
                 ParticleSystem.EmissionModule e = _dust[i].emission;
@@ -126,6 +141,35 @@ namespace Game
             col.enabled = true;
             var g = new Gradient();
             g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                      new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            ps.Play();
+            return ps;
+        }
+
+        /// <summary>Blue-white exhaust behind the tail while nitro burns.</summary>
+        static ParticleSystem NitroFlame(Transform parent, Vector3 localPos)
+        {
+            ParticleSystem ps = Base("Nitro Flame", parent, localPos);
+            ParticleSystem.MainModule main = ps.main;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.35f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(4f, 8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.35f, 0.7f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.35f, 0.9f, 1f, 0.9f), new Color(0.8f, 0.97f, 1f, 0.9f));
+            ParticleSystem.EmissionModule e = ps.emission;
+            e.rateOverTime = 0f;
+            ParticleSystem.ShapeModule shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 12f;
+            shape.radius = 0.25f;
+            shape.rotation = new Vector3(0f, 180f, 0f); // backwards
+            ParticleSystem.SizeOverLifetimeModule size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
+            ParticleSystem.ColorOverLifetimeModule col = ps.colorOverLifetime;
+            col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(0.2f, 0.6f, 1f), 1f) },
                       new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
             col.color = g;
             ps.Play();

@@ -74,6 +74,7 @@ namespace Game
             _board = board;
             _board.Impact += OnImpact;
             _board.Landed += OnLanded;
+            _board.Stepped += OnStepped;
             _noiseSeed = Random.value * 100f;
             Snap();
         }
@@ -83,12 +84,21 @@ namespace Game
             if (_board == null) return;
             _board.Impact -= OnImpact;
             _board.Landed -= OnLanded;
+            _board.Stepped -= OnStepped;
         }
 
         void OnImpact(float strength)
         {
             _impact = Mathf.Max(_impact, strength);
             _kickVelocity += new Vector3(Random.Range(-1f, 1f), 0.5f, -1.5f) * (strength * 3f);
+        }
+
+        /// <summary>Nitro kick: the camera is thrown back as the board surges (FOV widens separately).</summary>
+        void OnStepped(RunStepEvents ev)
+        {
+            if (!ev.NitroStarted) return;
+            _kickVelocity += new Vector3(0f, 0.6f, -4f);
+            _impact = Mathf.Max(_impact, 0.35f);
         }
 
         void OnLanded(float landingSpeed)

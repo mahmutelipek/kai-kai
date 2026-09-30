@@ -27,9 +27,13 @@ namespace ArtPreview
             public float FovMin = CameraRigDefaults.FovMin, FovMax = CameraRigDefaults.FovMax;
             public bool Backdrop = true;
             public bool Scenery = true;
+            public bool Hud;
+            public string Countdown;
         }
 
-        public static RunSimulation Drive(Options o)
+        public static RunSimulation Drive(Options o) => Drive(o, null);
+
+        public static RunSimulation Drive(Options o, Action<RunStepEvents, RunSimulation> perStep)
         {
             var t = new BoardTuningData { livesPerRun = 0 };
             var run = new RunSimulation(t, o.Seed, 6);
@@ -39,7 +43,8 @@ namespace ArtPreview
             for (int step = 0; step < 200000; step++)
             {
                 driver.Drive(dt);
-                run.Step(dt, none);
+                RunStepEvents ev = run.Step(dt, none);
+                perStep?.Invoke(ev, run);
                 RoadChunk c = run.Road.ChunkAt(run.Distance);
                 if (run.Distance < o.MinDistance || run.Board.Board.State.Crashed || !run.Board.Board.State.Grounded) continue;
                 if (o.Kind == null || (c.Kind == o.Kind && run.Distance - c.StartAlong > o.LocalAlong)) break;
@@ -49,8 +54,24 @@ namespace ArtPreview
 
         public static PreviewScene Build(Options o)
         {
-            RunSimulation run = Drive(o);
+            var hud = new Game.Hud.HudPresenter();
+            float simTime = 0f;
+            RunSimulation run = Drive(o, (ev, r) =>
+            {
+                simTime += BoardScenario.Dt;
+                if (!o.Hud) return;
+                hud.OnStep(ev, r);
+                hud.Update(r, 0f, simTime, BoardScenario.Dt);
+            });
             var s = new PreviewScene();
+            if (o.Hud)
+            {
+                hud.State.Human[0] = true;
+                if (o.Countdown != null) { hud.SetCountdown(o.Countdown); hud.State.CountdownAge = 0.4f; }
+                s.Hud = new System.Collections.Generic.List<Game.Hud.HudCmd>();
+                float k = s.HudWidth, h = s.HudHeight;
+                Game.Hud.HudLayout.Build(hud.State, k, h, 0f, 0f, k, h, s.Hud);
+            }
             BoardSimulation sim = run.Board;
             BoardState b = sim.Board.State;
             BoardTuningData t = sim.Tuning;

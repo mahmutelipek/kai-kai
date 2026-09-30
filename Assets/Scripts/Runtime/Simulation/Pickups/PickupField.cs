@@ -37,7 +37,7 @@ namespace Game.Simulation
     public sealed class PickupField
     {
         public const int Capacity = 768;
-        public const float CollectRadius = 0.9f;
+        public const float CollectRadius = 1.2f; // generous "magnet" (was 0.9): near-misses of coins still count
         /// <summary>The board plus its riders reach this high above the deck contact point.</summary>
         public const float CrewHeight = 2.2f;
 

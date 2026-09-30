@@ -69,7 +69,15 @@ namespace ArtPreview
                     pickupCount++;
                     pickups += Model(ArtLibrary.Pickup(p.Kind));
                 }
-                const int fxAndHud = 5 /* particle systems */ + 24 /* speed lines at full speed */ + 45 /* IMGUI HUD quads and labels */;
+                // HUD: every image is one IMGUI draw, every outlined text 5 (4 outline copies + fill)
+                var hud = new Game.Hud.HudPresenter();
+                hud.Update(run, 0f, 1f, 0.016f);
+                hud.State.ShowCombo = true; hud.State.NitroCharges = 1; hud.State.Players = 6;
+                var cmds = new System.Collections.Generic.List<Game.Hud.HudCmd>();
+                Game.Hud.HudLayout.Build(hud.State, 1920, 1080, 0, 0, 1920, 1080, cmds);
+                int hudDraws = 0;
+                foreach (var c in cmds) hudDraws += c.Text == null ? 1 : (c.Outline > 0f ? 5 : 1);
+                int fxAndHud = 6 /* particle systems */ + 28 /* speed lines at full speed */ + hudDraws;
                 int total = chunkDc + backdrop + board + riders + obstacles + pickups + fxAndHud;
                 Console.WriteLine($"| {run.Distance:0} m | {run.Road.Chunks.Count} | {chunkDc} | {backdrop} | {board} | {riders} | {obstacles} ({obstacleCount}) | {pickups} ({pickupCount}) | {fxAndHud} | {total} |");
             }

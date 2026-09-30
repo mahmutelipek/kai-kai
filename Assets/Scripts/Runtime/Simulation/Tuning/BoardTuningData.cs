@@ -82,9 +82,9 @@ namespace Game.Simulation
         [TuningRange("Score", 0f, 1000f)] public float airtimePointsPerSecond = 100f;
         [TuningRange("Score", 1f, 30f)] public float comboStep = 10f;
         [TuningRange("Score", 1f, 20f)] public float comboMaxMultiplier = 6f;
-        [TuningRange("Score", 0.5f, 15f)] public float comboIdleTime = 4f;
+        [TuningRange("Score", 0.5f, 15f)] public float comboIdleTime = 5f;
         [TuningRange("Score", 0f, 10f)] public float comboDrainPerSecond = 2f;
-        [TuningRange("Score", 0f, 5f)] public float nearMissDistance = 1.2f;
+        [TuningRange("Score", 0f, 5f)] public float nearMissDistance = 1.5f;
         [TuningRange("Score", 0f, 30f)] public float nearMissMinSpeed = 10f;
         [TuningRange("Score", 0f, 2f)] public float minScoredAirtime = 0.35f;
         [TuningRange("Score", 0f, 10f)] public float livesPerRun = 3f;

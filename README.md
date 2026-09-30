@@ -5,7 +5,9 @@ There is no steering input: **the board is steered only by where the players sta
 
 Current state: **Milestone 4 – stylised visual pass** (6 distinct riders, giant longboard, coastal hillside with bay, bridge and
 skyline, glowing pickups, wheel dust, 3/4 chase camera, post-processing) plus a more dynamic tuning. Milestones 1–3 are done.
-Screenshots (headless preview of the same geometry): `Docs/M4/`.
+M4.1 follow-up: reference-style HUD (brush panels, coin / gem pills, slanted COMBO and NITRO banners, speed wedge,
+rider avatars), 3-2-1-GO start, nitro flame and camera kick, landing dust, danger warning, a town below the road.
+Screenshots (headless preview of the same geometry and HUD draw commands): `Docs/M4/`.
 
 ---
 
@@ -37,7 +39,7 @@ when URP is active and fall back to `Standard` otherwise.
 | B | Bots on / off (bots drive every slot not taken by keyboard / gamepad) |
 | C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative*. Every bot keeps its own lane along the deck; all but the stubborn ones partly follow the road |
 | 1 – 6 (or numpad) | Exactly that many riders on the board (1 = solo, shown as "RIDERS: n"). The game starts **solo**: you alone steer the board, the clearest way to feel the mechanic. Add players / bots with 2–6 |
-| R | Restart the run (endless: new random road). On the end screen also Space / gamepad A |
+| R | Restart the run (endless: new random road). On the end screen also Space / gamepad A. Every run starts with 3-2-1-GO (GameManager → Start Countdown) |
 | M | Switch between the endless road and the M1 test track |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |
@@ -208,7 +210,8 @@ Assets/Scripts/
     Road/                       RoadView + ChunkView (pooled chunk meshes)
     Obstacles/ObstacleViews.cs  pooled art models mirroring the obstacle pool
     Pickups/PickupViews.cs      spinning coins, diamonds, nitro bottles
-    UI/HUDController.cs         HUD (reference layout), event popups, end-of-run screen
+    Art/Hud/                    engine-free HUD: HudPresenter (run -> HudState), HudLayout (draw commands), HudTextures
+    UI/HUDController.cs         draws the HUD commands with IMGUI (the preview draws the same commands on a canvas)
     CameraRig/                  CameraController (3/4 chase), GameFeel (hit-stop, crash slow-mo), SpeedLines, BackdropView
     CameraRig/CameraController.cs
     Core/                       GameManager (bootstrap), RunManager, GameHotkeys, SceneAtmosphere (sun, sky, fog, post)

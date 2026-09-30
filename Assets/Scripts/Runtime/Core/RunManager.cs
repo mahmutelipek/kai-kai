@@ -22,6 +22,14 @@ namespace Game
         CameraController _camera;
         RoadMode _mode;
         int _fixedSeed;
+        HUDController _hud;
+        bool _countdownEnabled;
+        float _countdown = -1f;
+        static readonly string[] CountdownTexts = { "GO!", "1", "2", "3" };
+
+        /// <summary>Seconds of "3, 2, 1" before the board rolls; then "GO!".</summary>
+        public const float CountdownSeconds = 3f;
+        public bool CountingDown => _countdown > 0f;
 
         public float Distance => _board.Run.Distance;
         public float LateralOffset => _board.Run.Projection.Lateral;
@@ -45,9 +53,31 @@ namespace Game
 
         public static int NewSeed(int fixedSeed) => fixedSeed != 0 ? fixedSeed : Random.Range(1, int.MaxValue);
 
+        /// <summary>Enables the 3-2-1-GO start (scene play); PlayMode tests leave it off.</summary>
+        public void EnableCountdown(HUDController hud)
+        {
+            _hud = hud;
+            _countdownEnabled = true;
+            StartCountdown();
+        }
+
+        void StartCountdown()
+        {
+            if (!_countdownEnabled) return;
+            _countdown = CountdownSeconds;
+            _board.Frozen = true;
+        }
+
         void Update()
         {
             if (_board == null || _board.Run == null) return;
+            if (_countdownEnabled && _countdown > -1f)
+            {
+                _countdown -= Time.unscaledDeltaTime;
+                if (_countdown <= 0f && _board.Frozen) _board.Frozen = false;
+                string text = _countdown > 0f ? CountdownTexts[Mathf.Clamp(Mathf.CeilToInt(_countdown), 1, 3)] : _countdown > -0.8f ? CountdownTexts[0] : null;
+                _hud?.SetCountdown(text);
+            }
             BestDistance = Mathf.Max(BestDistance, _board.Run.MaxDistance);
             // the fixed test track ends: start over at the top
             if (_mode == RoadMode.TestTrack && Distance > TestRoadLayout.Length - 40f) RestartRun();
@@ -63,6 +93,7 @@ namespace Game
         public void RestartRun()
         {
             _board.RestartRun(NewSeed(_fixedSeed), TrackFor(_mode));
+            StartCountdown();
         }
     }
 }

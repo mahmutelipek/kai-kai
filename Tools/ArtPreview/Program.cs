@@ -23,12 +23,51 @@ namespace ArtPreview
         /// <summary>Yaw of the backdrop frame (the sun turns with it), radians.</summary>
         public float SunYaw;
 
+        /// <summary>Optional HUD overlay (draw commands from Game.Hud.HudLayout) and the size it was laid out for.</summary>
+        public System.Collections.Generic.List<Game.Hud.HudCmd> Hud;
+        public int HudWidth = 1600, HudHeight = 900;
+
         public MeshSet Set(string tag, bool shadows = true)
         {
             foreach (var o in Objects) if (o.tag == tag) return o.set;
             var s = new MeshSet();
             Objects.Add((tag, s, shadows));
             return s;
+        }
+
+        void WriteHud(StringBuilder sb, CultureInfo ci)
+        {
+            string C(Game.Hud.HudColor c) => string.Format(ci, "[{0:0.###},{1:0.###},{2:0.###},{3:0.###}]", c.R, c.G, c.B, c.A);
+            sb.Append(string.Format(ci, ",\"hud\":{{\"w\":{0},\"h\":{1},\"cmds\":[", HudWidth, HudHeight));
+            var used = new HashSet<Game.Hud.HudTex>();
+            for (int i = 0; i < Hud.Count; i++)
+            {
+                Game.Hud.HudCmd c = Hud[i];
+                if (i > 0) sb.Append(',');
+                sb.Append(string.Format(ci, "{{\"x\":{0:0.##},\"y\":{1:0.##},\"w\":{2:0.##},\"h\":{3:0.##},\"rot\":{4:0.##},\"skew\":{5:0.###},\"scale\":{6:0.###},\"color\":{7}",
+                    c.X, c.Y, c.W, c.H, c.Rotation, c.Skew, c.Scale == 0f ? 1f : c.Scale, C(c.Color)));
+                if (c.Text != null)
+                {
+                    sb.Append(",\"text\":\"").Append(c.Text.Replace("\\", "\\\\").Replace("\"", "\\\"")).Append('"');
+                    sb.Append(string.Format(ci, ",\"size\":{0:0.##},\"align\":{1},\"outline\":{2:0.##},\"outlineColor\":{3}", c.FontSize, (int)c.Align, c.Outline, C(c.OutlineColor)));
+                }
+                else
+                {
+                    sb.Append(",\"tex\":\"").Append(c.Tex).Append('"');
+                    used.Add(c.Tex);
+                }
+                sb.Append('}');
+            }
+            sb.Append("],\"tex\":{");
+            bool first = true;
+            foreach (Game.Hud.HudTex t in used)
+            {
+                Game.Hud.HudImage img = Game.Hud.HudTextures.Get(t);
+                if (!first) sb.Append(',');
+                first = false;
+                sb.Append('"').Append(t).Append(string.Format(ci, "\":{{\"w\":{0},\"h\":{1},\"b64\":\"", img.Width, img.Height)).Append(Convert.ToBase64String(img.Rgba)).Append("\"}");
+            }
+            sb.Append("}}");
         }
 
         public void Write(string path)
@@ -44,6 +83,7 @@ namespace ArtPreview
             sb.Append(",\"sunColor\":\"").Append(Atmosphere.SunColor.ToHex()).Append("\",\"sunDir\":").Append(V3(-Vector3.Transform(Atmosphere.SunForward, Quaternion.CreateFromAxisAngle(Vector3.UnitY, SunYaw))));
             if (ShadowFocus.HasValue) sb.Append(",\"shadowFocus\":").Append(V3(ShadowFocus.Value));
             sb.Append(string.Format(ci, ",\"shadowRadius\":{0}", ShadowRadius));
+            if (Hud != null) WriteHud(sb, ci);
             sb.Append(",\"objects\":[");
             bool firstObj = true;
             foreach (var (tag, set, shadows) in Objects)
@@ -102,6 +142,9 @@ namespace ArtPreview
                 ["board_gameplay"] = BoardGameplay,
                 ["reaction50"] = () => GameplayScenes.Reaction(50f),
                 ["game_start"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 250f }),
+                ["hud_curve"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.HardCurve, LocalAlong = 15f, Hud = true }),
+                ["hud_construction"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Construction, LocalAlong = 30f, Hud = true }),
+                ["hud_start"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 60f, Hud = true, Countdown = "2" }),
                 ["game_ramp"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Ramp, LocalAlong = 20f }),
                 ["game_construction"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Construction, LocalAlong = 30f }),
                 ["game_bridge"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 60f }),
