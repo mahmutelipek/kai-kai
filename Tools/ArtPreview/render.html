@@ -1,0 +1,185 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}</style></head>
+<body><script type="module">
+// Renders a scene exported by ArtPreview (Game.Art geometry, already converted to right-handed coordinates).
+// Lighting approximates the Unity scene set up by Atmosphere.cs: sun + sky/ground ambient, fog, ACES tone mapping.
+// This is NOT Unity's renderer; it shows the same triangles and colours under similar light.
+import * as THREE from './node_modules/three/build/three.module.js';
+
+function buildScene(data, W, H) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(1);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = data.exposure ?? 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const sky = new THREE.Color(data.sky ?? '#8ec9f5');
+  scene.background = sky;
+  if (data.fog) scene.fog = new THREE.Fog(new THREE.Color(data.fog.color), data.fog.near, data.fog.far);
+
+  // sky dome with a horizon gradient
+  const domeGeo = new THREE.SphereGeometry(data.camera.far * 0.95, 32, 16);
+  const top = new THREE.Color(data.skyTop ?? '#4f9ee8'), horizon = new THREE.Color(data.sky ?? '#bfe3ff');
+  const cols = [];
+  const pos = domeGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const t = Math.max(0, pos.getY(i) / (data.camera.far * 0.95));
+    const c = horizon.clone().lerp(top, Math.pow(t, 0.6));
+    cols.push(c.r, c.g, c.b);
+  }
+  domeGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  const dome = new THREE.Mesh(domeGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+  dome.renderOrder = -1;
+  scene.add(dome);
+
+  const cam = new THREE.PerspectiveCamera(data.camera.fov, W / H, data.camera.near, data.camera.far);
+  cam.position.fromArray(data.camera.pos);
+  cam.lookAt(new THREE.Vector3().fromArray(data.camera.target));
+  if (data.camera.roll) cam.rotateZ(data.camera.roll);
+  dome.position.copy(cam.position);
+
+  scene.add(new THREE.HemisphereLight(new THREE.Color(data.ambientSky ?? '#d6ecff'), new THREE.Color(data.ambientGround ?? '#8f9a74'), data.ambient ?? 1.25));
+  const sun = new THREE.DirectionalLight(new THREE.Color(data.sunColor ?? '#fff1dc'), data.sunIntensity ?? 2.6);
+  const sd = new THREE.Vector3().fromArray(data.sunDir ?? [0.4, 0.8, 0.45]).normalize();
+  const focus = new THREE.Vector3().fromArray(data.shadowFocus ?? data.camera.target);
+  sun.position.copy(focus).addScaledVector(sd, 120);
+  sun.target.position.copy(focus);
+  sun.castShadow = true;
+  const r = data.shadowRadius ?? 40;
+  Object.assign(sun.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: 300 });
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0006;
+  sun.shadow.normalBias = 0.02;
+  scene.add(sun, sun.target);
+
+  const tags = [];
+  const meshes = [];
+  for (const obj of data.objects) {
+    let tagIndex = tags.indexOf(obj.tag);
+    if (tagIndex < 0) { tags.push(obj.tag); tagIndex = tags.length - 1; }
+    for (const part of obj.meshes) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(part.v, 3));
+      g.setIndex(part.i);
+      g.computeVertexNormals();
+      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(part.c), roughness: 1 - part.s * 0.75, metalness: 0 });
+      const mesh = new THREE.Mesh(g, mat);
+      mesh.castShadow = obj.shadows !== false;
+      mesh.receiveShadow = true;
+      mesh.userData.tag = tagIndex;
+      mesh.userData.lit = mat;
+      scene.add(mesh);
+      meshes.push(mesh);
+    }
+  }
+  return { renderer, scene, cam, tags, meshes, dome };
+}
+
+function readPixels(renderer, W, H) {
+  const gl = renderer.getContext();
+  const px = new Uint8Array(W * H * 4);
+  gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  return px; // bottom-up rows
+}
+
+// ID passes go to a non-multisampled target so object edges never blend into wrong ids
+function renderIds(s, W, H) {
+  const rt = new THREE.WebGLRenderTarget(W, H, { samples: 0 });
+  s.renderer.setRenderTarget(rt);
+  s.renderer.render(s.scene, s.cam);
+  const px = new Uint8Array(W * H * 4);
+  s.renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+  s.renderer.setRenderTarget(null);
+  rt.dispose();
+  return px; // bottom-up rows
+}
+
+window.renderScene = (data, opts) => {
+  const W = opts.width, H = opts.height;
+  const s = buildScene(data, W, H);
+  s.renderer.render(s.scene, s.cam);
+  const result = { tags: s.tags };
+  if (!opts.analyze) return result;
+
+  const lit = readPixels(s.renderer, W, H);
+  const litCopy = s.renderer.domElement.toDataURL('image/png');
+
+  // ID pass: every tag drawn in a unique flat colour with depth, no lighting / fog / tone mapping
+  const saveBg = s.scene.background, saveFog = s.scene.fog, saveTone = s.renderer.toneMapping;
+  s.scene.background = new THREE.Color(0, 0, 0);
+  s.scene.fog = null;
+  s.dome.visible = false;
+  s.renderer.toneMapping = THREE.NoToneMapping;
+  s.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+  const idMats = s.tags.map((_, i) => new THREE.MeshBasicMaterial({ color: new THREE.Color((i + 1) / 255, 0, 0) }));
+  for (const m of s.meshes) m.material = idMats[m.userData.tag];
+  const ids = renderIds(s, W, H);
+
+  // CIE76 contrast of every item pixel against a reference colour (the lit road), in Lab
+  const lab = (r, g, b) => {
+    const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    const R = lin(r), G = lin(g), B = lin(b);
+    const X = (0.4124 * R + 0.3576 * G + 0.1805 * B) / 0.95047, Y = 0.2126 * R + 0.7152 * G + 0.0722 * B, Z = (0.0193 * R + 0.1192 * G + 0.9505 * B) / 1.08883;
+    const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+    return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
+  };
+  const ref = lab(...(opts.refColor ?? [0, 0, 0]));
+  const stats = s.tags.map(t => ({ tag: t, pixels: 0, minX: W, minY: H, maxX: -1, maxY: -1, r: 0, g: 0, b: 0, de: [] }));
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const k = (y * W + x) * 4;
+    const id = ids[k] - 1;
+    if (id < 0 || id >= stats.length) continue;
+    const st = stats[id];
+    const sy = H - 1 - y;
+    st.pixels++; st.r += lit[k]; st.g += lit[k + 1]; st.b += lit[k + 2];
+    if (opts.refColor) { const L = lab(lit[k], lit[k + 1], lit[k + 2]); st.de.push(Math.hypot(L[0] - ref[0], L[1] - ref[1], L[2] - ref[2])); }
+    if (x < st.minX) st.minX = x; if (x > st.maxX) st.maxX = x;
+    if (sy < st.minY) st.minY = sy; if (sy > st.maxY) st.maxY = sy;
+  }
+  for (const st of stats) {
+    if (st.pixels) { st.r /= st.pixels; st.g /= st.pixels; st.b /= st.pixels; }
+    st.de.sort((a, b) => a - b);
+    st.deMedian = st.de.length ? st.de[Math.floor(st.de.length * 0.5)] : 0;
+    st.deP90 = st.de.length ? st.de[Math.floor(st.de.length * 0.9)] : 0;
+    st.contrastPixels = st.de.filter(v => v > 30).length;
+    delete st.de;
+  }
+  result.stats = stats;
+
+  // optional silhouettes: each tag of the "mask" group drawn alone, pairwise IoU of the binary masks
+  if (opts.masks) {
+    const masks = [];
+    const tagIdx = s.tags.map((t, i) => i).filter(i => s.tags[i].startsWith(opts.masks));
+    for (const ti of tagIdx) {
+      for (const m of s.meshes) m.visible = m.userData.tag === ti;
+      const px = renderIds(s, W, H);
+      const mask = new Uint8Array(W * H);
+      for (let i = 0; i < W * H; i++) mask[i] = px[i * 4] > 0 ? 1 : 0;
+      masks.push(mask);
+    }
+    const iou = [];
+    for (let a = 0; a < masks.length; a++) {
+      iou.push([]);
+      for (let b = 0; b < masks.length; b++) {
+        let inter = 0, uni = 0;
+        for (let i = 0; i < W * H; i++) { const p = masks[a][i], q = masks[b][i]; inter += p & q; uni += p | q; }
+        iou[a].push(uni ? inter / uni : 0);
+      }
+    }
+    result.maskTags = tagIdx.map(i => s.tags[i]);
+    result.iou = iou;
+    for (const m of s.meshes) m.visible = true;
+  }
+
+  for (const m of s.meshes) m.material = m.userData.lit;
+  s.scene.background = saveBg; s.scene.fog = saveFog; s.dome.visible = true;
+  s.renderer.toneMapping = saveTone; s.renderer.outputColorSpace = THREE.SRGBColorSpace;
+  result.png = litCopy;
+  return result;
+};
+window.ready = true;
+</script></body></html>

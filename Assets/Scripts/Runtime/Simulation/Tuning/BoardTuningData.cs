@@ -17,16 +17,16 @@ namespace Game.Simulation
 
         // ---------------- Weight -> steering ----------------
         [TuningRange("Steering", 1f, 3f)] public float steeringExponent = 1.6f;
-        [TuningRange("Steering", 0.05f, 1.5f)] public float steeringSmoothingTime = 0.4f;
+        [TuningRange("Steering", 0.05f, 1.5f)] public float steeringSmoothingTime = 0.28f;
         [TuningRange("Steering", 0f, 1f)] public float airborneWeightFactor = 0.25f;
-        [TuningRange("Steering", 0f, 60f)] public float yawRateBaseDeg = 20f;
+        [TuningRange("Steering", 0f, 60f)] public float yawRateBaseDeg = 24f;
         [TuningRange("Steering", 0f, 4f)] public float yawRatePerSpeedDeg = 1.2f;
-        [TuningRange("Steering", 0.02f, 1f)] public float yawResponseTime = 0.25f;
+        [TuningRange("Steering", 0.02f, 1f)] public float yawResponseTime = 0.18f;
         [TuningRange("Steering", 1f, 30f)] public float tractionAlignRate = 8f;
 
         // ---------------- Roll ----------------
-        [TuningRange("Roll", 0f, 35f)] public float maxRollDeg = 18f;
-        [TuningRange("Roll", 0.02f, 1f)] public float rollResponseTime = 0.2f;
+        [TuningRange("Roll", 0f, 35f)] public float maxRollDeg = 24f;
+        [TuningRange("Roll", 0.02f, 1f)] public float rollResponseTime = 0.15f;
 
         // ---------------- Stability / danger ----------------
         [TuningRange("Stability", 0.5f, 3f)] public float stabilityFactorLowSpeed = 1.25f;
@@ -43,11 +43,11 @@ namespace Game.Simulation
         [TuningRange("Stability", 0f, 60f)] public float tipExtraRollDeg = 25f;
 
         // ---------------- Speed ----------------
-        [TuningRange("Speed", 1f, 20f)] public float startSpeed = 8f;
-        [TuningRange("Speed", 0f, 2f)] public float speedRampPerSecond = 0.25f;
-        [TuningRange("Speed", 10f, 80f)] public float softCapSpeed = 35f;
+        [TuningRange("Speed", 1f, 20f)] public float startSpeed = 12f;
+        [TuningRange("Speed", 0f, 2f)] public float speedRampPerSecond = 0.4f;
+        [TuningRange("Speed", 10f, 80f)] public float softCapSpeed = 38f;
         [TuningRange("Speed", 0.05f, 2f)] public float cruiseGain = 0.35f;
-        [TuningRange("Speed", 0f, 15f)] public float frontAcceleration = 4f;
+        [TuningRange("Speed", 0f, 15f)] public float frontAcceleration = 6f;
         [TuningRange("Speed", 0f, 20f)] public float rearBraking = 6f;
         [TuningRange("Speed", 0f, 0.5f)] public float frontAccelFadeAboveCap = 0.15f;
         [TuningRange("Speed", 0f, 10f)] public float minSpeed = 3f;
@@ -98,12 +98,12 @@ namespace Game.Simulation
         [TuningRange("Crash", 0.5f, 6f)] public float crashRestartDelay = 2.5f;
         [TuningRange("Crash", 1f, 40f)] public float crashDeceleration = 14f;
         /// <summary>After a crash the board resumes at this fraction of its previous cruise speed (not from zero).</summary>
-        [TuningRange("Crash", 0f, 1f)] public float respawnSpeedFraction = 0.6f;
+        [TuningRange("Crash", 0f, 1f)] public float respawnSpeedFraction = 0.7f;
 
         // ---------------- Players ----------------
         [TuningRange("Players", 0.15f, 0.6f)] public float playerRadius = 0.33f;
         [TuningRange("Players", 0.5f, 2f)] public float playerHeight = 1.1f;
-        [TuningRange("Players", 0.5f, 8f)] public float playerMoveSpeed = 3.6f;
+        [TuningRange("Players", 0.5f, 8f)] public float playerMoveSpeed = 4.2f;
         [TuningRange("Players", 1f, 60f)] public float playerGroundAcceleration = 20f;
         [TuningRange("Players", 0f, 30f)] public float playerAirAcceleration = 6f;
         [TuningRange("Players", 1f, 10f)] public float playerJumpVelocity = 4.5f;
@@ -120,6 +120,12 @@ namespace Game.Simulation
 
         public float HalfLength => boardLength * 0.5f;
         public float HalfWidth => boardWidth * 0.5f;
+
+        /// <summary>
+        /// Rough time from "the crew decides to steer" to "the board turns": walking (~0.3 s) + weight smoothing
+        /// + yaw response. Predictive controllers (cooperative bots, the test driver) aim that far ahead.
+        /// </summary>
+        public float CrewResponseDelay => 0.3f + steeringSmoothingTime + yawResponseTime;
 
         public BoardTuningData Clone() => (BoardTuningData)MemberwiseClone();
 

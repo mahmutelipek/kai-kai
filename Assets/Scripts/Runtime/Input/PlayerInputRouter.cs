@@ -135,7 +135,7 @@ namespace Game
             BoardState s = sim.Board.State;
             BoardTuningData t = sim.Tuning;
             float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * s.Speed) * Mathf.Deg2Rad;
-            return _run.Road.PredictiveSteerHint(s, maxYawRate, 1.0f, ref _roadHint);
+            return _run.Road.PredictiveSteerHint(s, maxYawRate, _run.Tuning.CrewResponseDelay + 0.05f, ref _roadHint);
         }
     }
 }

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Exports engine-free Game.Art geometry (the exact triangles Unity uploads) as JSON scenes for the three.js preview. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+    <Compile Include="../../Assets/Scripts/Tests/Simulation/IdealDriver.cs" />
+    <Compile Include="../../Assets/Scripts/Tests/Simulation/BoardScenario.cs" />
+    <ProjectReference Include="../Headless/Simulation/Game.Simulation.Headless.csproj" />
+  </ItemGroup>
+</Project>

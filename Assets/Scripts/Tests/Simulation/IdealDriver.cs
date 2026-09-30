@@ -14,8 +14,8 @@ namespace Game.Tests
         readonly RunSimulation _run;
         int _predictHint;
 
-        /// <summary>Total response delay of the board pipeline (walk + 0.4 s smoothing + yaw response), seconds.</summary>
-        public float ResponseDelay = 0.9f;
+        /// <summary>Total response delay of the board pipeline in seconds; -1 = derive from tuning (CrewResponseDelay).</summary>
+        public float ResponseDelay = -1f;
 
         /// <summary>Danger the driver is willing to use (wobble starts at 0.7).</summary>
         public float SafeDanger = 0.6f;
@@ -50,7 +50,7 @@ namespace Game.Tests
         }
 
         float PredictiveSteer(in BoardState b, float maxYawRate) =>
-            _run.Road.PredictiveSteerHint(b, maxYawRate, ResponseDelay, ref _predictHint);
+            _run.Road.PredictiveSteerHint(b, maxYawRate, ResponseDelay > 0f ? ResponseDelay : _run.Tuning.CrewResponseDelay - 0.05f, ref _predictHint);
 
         float MaxLineSlopeAhead(float speed)
         {

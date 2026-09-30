@@ -28,3 +28,9 @@ Tools/**/bin/
 Tools/**/obj/
 !Tools/**/*.csproj
 Tools/UnityCompileCheck/refs/
+
+# Art preview tool
+Tools/ArtPreview/bin/
+Tools/ArtPreview/obj/
+Tools/ArtPreview/out/
+Tools/ArtPreview/node_modules

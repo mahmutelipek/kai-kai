@@ -49,7 +49,7 @@ namespace Game.Tests
             {
                 BoardState b = run.Board.Board.State;
                 float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * b.Speed) * SimMath.Deg2Rad;
-                float hint = run.Road.PredictiveSteerHint(b, maxYawRate, 1.0f, ref hintCache);
+                float hint = run.Road.PredictiveSteerHint(b, maxYawRate, t.CrewResponseDelay + 0.05f, ref hintCache);
                 var ctx = new BotContext
                 {
                     Players = run.Board.Players, ActivePlayerCount = run.Board.ActivePlayerCount, Board = b, Tuning = t,

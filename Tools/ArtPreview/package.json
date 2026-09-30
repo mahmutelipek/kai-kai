@@ -1,0 +1,9 @@
+{
+  "name": "art-preview",
+  "private": true,
+  "description": "Headless WebGL preview of the Game.Art geometry (three.js + Playwright, Chromium with SwiftShader)",
+  "dependencies": {
+    "playwright-core": "^1.56.0",
+    "three": "^0.169.0"
+  }
+}

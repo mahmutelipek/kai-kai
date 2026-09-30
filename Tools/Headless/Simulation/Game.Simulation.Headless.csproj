@@ -10,5 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../../Assets/Scripts/Runtime/Simulation/**/*.cs" />
+    <Compile Include="../../../Assets/Scripts/Runtime/Art/**/*.cs" />
   </ItemGroup>
 </Project>
