@@ -122,6 +122,8 @@ Diğer maddeler:
 - **Yaş derecelendirmesi:** Steamworks içindeki IARC anketi (şiddet yok → düşük).
 - **Fiyat ve bölgeler:** Önerilen fiyatları kontrol et. Parti oyunları genelde 5–15 USD aralığında.
 - **Gizlilik:** Oyun kişisel veri toplamıyor. Sadece yerel dosya ve Steam istatistikleri.
+- **Yapay zekâ beyanı:** Sesleri veya müziği ElevenLabs ile ürettiysen Steamworks'teki *Content Survey → AI Generated Content* bölümünde "önceden üretilmiş içerik: ses efektleri ve müzik" diye beyan et. Kayıt dosyası `Tools/SoundGen/generated.json`.
+- **ElevenLabs lisansı:** Bildiğim kadarıyla ticari kullanım (Steam'de satış) ücretli bir plan gerektiriyor; ücretsiz planın çıktıları ticari kullanıma açık değil. Üretmeden önce kendi planının şartlarını kontrol et.
 
 ## 8. Çıkış öncesi oyun eksikleri (öncelik sırasıyla)
 

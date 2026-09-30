@@ -117,6 +117,14 @@ ollie pop, landings scale with airtime, crash, near-miss whoosh, countdown, menu
 Everything slows down with the crash slow-motion and fades under the pause menu. To listen outside Unity:
 `dotnet run --project Tools/ArtPreview -- audio <folder>` writes every sound as a WAV.
 
+**Generated sounds (ElevenLabs):** `Tools/SoundGen/sounds.json` holds a prompt for every effect, loop and the
+music. `ELEVENLABS_API_KEY=... python3 Tools/SoundGen/soundgen.py` generates the missing ones into
+`Assets/Resources/Audio/` (effects trimmed and peak-normalised, loops generated seamless, music as MP3); the game
+uses a file when it exists and the procedural sound otherwise. `--only NAME --force` regenerates one, `--takes 3`
+makes variations, `--pick NAME=2` chooses one, `--dry-run` shows the requests. Every generation is logged in
+`Tools/SoundGen/generated.json`. Needs `api.elevenlabs.io` allowed by the network and the key as an environment
+variable — never commit the key.
+
 ## Endless road (Milestone 2)
 
 `RoadGenerator` assembles the road from `RoadChunkLibrary` chunks, 450 m ahead of the board, recycling chunks

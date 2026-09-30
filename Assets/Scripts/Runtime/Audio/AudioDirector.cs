@@ -6,7 +6,8 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// Plays the procedural sound bank (<see cref="Synth"/>): wheel roll, wind and nitro-jet loops mixed from the
+    /// Plays the game's sounds: recorded / generated files from <c>Resources/Audio/&lt;name&gt;</c> (ElevenLabs, see
+    /// Tools/SoundGen) where they exist, otherwise the procedural bank (<see cref="Synth"/>). Wheel roll, wind and nitro-jet loops mixed from the
     /// ride every frame (<see cref="AudioMix"/>), the music loop, and pooled one-shots for simulation events, the
     /// countdown and the menus. Clips are synthesised once at start-up (~0.5 s of CPU, no asset files).
     /// Loops fade out under the pause menu, everything slows down with the crash slow-motion, and the attract ride
@@ -51,12 +52,19 @@ namespace Game
         {
             var values = (Sfx[])System.Enum.GetValues(typeof(Sfx));
             _clips = new AudioClip[values.Length];
+            int files = 0;
             foreach (Sfx s in values)
-                if (s != Sfx.None) _clips[(int)s] = Clip(s.ToString(), Synth.Build(s));
-            _wind = LoopSource("Wind", Synth.BuildLoop(Loop.Wind));
-            _roll = LoopSource("Roll", Synth.BuildLoop(Loop.Roll));
-            _burn = LoopSource("Nitro Burn", Synth.BuildLoop(Loop.NitroBurn));
-            _music = LoopSource("Music", Synth.BuildLoop(Loop.Music));
+            {
+                if (s == Sfx.None) continue;
+                AudioClip file = Resources.Load<AudioClip>("Audio/" + s);   // null (not fake-null) when missing
+                if (file != null) files++;
+                _clips[(int)s] = file != null ? file : Clip(s.ToString(), Synth.Build(s));
+            }
+            _wind = LoopSource(Loop.Wind);
+            _roll = LoopSource(Loop.Roll);
+            _burn = LoopSource(Loop.NitroBurn);
+            _music = LoopSource(Loop.Music);
+            Debug.Log($"Downhill: audio {files}/{values.Length - 1} effects from Resources/Audio, the rest procedural");
             for (int i = 0; i < PoolSize; i++)
             {
                 AudioSource src = gameObject.AddComponent<AudioSource>();
@@ -73,12 +81,14 @@ namespace Game
             return clip;
         }
 
-        AudioSource LoopSource(string name, float[] pcm)
+        AudioSource LoopSource(Loop loop)
         {
+            string name = loop.ToString();
             var go = new GameObject("Audio " + name);
             go.transform.SetParent(transform, false);
             AudioSource src = go.AddComponent<AudioSource>();
-            src.clip = Clip(name, pcm);
+            AudioClip file = Resources.Load<AudioClip>("Audio/" + name);
+            src.clip = file != null ? file : Clip(name, Synth.BuildLoop(loop));
             src.loop = true;
             src.playOnAwake = false;
             src.spatialBlend = 0f;

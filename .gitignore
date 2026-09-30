@@ -34,3 +34,6 @@ Tools/ArtPreview/bin/
 Tools/ArtPreview/obj/
 Tools/ArtPreview/out/
 Tools/ArtPreview/node_modules
+
+# ElevenLabs takes (variations); the chosen ones are copied to Assets/Resources/Audio
+Tools/SoundGen/takes/

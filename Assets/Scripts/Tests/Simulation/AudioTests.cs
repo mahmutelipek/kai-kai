@@ -92,6 +92,24 @@ namespace Game.Tests
             Assert.That(onBeat, Is.GreaterThanOrEqualTo(beats - 2), "four-on-the-floor");
         }
 
+        /// <summary>Tools/SoundGen/sounds.json (ElevenLabs prompts) must name every effect and loop the game plays.</summary>
+        [Test]
+        public void SoundGenManifest_CoversEverySoundTheGamePlays()
+        {
+            string dir = TestContext.CurrentContext.TestDirectory, path = null;
+            for (int i = 0; i < 8 && dir != null; i++, dir = System.IO.Path.GetDirectoryName(dir))
+            {
+                string p = System.IO.Path.Combine(dir, "Tools", "SoundGen", "sounds.json");
+                if (System.IO.File.Exists(p)) { path = p; break; }
+            }
+            if (path == null) Assert.Ignore("Tools/SoundGen/sounds.json not found from the test directory");
+            string json = System.IO.File.ReadAllText(path);
+            foreach (Sfx s in Enum.GetValues(typeof(Sfx)))
+                if (s != Sfx.None) StringAssert.Contains("\"name\": \"" + s + "\"", json, $"no prompt for {s}");
+            foreach (Loop l in Enum.GetValues(typeof(Loop)))
+                StringAssert.Contains("\"name\": \"" + l + "\"", json, $"no prompt for loop {l}");
+        }
+
         static BoardState Ride(float speed, bool grounded = true, float nitro = 0f) =>
             new BoardState { Speed = speed, Grounded = grounded, NitroTimer = nitro };
 
