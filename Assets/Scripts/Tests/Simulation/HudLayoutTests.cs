@@ -50,10 +50,8 @@ namespace Game.Tests
             return new Box { X0 = cx - ex, Y0 = cy - ey, X1 = cx + ex, Y1 = cy + ey, What = c.Text ?? c.Tex.ToString() };
         }
 
-        [Test]
-        public void Hud_StaysInsideSafeArea_TextsDoNotOverlap_OnEveryScreen()
+        static void AssertLayout(HudState s)
         {
-            HudState s = FullState();
             var cmds = new List<HudCmd>();
             foreach (var sc in Screens)
             {
@@ -79,6 +77,80 @@ namespace Game.Tests
                 }
                 TestContext.WriteLine($"{sc.name}: {cmds.Count} commands, scale {HudLayout.ScaleFor(sc.sw, sc.sh):0.00}");
             }
+        }
+
+        [Test]
+        public void Hud_StaysInsideSafeArea_TextsDoNotOverlap_OnEveryScreen() => AssertLayout(FullState());
+
+        [Test]
+        public void Hud_WithMoveMeter_JumpCue_AndTip_StillFitsEveryScreen()
+        {
+            HudState s = FullState();
+            s.MoveLabel = "MEGA! STRAIGHTEN!"; s.MoveFill = 1f; s.MoveColor = HudLayout.Yellow; s.MoveReady = true;
+            s.JumpCallAge = 0.3f;
+            s.Tip = Game.Hud.TipCoach.Text(Game.Hud.Tip.Steer); s.TipAge = 1f;
+            s.Countdown = null;
+            AssertLayout(s);
+        }
+
+        [Test]
+        public void Hud_EndScreen_WithNewBestStamp_FitsEveryScreen_AndAnimatesIn()
+        {
+            HudState s = FullState();
+            var run = new RunSimulation(new BoardTuningData { livesPerRun = 3 }, 5, 6);
+            var p = new HudPresenter();
+            p.FillEndScreen(run);
+            s.EndLines.Clear(); s.EndLines.AddRange(p.State.EndLines);
+            s.EndTitle = p.State.EndTitle; s.EndScore = "SCORE  9,999,999"; s.EndBest = p.State.EndBest; s.EndHint = p.State.EndHint;
+            s.Ended = true; s.EndNewBest = true;
+            var cmds = new List<HudCmd>();
+            int previous = -1;
+            foreach (float age in new[] { 0f, 0.4f, 0.8f, 1.6f })
+            {
+                s.EndAge = age;
+                HudLayout.Build(s, 1920, 1080, 0, 0, 1920, 1080, cmds);
+                int texts = 0;
+                foreach (HudCmd c in cmds) if (c.Text != null) texts++;
+                TestContext.WriteLine($"end screen at {age:0.0} s: {texts} texts");
+                Assert.That(texts, Is.GreaterThan(previous), "lines, score, stamp and hint arrive one after another");
+                previous = texts;
+            }
+            bool stamp = false;
+            foreach (HudCmd c in cmds) stamp |= c.Text == "NEW BEST!";
+            Assert.IsTrue(stamp, "NEW BEST! stamp");
+            AssertLayout(s);
+        }
+
+        [Test]
+        public void TipCoach_TeachesEachMoveOnce_WhenItMatters_OnlyForHumans()
+        {
+            var run = new RunSimulation(new BoardTuningData { livesPerRun = 0 }, 9, 6);
+            var none = new PlayerInputState[BoardSimulation.MaxPlayers];
+            var coach = new Game.Hud.TipCoach();
+            for (int i = 0; i < 600; i++) { run.Step(1f / 60f, none); coach.Update(run, humanRiding: false, 1f / 60f); }
+            Assert.AreEqual(0, coach.SeenMask, "no tips for a bot-only (attract) ride");
+            string first = null;
+            for (int i = 0; i < 240 && first == null; i++) { run.Step(1f / 60f, none); coach.Update(run, true, 1f / 60f); first = coach.Current; }
+            Assert.AreEqual(Game.Hud.TipCoach.Text(Game.Hud.Tip.Steer), first, "steering comes first, right after the start");
+            int shown = 1;
+            string last = first;
+            for (int i = 0; i < 60 * 150; i++)
+            {
+                run.Step(1f / 60f, none);
+                coach.Update(run, true, 1f / 60f);
+                if (coach.Current != null && coach.Current != last) { shown++; last = coach.Current; }
+                if (coach.Current == null) last = null;
+            }
+            TestContext.WriteLine($"tips shown in 2.5 min: {shown}, seen mask {Convert.ToString(coach.SeenMask, 2)}");
+            Assert.That(shown, Is.InRange(3, 5));
+            int mask = coach.SeenMask;
+            var again = new Game.Hud.TipCoach { SeenMask = mask };
+            var run2 = new RunSimulation(new BoardTuningData { livesPerRun = 0 }, 9, 6);
+            for (int i = 0; i < 600; i++) { run2.Step(1f / 60f, none); again.Update(run2, true, 1f / 60f); }
+            Assert.IsNull(again.Current, "seen tips never repeat");
+            var off = new Game.Hud.TipCoach { Enabled = false };
+            for (int i = 0; i < 600; i++) off.Update(run2, true, 1f / 60f);
+            Assert.AreEqual(0, off.SeenMask, "tips switched off in the settings");
         }
 
         [Test]

@@ -8,6 +8,7 @@ namespace Game.Frontend
     {
         FirstRide, FirstKilometre, FiveKilometres, TenKilometres, MaxCombo, CoinHoarder, GemHunter,
         NearMissMaster, SmoothLanding, NitroRush, FullCrew, Unstoppable, HighScorer, Wipeout,
+        CrewOllie, PerfectOllie, MegaCarve, Drafter,
     }
 
     public struct AchievementInfo
@@ -37,6 +38,10 @@ namespace Game.Frontend
             new AchievementInfo { Id = AchievementId.Unstoppable, ApiName = "ACH_NO_CRASH_3KM", Name = "Unstoppable", Description = "Ride 3 km without a crash." },
             new AchievementInfo { Id = AchievementId.HighScorer, ApiName = "ACH_SCORE_50K", Name = "High Roller", Description = "Score 50,000 points in one run." },
             new AchievementInfo { Id = AchievementId.Wipeout, ApiName = "ACH_WIPEOUT", Name = "Epic Wipeout", Description = "Crash the board for the first time." },
+            new AchievementInfo { Id = AchievementId.CrewOllie, ApiName = "ACH_OLLIE", Name = "Lift Off", Description = "Crew ollie: jump together and hop the board." },
+            new AchievementInfo { Id = AchievementId.PerfectOllie, ApiName = "ACH_PERFECT_OLLIE", Name = "In Sync", Description = "Land a PERFECT OLLIE with the whole crew." },
+            new AchievementInfo { Id = AchievementId.MegaCarve, ApiName = "ACH_MEGA_CARVE", Name = "Slingshot", Description = "Fire a MEGA carve boost." },
+            new AchievementInfo { Id = AchievementId.Drafter, ApiName = "ACH_DRAFT_5", Name = "Tailgater", Description = "Draft behind 5 cars in one run." },
         };
 
         public static AchievementInfo Get(AchievementId id)
@@ -84,6 +89,10 @@ namespace Game.Frontend
             if (s.NearMisses >= 10) Unlock(AchievementId.NearMissMaster);
             if (ev.CleanLanding && ++_cleanLandings >= 5) Unlock(AchievementId.SmoothLanding);
             if (ev.NitroStarted) Unlock(AchievementId.NitroRush);
+            if (ev.Ollie) Unlock(AchievementId.CrewOllie);
+            if (ev.PerfectOllie) Unlock(AchievementId.PerfectOllie);
+            if (ev.CarveBoost > 1) Unlock(AchievementId.MegaCarve);
+            if (s.Slipstreams >= 5) Unlock(AchievementId.Drafter);
             if (s.Score >= 50000f) Unlock(AchievementId.HighScorer);
             if (ev.RunEnded) Unlock(AchievementId.FirstRide);
         }

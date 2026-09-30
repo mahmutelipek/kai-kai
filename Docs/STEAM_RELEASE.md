@@ -46,6 +46,10 @@ Steamworks → App Admin → Stats & Achievements. **API adları birebir aynı o
 | ACH_NO_CRASH_3KM | Unstoppable | Ride 3 km without a crash. |
 | ACH_SCORE_50K | High Roller | Score 50,000 points in one run. |
 | ACH_WIPEOUT | Epic Wipeout | Crash the board for the first time. |
+| ACH_OLLIE | Lift Off | Crew ollie: jump together and hop the board. |
+| ACH_PERFECT_OLLIE | In Sync | Land a PERFECT OLLIE with the whole crew. |
+| ACH_MEGA_CARVE | Slingshot | Fire a MEGA carve boost. |
+| ACH_DRAFT_5 | Tailgater | Draft behind 5 cars in one run. |
 
 **Stat:** `STAT_TOTAL_METRES`, tipi INT, Set by: Client. Toplam sürülen metreyi tutar.
 

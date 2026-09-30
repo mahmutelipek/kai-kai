@@ -25,6 +25,9 @@ namespace Game.Frontend
         /// <summary>Crew size the lobby starts with (bots fill up to it).</summary>
         public int CrewSize = 6;
         public bool BotsFill = true;
+        /// <summary>First-run coaching tips during rides; <see cref="TipsSeen"/> is a bit mask of tips already shown.</summary>
+        public bool ShowTips = true;
+        public int TipsSeen;
 
         public GameSettings Clone() => (GameSettings)MemberwiseClone();
 
@@ -38,6 +41,8 @@ namespace Game.Frontend
             sb.Append("vsync=").Append(VSync ? 1 : 0).Append('\n');
             sb.Append("quality=").Append((int)Quality).Append('\n');
             sb.Append("reduceMotion=").Append(ReduceMotion ? 1 : 0).Append('\n');
+            sb.Append("tips=").Append(ShowTips ? 1 : 0).Append('\n');
+            sb.Append("tipsSeen=").Append(TipsSeen).Append('\n');
             sb.Append("language=").Append((int)Language).Append('\n');
             sb.Append("master=").Append(MasterVolume.ToString("0.###", ci)).Append('\n');
             sb.Append("music=").Append(MusicVolume.ToString("0.###", ci)).Append('\n');
@@ -73,6 +78,8 @@ namespace Game.Frontend
                     case "effects": if (isFloat) s.EffectsVolume = Clamp01(fv); break;
                     case "crew": if (isInt) s.CrewSize = Math.Max(1, Math.Min(6, iv)); break;
                     case "botsFill": if (isInt) s.BotsFill = iv != 0; break;
+                    case "tips": if (isInt) s.ShowTips = iv != 0; break;
+                    case "tipsSeen": if (isInt && iv >= 0) s.TipsSeen = iv; break;
                 }
             }
             return s;

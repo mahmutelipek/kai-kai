@@ -12,6 +12,10 @@ M4.2: Steam-ready front end (title, lobby, pause, settings) and Steam platform l
 streaks, edge flash, FOV punch, lens warp, chromatic aberration, 3D wind lines, boost trails, shockwave ring) and a
 complete procedural sound bank with music. The game is **English only** for now (the Turkish table stays in code
 for a later language release). Report: `Docs/M4_3_REPORT.md`.
+**M4.4: final polish** — bots answer the crew's JUMP! call (one human + five bots can now crew-ollie; the crew
+also calls jumps over potholes, debris and cones), move meter (CARVE → STRAIGHTEN!, BOOST, DRAFTING), first-run
+riding tips (saved; toggle in Settings), animated end screen with NEW BEST stamp, HOW TO PLAY and CREDITS screens,
+4 new achievements (18 total). Report: `Docs/M4_4_REPORT.md`.
 Screenshots (headless preview of the same geometry and HUD draw commands): `Docs/M4/`.
 
 ---

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Game.Frontend
 {
-    public enum MenuScreen : byte { None, Title, Lobby, Pause, Settings }
+    public enum MenuScreen : byte { None, Title, Lobby, Pause, Settings, HowToPlay, Credits }
 
     public enum MenuAction : byte
     {
@@ -16,6 +16,7 @@ namespace Game.Frontend
         Resume, Restart, MainMenu,
         DisplayMode, Resolution, VSync, Quality, ReduceMotion, Language, MasterVolume, MusicVolume, EffectsVolume,
         CrewSize, BotsFill, Start, Back,
+        HowToPlay, Credits, Tips,
     }
 
     /// <summary>Menu navigation from any device this frame (keyboard, every gamepad, Steam Input).</summary>
@@ -71,13 +72,14 @@ namespace Game.Frontend
     /// </summary>
     public sealed class FrontendModel
     {
-        static readonly MenuItem[] TitleItems = { MenuItem.Play, MenuItem.Settings, MenuItem.Quit };
+        static readonly MenuItem[] TitleItems = { MenuItem.Play, MenuItem.HowToPlay, MenuItem.Settings, MenuItem.Credits, MenuItem.Quit };
         static readonly MenuItem[] LobbyItems = { MenuItem.CrewSize, MenuItem.BotsFill, MenuItem.Start, MenuItem.Back };
-        static readonly MenuItem[] PauseItems = { MenuItem.Resume, MenuItem.Restart, MenuItem.Settings, MenuItem.MainMenu, MenuItem.Quit };
+        static readonly MenuItem[] PauseItems = { MenuItem.Resume, MenuItem.Restart, MenuItem.HowToPlay, MenuItem.Settings, MenuItem.MainMenu, MenuItem.Quit };
+        static readonly MenuItem[] BackOnly = { MenuItem.Back };
         static readonly MenuItem[] SettingsItems =
         {
             // Language is hidden until more languages ship (English only for now; Loc keeps the Turkish table)
-            MenuItem.DisplayMode, MenuItem.Resolution, MenuItem.VSync, MenuItem.Quality, MenuItem.ReduceMotion,
+            MenuItem.DisplayMode, MenuItem.Resolution, MenuItem.VSync, MenuItem.Quality, MenuItem.ReduceMotion, MenuItem.Tips,
             MenuItem.MasterVolume, MenuItem.MusicVolume, MenuItem.EffectsVolume, MenuItem.Back,
         };
 
@@ -109,6 +111,8 @@ namespace Game.Frontend
                     case MenuScreen.Lobby: return LobbyItems;
                     case MenuScreen.Pause: return PauseItems;
                     case MenuScreen.Settings: return SettingsItems;
+                    case MenuScreen.HowToPlay:
+                    case MenuScreen.Credits: return BackOnly;
                     default: return Array.Empty<MenuItem>();
                 }
             }
@@ -166,6 +170,8 @@ namespace Game.Frontend
             {
                 case MenuItem.Play: Open(MenuScreen.Lobby); return MenuAction.None;
                 case MenuItem.Settings: Open(MenuScreen.Settings); return MenuAction.None;
+                case MenuItem.HowToPlay: Open(MenuScreen.HowToPlay); return MenuAction.None;
+                case MenuItem.Credits: Open(MenuScreen.Credits); return MenuAction.None;
                 case MenuItem.Quit: return AllowQuit ? MenuAction.Quit : MenuAction.None;
                 case MenuItem.Resume: return MenuAction.Resume;
                 case MenuItem.Restart: return MenuAction.Restart;
@@ -189,6 +195,10 @@ namespace Game.Frontend
                 case MenuItem.VSync: s.VSync = !s.VSync; return MenuAction.SettingsChanged;
                 case MenuItem.Quality: s.Quality = (GraphicsQuality)Wrap((int)s.Quality + dir, 3); return MenuAction.SettingsChanged;
                 case MenuItem.ReduceMotion: s.ReduceMotion = !s.ReduceMotion; return MenuAction.SettingsChanged;
+                case MenuItem.Tips:
+                    s.ShowTips = !s.ShowTips;
+                    if (s.ShowTips) s.TipsSeen = 0; // switching tips back on replays them from the start
+                    return MenuAction.SettingsChanged;
                 case MenuItem.Language: s.Language = (Language)Wrap((int)s.Language + dir, Loc.LanguageNames.Length); return MenuAction.LanguageChanged;
                 case MenuItem.MasterVolume: s.MasterVolume = Step(s.MasterVolume, dir); return MenuAction.SettingsChanged;
                 case MenuItem.MusicVolume: s.MusicVolume = Step(s.MusicVolume, dir); return MenuAction.SettingsChanged;
@@ -216,6 +226,9 @@ namespace Game.Frontend
                 case MenuItem.MainMenu: return (Loc.T("MAIN MENU"), null);
                 case MenuItem.Start: return (Loc.T("START"), null);
                 case MenuItem.Back: return (Loc.T("BACK"), null);
+                case MenuItem.HowToPlay: return (Loc.T("HOW TO PLAY"), null);
+                case MenuItem.Credits: return (Loc.T("CREDITS"), null);
+                case MenuItem.Tips: return (Loc.T("RIDING TIPS"), Loc.T(s.ShowTips ? "ON" : "OFF"));
                 case MenuItem.DisplayMode: return (Loc.T("DISPLAY MODE"), Loc.T(s.Display == DisplayMode.Fullscreen ? "FULLSCREEN" : s.Display == DisplayMode.Borderless ? "BORDERLESS" : "WINDOWED"));
                 case MenuItem.Resolution: return (Loc.T("RESOLUTION"), s.Resolution < 0 || s.Resolution >= Resolutions.Length ? Loc.T("NATIVE") : Resolutions[s.Resolution]);
                 case MenuItem.VSync: return (Loc.T("VSYNC"), Loc.T(s.VSync ? "ON" : "OFF"));

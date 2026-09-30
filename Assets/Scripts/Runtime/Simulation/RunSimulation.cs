@@ -90,6 +90,37 @@ namespace Game.Simulation
         public bool NewBestDistance { get; private set; }
         /// <summary>0..1: how deep the board is in a car's slipstream (1 = full bonus).</summary>
         public float Slipstream { get; private set; }
+
+        /// <summary>The crew's "JUMP!" call (human jumps, spotted hazards) that bots answer.</summary>
+        public readonly CrewCall Crew = new CrewCall();
+
+        /// <summary>
+        /// Nearest low hazard an ollie clears (pothole, debris, cone) lying in the board's path: time until the board's
+        /// nose reaches it at the current speed. Cars, barriers and crates are for steering (a crate needs a perfect ollie).
+        /// </summary>
+        public bool JumpHazardAhead(out float timeToContact, out ObstacleKind kind)
+        {
+            timeToContact = float.MaxValue;
+            kind = default;
+            BoardState b = Board.Board.State;
+            if (!Projection.Valid || b.Speed < 3f) return false;
+            BoardTuningData t = Tuning;
+            float nose = Distance + t.HalfLength, lateral = Projection.Lateral;
+            bool found = false;
+            Obstacle[] items = Obstacles.Items;
+            for (int i = 0; i < items.Length; i++)
+            {
+                ref Obstacle o = ref items[i];
+                if (!o.Active || o.Knocked || o.Motion != ObstacleMotion.Static) continue;
+                if (o.Kind != ObstacleKind.Pothole && o.Kind != ObstacleKind.BrokenPiece && o.Kind != ObstacleKind.Cone) continue;
+                float gap = o.Along - o.HalfExtents.Y - nose;
+                if (gap < 0f || gap > 40f) continue;
+                if (Math.Abs(o.Lateral - lateral) > o.HalfExtents.X + t.HalfWidth) continue;
+                float ttc = gap / b.Speed;
+                if (ttc < timeToContact) { timeToContact = ttc; kind = o.Kind; found = true; }
+            }
+            return found;
+        }
         float _draftTime, _draftLinger;
         int _draftSlot = -1, _draftGeneration = -1;
 
@@ -121,6 +152,7 @@ namespace Game.Simulation
             _draftTime = _draftLinger = 0f;
             _draftSlot = _draftGeneration = -1;
             Slipstream = 0f;
+            Crew.Reset();
             _wasCrashed = false;
             _scoredDistance = 0f;
             _sectionSerial = -1;

@@ -152,6 +152,28 @@ namespace ArtPreview
                 ["menu_title"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.GentleCurve, LocalAlong = 20f, Menu = Game.Frontend.MenuScreen.Title }),
                 ["menu_lobby"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 400f, Menu = Game.Frontend.MenuScreen.Lobby }),
                 ["menu_pause_tr"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 40f, Hud = true, Menu = Game.Frontend.MenuScreen.Pause, Language = Game.Frontend.Language.Turkish }),
+                ["menu_howto"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 300f, Menu = Game.Frontend.MenuScreen.HowToPlay }),
+                ["menu_credits"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.GentleCurve, LocalAlong = 20f, Menu = Game.Frontend.MenuScreen.Credits }),
+                ["hud_moves"] = () => GameplayScenes.Build(new GameplayScenes.Options
+                {
+                    Kind = ChunkKind.HardCurve, LocalAlong = 15f, Hud = true,
+                    Hud2 = (p, r) =>
+                    {
+                        var s = p.State;
+                        s.MoveLabel = "STRAIGHTEN!"; s.MoveFill = 0.6f; s.MoveColor = Game.Hud.HudLayout.Yellow; s.MoveReady = true;
+                        s.Tip = Game.Hud.TipCoach.Text(Game.Hud.Tip.Carve); s.TipAge = 1f;
+                    },
+                }),
+                ["hud_jump"] = () => GameplayScenes.Build(new GameplayScenes.Options
+                {
+                    MinDistance = 700f, Hud = true,
+                    Hud2 = (p, r) => { p.State.JumpCallAge = 0.25f; p.State.Tip = Game.Hud.TipCoach.Text(Game.Hud.Tip.JumpTogether); p.State.TipAge = 1f; },
+                }),
+                ["hud_end"] = () => GameplayScenes.Build(new GameplayScenes.Options
+                {
+                    MinDistance = 900f, Hud = true,
+                    Hud2 = (p, r) => { p.FillEndScreen(r); p.State.Ended = true; p.State.EndNewBest = true; p.State.EndAge = 3f; },
+                }),
                 ["menu_pause"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 40f, Hud = true, Menu = Game.Frontend.MenuScreen.Pause }),
                 ["menu_settings"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 300f, Menu = Game.Frontend.MenuScreen.Settings }),
                 ["hud_curve_tr"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.HardCurve, LocalAlong = 15f, Hud = true, Language = Game.Frontend.Language.Turkish }),

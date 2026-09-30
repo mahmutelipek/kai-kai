@@ -34,6 +34,8 @@ namespace ArtPreview
             public string Countdown;
             /// <summary>Fire nitro once the spot is reached and ride this many seconds more (wind streaks, edge flash).</summary>
             public float NitroSeconds = -1f;
+            /// <summary>Adjusts the HUD before it is laid out (e.g. show a tip, the move meter or the end screen).</summary>
+            public Action<Game.Hud.HudPresenter, RunSimulation> Hud2;
         }
 
         public static RunSimulation Drive(Options o) => Drive(o, null);
@@ -85,6 +87,7 @@ namespace ArtPreview
             {
                 hud.State.Human[0] = true;
                 if (o.Countdown != null) { hud.SetCountdown(o.Countdown); hud.State.CountdownAge = 0.4f; }
+                o.Hud2?.Invoke(hud, run);
                 s.Hud = new System.Collections.Generic.List<Game.Hud.HudCmd>();
                 float k = s.HudWidth, h = s.HudHeight;
                 if (o.Menu == Game.Frontend.MenuScreen.None || o.Menu == Game.Frontend.MenuScreen.Pause)

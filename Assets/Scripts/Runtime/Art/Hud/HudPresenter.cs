@@ -16,6 +16,9 @@ namespace Game.Hud
         public readonly HudState State = new HudState();
         /// <summary>The shared sense-of-speed signals (the Unity camera, post effects, particles and audio read these too).</summary>
         public readonly Game.Art.SpeedFeel Feel = new Game.Art.SpeedFeel();
+        /// <summary>First-run tips (the front end loads / saves <see cref="TipCoach.SeenMask"/> with the settings).</summary>
+        public readonly TipCoach Tips = new TipCoach();
+        float _boostMax;
 
         int _distance = -1, _best = -1, _coins = -1, _diamonds = -1, _score = -1, _mult = -1, _speed = -1, _nitro = -1;
         float _wobbleWarnCooldown;
@@ -86,7 +89,44 @@ namespace Game.Hud
             }
             _wasWobbling = wobbling;
 
+            // move meter: boost draining > carve charging (STRAIGHTEN! when ready) > drafting
+            bool humanRiding = false;
+            for (int i = 0; i < s.Human.Length; i++) humanRiding |= s.Human[i] && s.OnBoard[i];
+            s.MoveLabel = null;
+            if (b.BoostTimer > 0f && !b.Crashed)
+            {
+                _boostMax = Math.Max(_boostMax, b.BoostTimer);
+                s.MoveLabel = Loc.T("BOOST!");
+                s.MoveFill = b.BoostTimer / _boostMax;
+                s.MoveColor = HudLayout.Orange;
+                s.MoveReady = false;
+            }
+            else
+            {
+                _boostMax = 0f;
+                float charge = b.CarveCharge / Math.Max(t.carveMinTime, 0.01f);
+                if (b.CarveCharge > 0.15f && b.Grounded && !b.Crashed)
+                {
+                    s.MoveLabel = charge >= 2f ? Loc.T("MEGA! STRAIGHTEN!") : charge >= 1f ? Loc.T("STRAIGHTEN!") : Loc.T("CARVE");
+                    s.MoveFill = Math.Min(1f, charge * 0.5f);
+                    s.MoveColor = charge >= 1f ? HudLayout.Yellow : HudLayout.Orange;
+                    s.MoveReady = charge >= 1f;
+                }
+                else if (r.Slipstream > 0.02f && !b.Crashed)
+                {
+                    s.MoveLabel = Loc.T("DRAFTING");
+                    s.MoveFill = r.Slipstream;
+                    s.MoveColor = HudColor.White;
+                    s.MoveReady = r.Slipstream >= 0.99f;
+                }
+            }
+            s.JumpCallAge = r.Crew.FromHazard && humanRiding ? r.Crew.Age : 9f;
+            Tips.Update(r, humanRiding, simDt);
+            s.Tip = Tips.Current;
+            s.TipAge = Tips.Age;
+
             s.Ended = r.State == RunState.Ended;
+            s.EndAge = s.Ended ? s.EndAge + dt : 0f;
         }
 
         /// <summary>Event popups for one simulation step (strings only built when something happened).</summary>
@@ -160,6 +200,7 @@ namespace Game.Hud
             else if (r.NewBestDistance) best = Loc.T("NEW BEST DISTANCE!") + "   " + best;
             s.EndBest = best;
             s.EndTitle = Loc.T("RUN OVER");
+            s.EndNewBest = r.NewBestScore || r.NewBestDistance;
             s.EndHint = Loc.T("PRESS R, SPACE OR (A) TO RIDE AGAIN");
         }
 

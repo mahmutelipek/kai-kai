@@ -72,11 +72,24 @@ namespace Game.Hud
         public HudColor FlashColor;
         public float FlashAge = 9f;
 
+        // moves (M4.4): meter above the speed (carve charge -> STRAIGHTEN!, boost draining, draft), crew JUMP! cue, tips
+        public string MoveLabel;
+        public float MoveFill;
+        public HudColor MoveColor;
+        public bool MoveReady;
+        /// <summary>Seconds since the crew spotted a hazard and called JUMP (shown briefly while a human rides).</summary>
+        public float JumpCallAge = 9f;
+        public string Tip;
+        public float TipAge;
+
         // end of run
         public bool Ended;
         public string EndTitle = "RUN OVER";
         public readonly List<(string label, string value, string points)> EndLines = new List<(string, string, string)>(8);
         public string EndScore = "", EndBest = "", EndHint = "Press R, Space or (A) to ride again";
+        /// <summary>Seconds since the end screen opened (panel pops in, lines reveal one by one, NEW BEST stamp lands).</summary>
+        public float EndAge = 99f;
+        public bool EndNewBest;
     }
 
     /// <summary>
@@ -95,6 +108,7 @@ namespace Game.Hud
         public static readonly HudColor Cyan = HudColor.Hex(0x33E0FF);
         public static readonly HudColor Navy = HudColor.Hex(0x0B1B3A);
         public static readonly HudColor Red = HudColor.Hex(0xFF3B3B);
+        public static readonly HudColor Orange = HudColor.Hex(0xFF9A2E);
         static readonly HudColor Outline = HudColor.Hex(0x0A0B10, 0.9f);
 
         /// <summary>P1..P6 tag colours (reference: blue, red, green, yellow, purple, orange).</summary>
@@ -195,6 +209,17 @@ namespace Game.Hud
                 Img(o, HudTex.White, barX + i * (segW + gap), barY + barH - hgt, segW, hgt, i < lit ? segColor : HudColor.Hex(0x3A3D48, 0.85f), skew: -0.35f);
             }
 
+            // ---- above the speed: move meter (carve charge / boost / draft)
+            if (s.MoveLabel != null)
+            {
+                float mw = 380f * k, mh = 58f * k, mx = R - m - mw, my = B - m - 266f * k;
+                float pulse = s.MoveReady ? 1f + 0.07f * (float)Math.Sin(s.Time * 16f) : 1f;
+                Img(o, HudTex.Panel, mx, my, mw, mh, Dark, skew: -0.2f, scale: pulse);
+                Img(o, HudTex.White, mx + 18f * k, my + mh - 14f * k, mw - 36f * k, 7f * k, HudColor.Hex(0x3A3D48, 0.9f), skew: -0.2f);
+                Img(o, HudTex.White, mx + 18f * k, my + mh - 14f * k, (mw - 36f * k) * Clamp01(s.MoveFill), 7f * k, s.MoveColor, skew: -0.2f);
+                Txt(o, s.MoveLabel, mx, my + 3f * k, mw, mh - 16f * k, 34f * k, s.MoveColor, HudAlign.Center, 3f * k, pulse);
+            }
+
             // ---- bottom-left: rider avatars with coloured tags and arrows
             int n = Math.Max(1, Math.Min(6, s.Players));
             float cell = 78f * k, panelW = n * cell + 22f * k, panelH = 150f * k, plx = L + m, ply = B - m - panelH;
@@ -208,6 +233,24 @@ namespace Game.Hud
                 Img(o, (HudTex)((int)HudTex.Avatar0 + i), cx + 6f * k, ply + 12f * k, 64f * k, 64f * k, on ? HudColor.White : new HudColor(0.4f, 0.4f, 0.45f, 0.8f));
                 Txt(o, Tags[i], cx, ply + 76f * k, 76f * k, 40f * k, 30f * k, on ? pc : pc.WithAlpha(0.45f), HudAlign.Center, 3f * k);
                 Img(o, HudTex.Arrow, cx + 26f * k, ply + 116f * k, 24f * k, 18f * k, on ? pc : pc.WithAlpha(0.45f));
+            }
+
+            // ---- top-centre under the score: first-run tip (fitted to the free width between the corner panels)
+            if (s.Tip != null && s.TipAge < TipCoach.ShowTime)
+            {
+                float left = L + m + 450f * k, right = R - m - 222f * k, tw = Math.Min(1100f * k, right - left - 20f * k);
+                float tx = (L + R) * 0.5f - tw * 0.5f, ty = T + m + 66f * k, th = 58f * k;
+                float a = Clamp01(s.TipAge / 0.2f) * Clamp01((TipCoach.ShowTime - s.TipAge) / 0.4f);
+                float size = Math.Min(30f * k, tw / (s.Tip.Length * 0.62f));
+                Img(o, HudTex.Panel, tx, ty, tw, th, Yellow.WithAlpha(0.95f * a), skew: -0.12f);
+                Txt(o, s.Tip, tx + 10f * k, ty + 6f * k, tw - 20f * k, th - 12f * k, size, Navy.WithAlpha(a), HudAlign.Center, 0f);
+            }
+            // ---- crew spotted a hazard: JUMP!
+            if (s.JumpCallAge < 0.7f)
+            {
+                float a = 1f - Clamp01((s.JumpCallAge - 0.45f) / 0.25f);
+                float pop = 0.6f + 0.4f * EaseOutBack(Clamp01(s.JumpCallAge / 0.18f));
+                Txt(o, Loc.T("JUMP!"), (L + R) * 0.5f - 300f * k, T + safeH * 0.28f, 600f * k, 150f * k, 132f * k, Yellow.WithAlpha(a), HudAlign.Center, 7f * k, pop);
             }
 
             // ---- centre: countdown, popups
@@ -285,21 +328,48 @@ namespace Game.Hud
 
         static void EndScreen(HudState s, float cx, float cy, float k, List<HudCmd> o)
         {
+            float t = s.EndAge;
             float w = 700f * k, h = 640f * k, x = cx - w * 0.5f, y = cy - h * 0.5f;
-            Img(o, HudTex.Pill, x, y, w, h, HudColor.Hex(0x14161E, 0.92f));
-            Img(o, HudTex.Panel, x + 90f * k, y - 34f * k, w - 180f * k, 110f * k, Yellow, rot: -4f);
-            Txt(o, s.EndTitle, x + 90f * k, y - 22f * k, w - 180f * k, 90f * k, 72f * k, Navy, HudAlign.Center, 0f);
+            float panel = 0.7f + 0.3f * EaseOutBack(Clamp01(t / 0.3f));
+            Img(o, HudTex.Card, x, y, w, h, HudColor.Hex(0x14161E, 0.92f * Clamp01(t / 0.15f)), scale: panel);
+            Img(o, HudTex.Panel, x + 90f * k, y - 34f * k, w - 180f * k, 110f * k, Yellow, rot: -4f, scale: panel);
+            Txt(o, s.EndTitle, x + 90f * k, y - 22f * k, w - 180f * k, 90f * k, 72f * k, Navy, HudAlign.Center, 0f, panel);
+            // lines reveal one by one, sliding in
             float ly = y + 104f * k;
+            int i = 0;
             foreach ((string label, string value, string points) in s.EndLines)
             {
-                Txt(o, label, x + 50f * k, ly, 270f * k, 44f * k, 30f * k, HudColor.Hex(0xD8DCEA), HudAlign.Left, 2f * k);
-                Txt(o, value, x + 300f * k, ly, 200f * k, 44f * k, 30f * k, HudColor.White, HudAlign.Left, 2f * k);
-                if (!string.IsNullOrEmpty(points)) Txt(o, points, x + 470f * k, ly, 180f * k, 44f * k, 30f * k, Yellow, HudAlign.Right, 2f * k);
+                float lt = Clamp01((t - 0.3f - i * 0.1f) / 0.18f) * (points == "+0" ? 0.45f : 1f); // nothing earned: dimmed
+                if (lt > 0f)
+                {
+                    float slide = (1f - EaseOutBack(lt)) * 60f * k;
+                    Txt(o, label, x + 50f * k + slide, ly, 270f * k, 44f * k, 30f * k, HudColor.Hex(0xD8DCEA).WithAlpha(lt), HudAlign.Left, 2f * k);
+                    Txt(o, value, x + 300f * k + slide, ly, 200f * k, 44f * k, 30f * k, HudColor.White.WithAlpha(lt), HudAlign.Left, 2f * k);
+                    if (!string.IsNullOrEmpty(points)) Txt(o, points, x + 470f * k + slide, ly, 180f * k, 44f * k, 30f * k, Yellow.WithAlpha(lt), HudAlign.Right, 2f * k);
+                }
                 ly += 48f * k;
+                i++;
             }
-            Txt(o, s.EndScore, x, ly + 12f * k, w, 80f * k, 66f * k, Yellow, HudAlign.Center, 4f * k);
-            Txt(o, s.EndBest, x, ly + 94f * k, w, 44f * k, 30f * k, Cyan, HudAlign.Center, 2f * k);
-            Txt(o, s.EndHint, x, y + h - 64f * k, w, 44f * k, 28f * k, HudColor.White, HudAlign.Center, 2f * k);
+            float st = t - 0.3f - i * 0.1f - 0.1f;
+            float scorePop = 0.5f + 0.5f * EaseOutBack(Clamp01(st / 0.25f));
+            if (st > 0f)
+            {
+                Txt(o, s.EndScore, x, ly + 12f * k, w, 80f * k, 66f * k, Yellow, HudAlign.Center, 4f * k, scorePop);
+                Txt(o, s.EndBest, x, ly + 94f * k, w, 44f * k, 30f * k, Cyan.WithAlpha(Clamp01(st / 0.3f)), HudAlign.Center, 2f * k);
+            }
+            // NEW BEST stamp slams onto the corner of the card
+            if (s.EndNewBest && st > 0.35f)
+            {
+                float stamp = 1f + 1.2f * (1f - EaseOutBack(Clamp01((st - 0.35f) / 0.2f)));
+                float sw = 330f * k, sh = 96f * k, sx = x + w - sw * 0.6f, sy = y - 118f * k;
+                Img(o, HudTex.Panel, sx, sy, sw, sh, Red, rot: 12f, scale: stamp);
+                TxtR(o, Loc.T("NEW BEST!"), sx, sy + 8f * k, sw, sh - 16f * k, 54f * k, HudColor.White, HudAlign.Center, 12f, stamp, sx + sw * 0.5f, sy + sh * 0.5f, k);
+            }
+            if (t > 1.2f)
+            {
+                float blink = 0.65f + 0.35f * (float)Math.Sin(s.Time * 5f);
+                Txt(o, s.EndHint, x, y + h - 64f * k, w, 44f * k, 28f * k, HudColor.White.WithAlpha(blink), HudAlign.Center, 2f * k);
+            }
         }
 
         // ------------------------------------------------------------------ helpers

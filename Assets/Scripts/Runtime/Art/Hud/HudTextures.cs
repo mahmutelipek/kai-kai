@@ -7,7 +7,7 @@ namespace Game.Hud
     {
         None, White, Panel, Pill, Circle, Arrow, Vignette, Heart, Coin, Gem,
         Avatar0, Avatar1, Avatar2, Avatar3, Avatar4, Avatar5,
-        Streak,
+        Streak, Card,
     }
 
     /// <summary>RGBA8 image, rows top to bottom.</summary>
@@ -41,6 +41,7 @@ namespace Game.Hud
                 case HudTex.Arrow: img = Fill(64, 48, (x, y) => Poly(x, y, new[] { 4f, 4f, 60f, 4f, 32f, 44f })); break;
                 case HudTex.Vignette: img = VignetteImage(256); break;
                 case HudTex.Streak: img = StreakImage(128, 16); break;
+                case HudTex.Card: img = Fill(512, 256, (x, y) => RoundRect(x, y, 512, 256, 36)); break; // panels and cards (gentle corners)
                 case HudTex.Heart: img = Fill(64, 64, (x, y) => Math.Max(Math.Max(Disc(x, y, 21, 24, 15), Disc(x, y, 43, 24, 15)), Poly(x, y, new[] { 7f, 28f, 57f, 28f, 32f, 58f }))); break;
                 case HudTex.Coin: img = CoinImage(128); break;
                 case HudTex.Gem: img = GemImage(128); break;

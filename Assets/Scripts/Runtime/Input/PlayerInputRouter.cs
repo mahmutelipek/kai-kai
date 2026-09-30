@@ -29,6 +29,7 @@ namespace Game
     {
         readonly BotBrain[] _bots = new BotBrain[BoardSimulation.MaxPlayers];
         readonly InputSourceKind[] _sources = new InputSourceKind[BoardSimulation.MaxPlayers];
+        readonly bool[] _human = new bool[BoardSimulation.MaxPlayers];
         readonly int[] _gamepadForSlot = new int[BoardSimulation.MaxPlayers];
         readonly LocalDeviceInput.KeyboardScheme[] _schemeForSlot = new LocalDeviceInput.KeyboardScheme[BoardSimulation.MaxPlayers];
         readonly List<JoinedDevice> _joined = new List<JoinedDevice>(BoardSimulation.MaxPlayers);
@@ -112,24 +113,38 @@ namespace Game
                 Dt = dt,
             };
 
+            // humans first: their jump presses become the crew's "JUMP!" call that the bots answer this same step
             for (int i = 0; i < active; i++)
             {
+                _human[i] = false;
                 switch (_sources[i])
                 {
                     case InputSourceKind.Keyboard:
                         into[i] = LocalDeviceInput.ReadKeyboard(_useJoined ? _schemeForSlot[i] : LocalDeviceInput.KeyboardScheme.Full);
+                        _human[i] = true;
                         break;
                     case InputSourceKind.Gamepad:
                         into[i] = LocalDeviceInput.ReadGamepad(_useJoined ? LocalDeviceInput.GamepadById(_gamepadForSlot[i]) : LocalDeviceInput.GetGamepad(_gamepadForSlot[i]));
+                        _human[i] = true;
                         break;
                     case InputSourceKind.Bot:
-                        ctx.Self = i;
-                        into[i] = _bots[i] is GreedyFrontBot greedy ? greedy.DecideWithNitro(ctx) : _bots[i].Decide(ctx);
                         break;
                     default:
                         into[i] = PlayerInputState.None;
                         break;
                 }
+            }
+            if (_run != null)
+            {
+                _run.Crew.Update(_run, into, _human, dt);
+                ctx.CrewCallId = _run.Crew.Id;
+                ctx.CrewCallAge = _run.Crew.Age;
+            }
+            for (int i = 0; i < active; i++)
+            {
+                if (_sources[i] != InputSourceKind.Bot) continue;
+                ctx.Self = i;
+                into[i] = _bots[i] is GreedyFrontBot greedy ? greedy.DecideWithNitro(ctx) : _bots[i].Decide(ctx);
             }
         }
 

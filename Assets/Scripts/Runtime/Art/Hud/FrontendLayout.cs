@@ -29,7 +29,7 @@ namespace Game.Hud
             {
                 case MenuScreen.Title:
                     Logo(o, cx, top + safeH * 0.2f, k, time);
-                    List(m, o, cx, top + safeH * 0.5f, k, 420f);
+                    List(m, o, cx, top + safeH * 0.4f, k, 460f);
                     Hint(o, cx, bottom - 70f * k, k, Loc.T("MOVE: STICK / WASD   JUMP: (A) / SPACE   NITRO: (X) / E"));
                     break;
                 case MenuScreen.Lobby:
@@ -47,6 +47,45 @@ namespace Game.Hud
                     Title(o, Loc.T("SETTINGS"), cx, top + 40f * k, k);
                     List(m, o, cx, top + 170f * k, k, 760f, compact: true);
                     break;
+                case MenuScreen.HowToPlay:
+                    Title(o, Loc.T("HOW TO PLAY"), cx, top + 30f * k, k);
+                    HowToPlay(o, cx, top + 170f * k, k);
+                    List(m, o, cx, bottom - 170f * k, k, 360f, compact: true);
+                    Hint(o, cx, bottom - 70f * k, k, Loc.T("MOVE: STICK / WASD   JUMP: (A) / SPACE   NITRO: (X) / E"));
+                    break;
+                case MenuScreen.Credits:
+                    Title(o, Loc.T("CREDITS"), cx, top + 50f * k, k);
+                    Credits(o, cx, top + 220f * k, k);
+                    List(m, o, cx, bottom - 150f * k, k, 360f, compact: true);
+                    break;
+            }
+        }
+
+        /// <summary>Two columns of three cards (fits the 1500-unit design width, so 4:3 and Steam Deck too).</summary>
+        static void HowToPlay(List<HudCmd> o, float cx, float y, float k)
+        {
+            var cards = FrontendContent.HowToPlay;
+            float cw = 720f * k, ch = 176f * k, gx = 40f * k, gy = 18f * k;
+            for (int i = 0; i < cards.Length; i++)
+            {
+                float x = cx - cw - gx * 0.5f + (i % 2) * (cw + gx), cy = y + (i / 2) * (ch + gy);
+                Img(o, HudTex.Card, x, cy, cw, ch, HudColor.Hex(0x14161E, 0.9f));
+                Img(o, HudTex.Panel, x + 16f * k, cy + 14f * k, 440f * k, 58f * k, i % 2 == 0 ? Yellow : Cyan, skew: -0.15f);
+                Txt(o, Loc.T(cards[i].heading), x + 46f * k, cy + 16f * k, 380f * k, 54f * k, 38f * k, Navy, HudAlign.Center, 0f);
+                Txt(o, Loc.T(cards[i].line1), x + 30f * k, cy + 82f * k, cw - 60f * k, 38f * k, 25f * k, HudColor.White, HudAlign.Left, 2f * k);
+                Txt(o, Loc.T(cards[i].line2), x + 30f * k, cy + 122f * k, cw - 60f * k, 38f * k, 25f * k, HudColor.Hex(0xD8DCEA), HudAlign.Left, 2f * k);
+            }
+        }
+
+        static void Credits(List<HudCmd> o, float cx, float y, float k)
+        {
+            var lines = FrontendContent.Credits;
+            Img(o, HudTex.Card, cx - 740f * k, y - 34f * k, 1480f * k, lines.Length * 112f * k + 40f * k, HudColor.Hex(0x14161E, 0.88f));
+            for (int i = 0; i < lines.Length; i++)
+            {
+                float ly = y + i * 112f * k;
+                Txt(o, Loc.T(lines[i].role), cx - 600f * k, ly, 1200f * k, 40f * k, 28f * k, Cyan, HudAlign.Center, 2f * k);
+                Txt(o, lines[i].name, cx - 700f * k, ly + 40f * k, 1400f * k, 56f * k, 42f * k, HudColor.White, HudAlign.Center, 3f * k);
             }
         }
 

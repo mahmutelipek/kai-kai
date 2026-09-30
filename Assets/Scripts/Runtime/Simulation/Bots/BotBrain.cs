@@ -28,6 +28,9 @@ namespace Game.Simulation
         public float BrakeHint;
         /// <summary>A stored nitro charge can be fired (Action).</summary>
         public bool NitroAvailable;
+        /// <summary>The crew's latest "JUMP!" call (see <see cref="CrewCall"/>): bots answer each id once.</summary>
+        public int CrewCallId;
+        public float CrewCallAge;
         public float Time;
         public float Dt;
     }
@@ -39,6 +42,9 @@ namespace Game.Simulation
         protected Vector2 Target;
         protected float RetargetTimer;
         protected float JumpTimer;
+        int _seenCall;
+        float _reaction;
+        bool _answered = true;
 
         public abstract BotBehavior Behavior { get; }
 
@@ -62,6 +68,21 @@ namespace Game.Simulation
             target = new Vector2(SimMath.Clamp(target.X, -maxX, maxX), SimMath.Clamp(target.Y, -maxZ, maxZ));
 
             var input = new PlayerInputState(Seek(self.LocalPosition, target));
+
+            // answer the crew's "JUMP!" call after a human-like reaction time (most bots, most of the time)
+            if (ctx.CrewCallId != _seenCall)
+            {
+                _seenCall = ctx.CrewCallId;
+                _reaction = RandomRange(ReactionMin, ReactionMax);
+                _answered = false;
+                JumpTimer = Math.Max(JumpTimer, 2f); // no random hop right before or after a crew jump
+            }
+            if (!_answered && ctx.CrewCallAge >= _reaction)
+            {
+                _answered = true;
+                if (Rng.NextDouble() < AnswerChance) { input.Jump = true; return input; }
+            }
+
             if (JumpTimer <= 0f)
             {
                 input.Jump = WantsToJump(ctx);
@@ -73,6 +94,11 @@ namespace Game.Simulation
         protected abstract Vector2 ChooseTarget(in BotContext ctx, PlayerSim self);
 
         protected virtual bool WantsToJump(in BotContext ctx) => Rng.NextDouble() < 0.3;
+
+        /// <summary>Chance to join a crew call and how fast (seconds). Personalities differ; stubborn bots often ignore it.</summary>
+        protected virtual float AnswerChance => 0.85f;
+        protected virtual float ReactionMin => 0.08f;
+        protected virtual float ReactionMax => 0.26f;
 
         /// <summary>How far from the deck edge this bot keeps its target (stubborn bots go right to the edge).</summary>
         protected virtual float EdgeMargin => 0.12f;
@@ -146,6 +172,9 @@ namespace Game.Simulation
     /// <summary>Gives the road what it asks for and pulls the board back out of danger.</summary>
     public sealed class CooperativeBot : BotBrain
     {
+        protected override float AnswerChance => 0.97f;
+        protected override float ReactionMin => 0.06f;
+        protected override float ReactionMax => 0.2f;
         public override BotBehavior Behavior => BotBehavior.Cooperative;
         public CooperativeBot(int seed) : base(seed) { }
 
@@ -168,6 +197,9 @@ namespace Game.Simulation
     /// </summary>
     public sealed class StubbornBot : BotBrain
     {
+        protected override float AnswerChance => 0.7f;
+        protected override float ReactionMin => 0.12f;
+        protected override float ReactionMax => 0.3f;
         readonly float _side;
         bool _pushing;
         float _depth, _z;
@@ -200,6 +232,7 @@ namespace Game.Simulation
     /// <summary>Picks a random spot every few seconds and walks there, half-minding the road. Likes jumping.</summary>
     public sealed class WandererBot : BotBrain
     {
+        protected override float AnswerChance => 0.9f;
         public override BotBehavior Behavior => BotBehavior.RandomWanderer;
         public WandererBot(int seed) : base(seed) { }
 
@@ -223,6 +256,9 @@ namespace Game.Simulation
     /// </summary>
     public sealed class GreedyFrontBot : BotBrain
     {
+        protected override float AnswerChance => 0.85f;
+        protected override float ReactionMin => 0.06f;
+        protected override float ReactionMax => 0.22f;
         float _side = 1f;
         public override BotBehavior Behavior => BotBehavior.GreedyFront;
         public GreedyFrontBot(int seed) : base(seed) { }
@@ -250,6 +286,9 @@ namespace Game.Simulation
     /// <summary>Hides at the tail and helps quietly. When the board gets scary it panics to the opposite side.</summary>
     public sealed class ScaredRearBot : BotBrain
     {
+        protected override float AnswerChance => 0.8f;
+        protected override float ReactionMin => 0.1f;
+        protected override float ReactionMax => 0.3f;
         public override BotBehavior Behavior => BotBehavior.ScaredRear;
         public ScaredRearBot(int seed) : base(seed) { }
 

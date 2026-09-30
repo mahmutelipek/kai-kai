@@ -38,7 +38,7 @@ namespace Game.Tests
             model.Lobby.Join(JoinedDevice.Keyboard(true));
             model.Lobby.Join(JoinedDevice.Pad(7));
             var cmds = new List<HudCmd>();
-            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings })
+            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings, MenuScreen.HowToPlay, MenuScreen.Credits })
             {
                 model.Open(screen, push: false);
                 foreach (MenuItem item in Enum.GetValues(typeof(MenuItem))) model.Describe(item);
@@ -84,6 +84,13 @@ namespace Game.Tests
             // pause -> settings -> back returns to pause; back on pause resumes
             m.Open(MenuScreen.Pause, push: false);
             m.Handle(new MenuInput { Down = true }); m.Handle(new MenuInput { Down = true });
+            Assert.AreEqual(MenuItem.HowToPlay, m.Focused);
+            m.Handle(new MenuInput { Submit = true });
+            Assert.AreEqual(MenuScreen.HowToPlay, m.Screen, "how to play is one press away from pause");
+            Assert.AreEqual(MenuItem.Back, m.Focused);
+            m.Handle(new MenuInput { Submit = true });
+            Assert.AreEqual(MenuScreen.Pause, m.Screen);
+            m.Handle(new MenuInput { Down = true }); m.Handle(new MenuInput { Down = true }); m.Handle(new MenuInput { Down = true });
             Assert.AreEqual(MenuItem.Settings, m.Focused);
             m.Handle(new MenuInput { Submit = true });
             Assert.AreEqual(MenuScreen.Settings, m.Screen);
@@ -99,6 +106,22 @@ namespace Game.Tests
             // English only for now: no language item in the settings list
             m.Open(MenuScreen.Settings, push: false);
             CollectionAssert.DoesNotContain(m.Items, MenuItem.Language);
+
+            // riding tips: switching them back on replays every tip
+            m.Settings.TipsSeen = 0b11011;
+            while (m.Focused != MenuItem.Tips) m.Handle(new MenuInput { Down = true });
+            Assert.AreEqual(MenuAction.SettingsChanged, m.Handle(new MenuInput { Submit = true }));
+            Assert.IsFalse(m.Settings.ShowTips);
+            m.Handle(new MenuInput { Submit = true });
+            Assert.IsTrue(m.Settings.ShowTips);
+            Assert.AreEqual(0, m.Settings.TipsSeen);
+            var round = GameSettings.Parse(new GameSettings { ShowTips = false, TipsSeen = 21 }.Serialize());
+            Assert.IsFalse(round.ShowTips);
+            Assert.AreEqual(21, round.TipsSeen, "seen tips survive a restart");
+
+            // title: how to play and credits
+            m.Open(MenuScreen.Title, push: false);
+            CollectionAssert.AreEqual(new[] { MenuItem.Play, MenuItem.HowToPlay, MenuItem.Settings, MenuItem.Credits, MenuItem.Quit }, m.Items);
         }
 
         [Test]
@@ -153,7 +176,7 @@ namespace Game.Tests
             m.Lobby.Join(JoinedDevice.Keyboard(false));
             var cmds = new List<HudCmd>();
             foreach (var (w, h) in new[] { (1920f, 1080f), (1280f, 800f), (1280f, 720f), (2560f, 1080f), (1024f, 768f) })
-            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings })
+            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings, MenuScreen.HowToPlay, MenuScreen.Credits })
             {
                 m.Open(screen, push: false);
                 FrontendLayout.Build(m, 0f, w, h, 0, 0, w, h, cmds);

@@ -104,6 +104,10 @@ namespace Game
         {
             if (_model == null) return;
 
+            // a tip was shown: remember it (settings file, synced by Steam Cloud)
+            int seen = _gm.Hud.Presenter.Tips.SeenMask;
+            if (seen != _model.Settings.TipsSeen) { _model.Settings.TipsSeen = seen; SaveSettings(); }
+
             // a controller dropping out mid-run pauses the game (platform requirement on consoles, good manners on Steam)
             int pads = Gamepad.all.Count;
             if (pads < _padCount && !InMenu) Pause();
@@ -316,6 +320,11 @@ namespace Game
             CameraController.ReduceMotion = s.ReduceMotion;
             AudioListener.volume = s.MasterVolume;
             AudioDirector.MusicVolume = s.MusicVolume;
+            if (_gm != null && _gm.Hud != null)
+            {
+                _gm.Hud.Presenter.Tips.Enabled = s.ShowTips;
+                _gm.Hud.Presenter.Tips.SeenMask = s.TipsSeen;
+            }
             AudioDirector.EffectsVolume = s.EffectsVolume;
             QualitySettings.vSyncCount = s.VSync ? 1 : 0;
             Application.targetFrameRate = s.VSync ? -1 : 144;
