@@ -196,6 +196,8 @@ namespace Game.Hud
             s.EndLines.Add((Loc.T("BEST COMBO"), "x" + ScoreManager.MultiplierFor(sc.BestCombo, r.Tuning).ToString(Ci), ""));
             s.EndScore = Loc.T("SCORE") + "  " + sc.Score.ToString("N0", Ci);
             string best = r.HighScores != null ? Loc.T("BEST") + "  " + r.HighScores.BestScore.ToString("N0", Ci) + "   ·   " + r.HighScores.BestDistance.ToString("N0", Ci) + " m" : "";
+            if (r.LastRank > 0 && !r.NewBestScore) best = Loc.T("RANK") + " #" + r.LastRank.ToString(Ci) + "   ·   " + best;
+            ScoreTable.Fill(r.HighScores?.Top, r.LastRank, s.EndTable);
             if (r.NewBestScore) best = Loc.T("NEW BEST SCORE!") + "   " + best;
             else if (r.NewBestDistance) best = Loc.T("NEW BEST DISTANCE!") + "   " + best;
             s.EndBest = best;

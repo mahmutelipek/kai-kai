@@ -16,6 +16,9 @@ for a later language release). Report: `Docs/M4_3_REPORT.md`.
 also calls jumps over potholes, debris and cones), move meter (CARVE → STRAIGHTEN!, BOOST, DRAFTING), first-run
 riding tips (saved; toggle in Settings), animated end screen with NEW BEST stamp, HOW TO PLAY and CREDITS screens,
 4 new achievements (18 total). Report: `Docs/M4_4_REPORT.md`.
+**M4.5:** bigger board next to the riders (6.75 x 2.7 m deck, riders drawn at 0.88), local TOP 10 high-score table on
+the game-over screen (your rank, NEW row) and a HIGH SCORES menu screen, automatic upgrade of stale tuning assets.
+Report: `Docs/M4_5_REPORT.md`.
 Screenshots (headless preview of the same geometry and HUD draw commands): `Docs/M4/`.
 
 ---

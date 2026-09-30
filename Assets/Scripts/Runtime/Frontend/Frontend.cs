@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Game.Frontend
 {
-    public enum MenuScreen : byte { None, Title, Lobby, Pause, Settings, HowToPlay, Credits }
+    public enum MenuScreen : byte { None, Title, Lobby, Pause, Settings, HowToPlay, Credits, HighScores }
 
     public enum MenuAction : byte
     {
@@ -16,7 +16,7 @@ namespace Game.Frontend
         Resume, Restart, MainMenu,
         DisplayMode, Resolution, VSync, Quality, ReduceMotion, Language, MasterVolume, MusicVolume, EffectsVolume,
         CrewSize, BotsFill, Start, Back,
-        HowToPlay, Credits, Tips,
+        HowToPlay, Credits, Tips, HighScores,
     }
 
     /// <summary>Menu navigation from any device this frame (keyboard, every gamepad, Steam Input).</summary>
@@ -72,7 +72,7 @@ namespace Game.Frontend
     /// </summary>
     public sealed class FrontendModel
     {
-        static readonly MenuItem[] TitleItems = { MenuItem.Play, MenuItem.HowToPlay, MenuItem.Settings, MenuItem.Credits, MenuItem.Quit };
+        static readonly MenuItem[] TitleItems = { MenuItem.Play, MenuItem.HowToPlay, MenuItem.HighScores, MenuItem.Settings, MenuItem.Credits, MenuItem.Quit };
         static readonly MenuItem[] LobbyItems = { MenuItem.CrewSize, MenuItem.BotsFill, MenuItem.Start, MenuItem.Back };
         static readonly MenuItem[] PauseItems = { MenuItem.Resume, MenuItem.Restart, MenuItem.HowToPlay, MenuItem.Settings, MenuItem.MainMenu, MenuItem.Quit };
         static readonly MenuItem[] BackOnly = { MenuItem.Back };
@@ -91,6 +91,8 @@ namespace Game.Frontend
         public readonly Lobby Lobby = new Lobby();
         /// <summary>Resolution names shown in Settings (filled by the platform, e.g. "1920 x 1080").</summary>
         public string[] Resolutions = { "NATIVE" };
+        /// <summary>The local top-10 table shown on the HIGH SCORES screen (live list from the HighScoreManager).</summary>
+        public System.Collections.Generic.IReadOnlyList<Game.Simulation.HighScoreEntry> HighScores;
         /// <summary>Hide the Quit item (consoles / web builds would).</summary>
         public bool AllowQuit = true;
 
@@ -112,6 +114,7 @@ namespace Game.Frontend
                     case MenuScreen.Pause: return PauseItems;
                     case MenuScreen.Settings: return SettingsItems;
                     case MenuScreen.HowToPlay:
+                    case MenuScreen.HighScores:
                     case MenuScreen.Credits: return BackOnly;
                     default: return Array.Empty<MenuItem>();
                 }
@@ -172,6 +175,7 @@ namespace Game.Frontend
                 case MenuItem.Settings: Open(MenuScreen.Settings); return MenuAction.None;
                 case MenuItem.HowToPlay: Open(MenuScreen.HowToPlay); return MenuAction.None;
                 case MenuItem.Credits: Open(MenuScreen.Credits); return MenuAction.None;
+                case MenuItem.HighScores: Open(MenuScreen.HighScores); return MenuAction.None;
                 case MenuItem.Quit: return AllowQuit ? MenuAction.Quit : MenuAction.None;
                 case MenuItem.Resume: return MenuAction.Resume;
                 case MenuItem.Restart: return MenuAction.Restart;
@@ -228,6 +232,7 @@ namespace Game.Frontend
                 case MenuItem.Back: return (Loc.T("BACK"), null);
                 case MenuItem.HowToPlay: return (Loc.T("HOW TO PLAY"), null);
                 case MenuItem.Credits: return (Loc.T("CREDITS"), null);
+                case MenuItem.HighScores: return (Loc.T("HIGH SCORES"), null);
                 case MenuItem.Tips: return (Loc.T("RIDING TIPS"), Loc.T(s.ShowTips ? "ON" : "OFF"));
                 case MenuItem.DisplayMode: return (Loc.T("DISPLAY MODE"), Loc.T(s.Display == DisplayMode.Fullscreen ? "FULLSCREEN" : s.Display == DisplayMode.Borderless ? "BORDERLESS" : "WINDOWED"));
                 case MenuItem.Resolution: return (Loc.T("RESOLUTION"), s.Resolution < 0 || s.Resolution >= Resolutions.Length ? Loc.T("NATIVE") : Resolutions[s.Resolution]);

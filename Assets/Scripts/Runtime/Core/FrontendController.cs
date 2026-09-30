@@ -42,6 +42,7 @@ namespace Game
             };
             FillResolutions();
             ApplySettings(settings);
+            _model.HighScores = _gm.Board.Run.HighScores?.Top;
             HudDrawer.Prewarm();
             _padCount = Gamepad.all.Count;
             GoToTitle();

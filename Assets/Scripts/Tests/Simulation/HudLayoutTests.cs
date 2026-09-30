@@ -103,9 +103,13 @@ namespace Game.Tests
             s.EndLines.Clear(); s.EndLines.AddRange(p.State.EndLines);
             s.EndTitle = p.State.EndTitle; s.EndScore = "SCORE  9,999,999"; s.EndBest = p.State.EndBest; s.EndHint = p.State.EndHint;
             s.Ended = true; s.EndNewBest = true;
+            var top = new List<HighScoreEntry>();
+            for (int i = 0; i < HighScoreManager.TableSize; i++)
+                top.Add(new HighScoreEntry { Score = 9999999f - i * 1000f, Distance = 99999f - i, Crew = 6, Date = "2026-09-30" });
+            Game.Hud.ScoreTable.Fill(top, 3, s.EndTable); // this run placed #3
             var cmds = new List<HudCmd>();
             int previous = -1;
-            foreach (float age in new[] { 0f, 0.4f, 0.8f, 1.6f })
+            foreach (float age in new[] { 0f, 0.4f, 0.8f, 1.15f, 2.5f })
             {
                 s.EndAge = age;
                 HudLayout.Build(s, 1920, 1080, 0, 0, 1920, 1080, cmds);
@@ -115,9 +119,10 @@ namespace Game.Tests
                 Assert.That(texts, Is.GreaterThan(previous), "lines, score, stamp and hint arrive one after another");
                 previous = texts;
             }
-            bool stamp = false;
-            foreach (HudCmd c in cmds) stamp |= c.Text == "NEW BEST!";
+            bool stamp = false, table = false, newTag = false;
+            foreach (HudCmd c in cmds) { stamp |= c.Text == "NEW BEST!"; table |= c.Text == "TOP SCORES"; newTag |= c.Text == "NEW"; }
             Assert.IsTrue(stamp, "NEW BEST! stamp");
+            Assert.IsTrue(table && newTag, "TOP SCORES table with this run's NEW row");
             AssertLayout(s);
         }
 

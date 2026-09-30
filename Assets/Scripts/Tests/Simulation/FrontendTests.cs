@@ -38,7 +38,7 @@ namespace Game.Tests
             model.Lobby.Join(JoinedDevice.Keyboard(true));
             model.Lobby.Join(JoinedDevice.Pad(7));
             var cmds = new List<HudCmd>();
-            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings, MenuScreen.HowToPlay, MenuScreen.Credits })
+            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings, MenuScreen.HowToPlay, MenuScreen.Credits, MenuScreen.HighScores })
             {
                 model.Open(screen, push: false);
                 foreach (MenuItem item in Enum.GetValues(typeof(MenuItem))) model.Describe(item);
@@ -121,7 +121,7 @@ namespace Game.Tests
 
             // title: how to play and credits
             m.Open(MenuScreen.Title, push: false);
-            CollectionAssert.AreEqual(new[] { MenuItem.Play, MenuItem.HowToPlay, MenuItem.Settings, MenuItem.Credits, MenuItem.Quit }, m.Items);
+            CollectionAssert.AreEqual(new[] { MenuItem.Play, MenuItem.HowToPlay, MenuItem.HighScores, MenuItem.Settings, MenuItem.Credits, MenuItem.Quit }, m.Items);
         }
 
         [Test]
@@ -173,10 +173,14 @@ namespace Game.Tests
         public void MenuScreens_StayInsideTheSafeArea_OnPcAndSteamDeck()
         {
             var m = new FrontendModel(new GameSettings());
+            var table = new List<HighScoreEntry>();
+            for (int i = 0; i < HighScoreManager.TableSize; i++)
+                table.Add(new HighScoreEntry { Score = 9999999f - i * 1000f, Distance = 99999f - i, Crew = 6, Date = "2026-09-30" });
+            m.HighScores = table; // worst case: a full table of long numbers
             m.Lobby.Join(JoinedDevice.Keyboard(false));
             var cmds = new List<HudCmd>();
             foreach (var (w, h) in new[] { (1920f, 1080f), (1280f, 800f), (1280f, 720f), (2560f, 1080f), (1024f, 768f) })
-            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings, MenuScreen.HowToPlay, MenuScreen.Credits })
+            foreach (MenuScreen screen in new[] { MenuScreen.Title, MenuScreen.Lobby, MenuScreen.Pause, MenuScreen.Settings, MenuScreen.HowToPlay, MenuScreen.Credits, MenuScreen.HighScores })
             {
                 m.Open(screen, push: false);
                 FrontendLayout.Build(m, 0f, w, h, 0, 0, w, h, cmds);

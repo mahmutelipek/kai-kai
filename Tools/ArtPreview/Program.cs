@@ -153,6 +153,7 @@ namespace ArtPreview
                 ["menu_lobby"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 400f, Menu = Game.Frontend.MenuScreen.Lobby }),
                 ["menu_pause_tr"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 40f, Hud = true, Menu = Game.Frontend.MenuScreen.Pause, Language = Game.Frontend.Language.Turkish }),
                 ["menu_howto"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 300f, Menu = Game.Frontend.MenuScreen.HowToPlay }),
+                ["menu_highscores"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 500f, Menu = Game.Frontend.MenuScreen.HighScores }),
                 ["menu_credits"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.GentleCurve, LocalAlong = 20f, Menu = Game.Frontend.MenuScreen.Credits }),
                 ["hud_moves"] = () => GameplayScenes.Build(new GameplayScenes.Options
                 {
@@ -172,7 +173,14 @@ namespace ArtPreview
                 ["hud_end"] = () => GameplayScenes.Build(new GameplayScenes.Options
                 {
                     MinDistance = 900f, Hud = true,
-                    Hud2 = (p, r) => { p.FillEndScreen(r); p.State.Ended = true; p.State.EndNewBest = true; p.State.EndAge = 3f; },
+                    Hud2 = (p, r) =>
+                    {
+                        r.HighScores = GameplayScenes.SampleTable();
+                        p.FillEndScreen(r);
+                        Game.Hud.ScoreTable.Fill(r.HighScores.Top, 3, p.State.EndTable);
+                        p.State.EndBest = "RANK #3   ·   BEST  48,210   ·   5,357 m";
+                        p.State.Ended = true; p.State.EndNewBest = false; p.State.EndAge = 4f;
+                    },
                 }),
                 ["menu_pause"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 40f, Hud = true, Menu = Game.Frontend.MenuScreen.Pause }),
                 ["menu_settings"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 300f, Menu = Game.Frontend.MenuScreen.Settings }),

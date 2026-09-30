@@ -38,6 +38,16 @@ namespace ArtPreview
             public Action<Game.Hud.HudPresenter, RunSimulation> Hud2;
         }
 
+        /// <summary>A plausible local top-10 for previews (the run in progress lands at #3).</summary>
+        public static HighScoreManager SampleTable()
+        {
+            var hs = new HighScoreManager(null) { Today = () => "2026-09-30" };
+            float[] s = { 48210, 35990, 21870, 19400, 12650, 9800, 7420, 5310, 3890, 2100 };
+            int[] crew = { 6, 4, 6, 2, 1, 3, 6, 1, 2, 5 };
+            for (int i = 0; i < s.Length; i++) hs.Submit(s[i], s[i] / 9f, crew[i], out _, out _, out _);
+            return hs;
+        }
+
         public static RunSimulation Drive(Options o) => Drive(o, null);
 
         public static RunSimulation Drive(Options o, Action<RunStepEvents, RunSimulation> perStep)
@@ -100,6 +110,7 @@ namespace ArtPreview
                     model.Lobby.Join(Game.Frontend.JoinedDevice.Pad(1));
                     model.Lobby.Join(Game.Frontend.JoinedDevice.Pad(2));
                     model.Lobby.CrewSize = 5;
+                    model.HighScores = SampleTable().Top;
                     if (o.Menu == Game.Frontend.MenuScreen.Settings) { model.Open(Game.Frontend.MenuScreen.Pause, false); model.Open(Game.Frontend.MenuScreen.Settings); }
                     else model.Open(o.Menu, false);
                     if (o.Menu == Game.Frontend.MenuScreen.Settings) model.Handle(new Game.Frontend.MenuInput { Down = true });

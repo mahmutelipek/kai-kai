@@ -88,6 +88,8 @@ namespace Game.Simulation
         public int LivesPerRun => (int)Tuning.livesPerRun;
         public bool NewBestScore { get; private set; }
         public bool NewBestDistance { get; private set; }
+        /// <summary>Place of the finished run in the local top-10 table (1-based; 0 = not in it).</summary>
+        public int LastRank { get; private set; }
         /// <summary>0..1: how deep the board is in a car's slipstream (1 = full bonus).</summary>
         public float Slipstream { get; private set; }
 
@@ -148,6 +150,7 @@ namespace Game.Simulation
             NitroCharges = 0;
             LivesLeft = LivesPerRun;
             NewBestScore = NewBestDistance = false;
+            LastRank = 0;
             _airtime = 0f;
             _draftTime = _draftLinger = 0f;
             _draftSlot = _draftGeneration = -1;
@@ -368,9 +371,10 @@ namespace Game.Simulation
             ev.RunEnded = true;
             if (HighScores != null)
             {
-                HighScores.Submit(Score.Score, MaxDistance, out bool bestScore, out bool bestDistance);
+                HighScores.Submit(Score.Score, MaxDistance, Board.ActivePlayerCount, out bool bestScore, out bool bestDistance, out int rank);
                 NewBestScore = bestScore;
                 NewBestDistance = bestDistance;
+                LastRank = rank;
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Frontend;
+using Game.Simulation;
 
 namespace Game.Hud
 {
@@ -90,6 +91,8 @@ namespace Game.Hud
         /// <summary>Seconds since the end screen opened (panel pops in, lines reveal one by one, NEW BEST stamp lands).</summary>
         public float EndAge = 99f;
         public bool EndNewBest;
+        /// <summary>Local TOP SCORES rows (filled once when the run ends; empty = no table).</summary>
+        public readonly List<ScoreRow> EndTable = new List<ScoreRow>(10);
     }
 
     /// <summary>
@@ -147,7 +150,19 @@ namespace Game.Hud
                 Img(o, HudTex.Vignette, 0f, 0f, screenW, screenH, s.FlashColor.WithAlpha(s.FlashColor.A * f * f));
             }
 
-            if (s.Ended) { EndScreen(s, (L + R) * 0.5f, (T + B) * 0.5f, k, o); return; }
+            if (s.Ended)
+            {
+                float cx = (L + R) * 0.5f, cy = (T + B) * 0.5f;
+                if (s.EndTable.Count > 0)
+                {
+                    // summary card left, TOP SCORES right (1300 units wide: fits 4:3 and Steam Deck)
+                    EndScreen(s, cx - 300f * k, cy, k, o);
+                    float tw = 560f * k, th = ScoreTable.Height(HighScoreManager.TableSize) * k;
+                    ScoreTable.Draw(o, s.EndTable, cx + 70f * k, cy - th * 0.5f + 20f * k, tw, k, s.Time, s.EndAge - 0.9f);
+                }
+                else EndScreen(s, cx, cy, k, o);
+                return;
+            }
 
             // ---- top-left: distance + best (the F1 debug panel uses this corner when open)
             if (!s.DebugPanelOpen)

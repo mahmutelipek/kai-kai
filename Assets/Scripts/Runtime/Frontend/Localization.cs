@@ -116,6 +116,13 @@ namespace Game.Frontend
             ["MEGA CARVE BOOST!"] = "MEGA VİRAJ TURBOSU!",
             ["SLIPSTREAM!"] = "RÜZGAR TÜNELİ!",
             ["TRICKS"] = "HAREKETLER",
+            // M4.5: high scores
+            ["HIGH SCORES"] = "EN YÜKSEK SKORLAR",
+            ["TOP SCORES"] = "EN İYİ SKORLAR",
+            ["NO RUNS YET - GO RIDE!"] = "HENÜZ SÜRÜŞ YOK - HADİ SÜR!",
+            ["CREW"] = "EKİP",
+            ["NEW"] = "YENİ",
+            ["RANK"] = "SIRA",
             // M4.4: menus, tips, move meter
             ["HOW TO PLAY"] = "NASIL OYNANIR",
             ["CREDITS"] = "EMEĞİ GEÇENLER",

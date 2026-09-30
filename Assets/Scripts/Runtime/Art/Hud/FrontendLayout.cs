@@ -29,7 +29,7 @@ namespace Game.Hud
             {
                 case MenuScreen.Title:
                     Logo(o, cx, top + safeH * 0.2f, k, time);
-                    List(m, o, cx, top + safeH * 0.4f, k, 460f);
+                    List(m, o, cx, top + safeH * 0.37f, k, 460f);
                     Hint(o, cx, bottom - 70f * k, k, Loc.T("MOVE: STICK / WASD   JUMP: (A) / SPACE   NITRO: (X) / E"));
                     break;
                 case MenuScreen.Lobby:
@@ -53,6 +53,15 @@ namespace Game.Hud
                     List(m, o, cx, bottom - 170f * k, k, 360f, compact: true);
                     Hint(o, cx, bottom - 70f * k, k, Loc.T("MOVE: STICK / WASD   JUMP: (A) / SPACE   NITRO: (X) / E"));
                     break;
+                case MenuScreen.HighScores:
+                {
+                    Title(o, Loc.T("HIGH SCORES"), cx, top + 30f * k, k);
+                    RefreshRows(m.HighScores);
+                    float tw = 760f * k;
+                    ScoreTable.Draw(o, _rows, cx - tw * 0.5f, top + 200f * k, tw, k, time, 99f);
+                    List(m, o, cx, bottom - 140f * k, k, 360f, compact: true);
+                    break;
+                }
                 case MenuScreen.Credits:
                     Title(o, Loc.T("CREDITS"), cx, top + 50f * k, k);
                     Credits(o, cx, top + 220f * k, k);
@@ -104,6 +113,20 @@ namespace Game.Hud
         }
 
         static float _hintWidth;
+        static readonly List<ScoreRow> _rows = new List<ScoreRow>(10);
+        static int _rowsCount = -1;
+        static float _rowsTop = -1f;
+
+        /// <summary>Formats the table only when it changed (menus stay allocation-free while idle).</summary>
+        static void RefreshRows(IReadOnlyList<Game.Simulation.HighScoreEntry> top)
+        {
+            int count = top != null ? top.Count : 0;
+            float first = count > 0 ? top[0].Score + top[count - 1].Score : 0f;
+            if (count == _rowsCount && first == _rowsTop) return;
+            _rowsCount = count;
+            _rowsTop = first;
+            ScoreTable.Fill(top, 0, _rows);
+        }
 
         static void Hint(List<HudCmd> o, float cx, float y, float k, string text) =>
             Txt(o, text, cx - _hintWidth * 0.5f, y, _hintWidth, 44f * k, 28f * k, HudColor.Hex(0xE8ECF5), HudAlign.Center, 3f * k);
