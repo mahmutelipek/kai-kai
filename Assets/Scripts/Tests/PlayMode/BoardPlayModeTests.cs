@@ -210,6 +210,37 @@ namespace Game.Tests
 #endif
         }
 
+        /// <summary>Shipped flow: title over an attract ride, lobby join, countdown, pause freezes, resume continues.</summary>
+        [UnityTest]
+        public IEnumerator Frontend_TitleLobbyCountdownPauseResume()
+        {
+            _gm = GameManager.Create(BoardTuning.CreateDefault(), 1, bots: true, keyboard: true, mode: RoadMode.Endless, seed: 3, countdown: true, frontend: true);
+            yield return new WaitForSeconds(2f);
+            FrontendController fe = _gm.Frontend;
+            Assert.IsTrue(fe.InMenu, "starts on the title screen");
+            Assert.AreEqual(Game.Frontend.MenuScreen.Title, fe.Model.Screen);
+            Assert.IsFalse(_gm.Hud.Visible, "no HUD behind the title");
+            Assert.That(_gm.Run.Distance, Is.GreaterThan(5f), "the attract ride rolls behind the title");
+
+            fe.Model.Lobby.Join(Game.Frontend.JoinedDevice.Keyboard(false));
+            fe.Model.Lobby.CrewSize = 4;
+            fe.StartRun();
+            Assert.IsFalse(fe.InMenu);
+            Assert.AreEqual(4, _gm.Board.Simulation.ActivePlayerCount, "1 human + 3 bots");
+            Assert.IsTrue(_gm.InputRouter.IsHumanControlled(0));
+            Assert.IsTrue(_gm.Board.Frozen, "3-2-1 countdown holds the board");
+            yield return new WaitForSeconds(RunManager.CountdownSeconds + 0.5f);
+            Assert.IsFalse(_gm.Board.Frozen, "GO!");
+
+            fe.Pause();
+            float d = _gm.Run.Distance;
+            yield return new WaitForSecondsRealtime(0.5f);
+            Assert.AreEqual(d, _gm.Run.Distance, 1e-3, "paused: nothing moves");
+            fe.Resume();
+            yield return new WaitForSeconds(1f);
+            Assert.That(_gm.Run.Distance, Is.GreaterThan(d), "resumed");
+        }
+
         [UnityTest]
         public IEnumerator Endless_ViewsFollowSimulation_FrameTimeAndGcReport()
         {

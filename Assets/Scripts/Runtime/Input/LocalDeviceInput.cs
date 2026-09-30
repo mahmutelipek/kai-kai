@@ -7,16 +7,31 @@ namespace Game
     /// <summary>Reads keyboard and gamepads (new Input System) into PlayerInputState. Move is board-local: up = toward the nose.</summary>
     public static class LocalDeviceInput
     {
-        public static PlayerInputState ReadKeyboard()
+        public enum KeyboardScheme { Full, Left, Right }
+
+        /// <summary>
+        /// Full: WASD or arrows, Space jump, E nitro (one keyboard rider). Split for two riders on one keyboard:
+        /// Left = WASD / Space / E, Right = arrows / Enter / Right Shift.
+        /// </summary>
+        public static PlayerInputState ReadKeyboard(KeyboardScheme scheme = KeyboardScheme.Full)
         {
             Keyboard kb = Keyboard.current;
             if (kb == null) return PlayerInputState.None;
+            bool wasd = scheme != KeyboardScheme.Right, arrows = scheme != KeyboardScheme.Left;
             float x = 0f, y = 0f;
-            if (kb[Key.A].isPressed || kb[Key.LeftArrow].isPressed) x -= 1f;
-            if (kb[Key.D].isPressed || kb[Key.RightArrow].isPressed) x += 1f;
-            if (kb[Key.S].isPressed || kb[Key.DownArrow].isPressed) y -= 1f;
-            if (kb[Key.W].isPressed || kb[Key.UpArrow].isPressed) y += 1f;
-            return new PlayerInputState(new SVec2(x, y), kb[Key.Space].isPressed, kb[Key.E].isPressed);
+            if ((wasd && kb[Key.A].isPressed) || (arrows && kb[Key.LeftArrow].isPressed)) x -= 1f;
+            if ((wasd && kb[Key.D].isPressed) || (arrows && kb[Key.RightArrow].isPressed)) x += 1f;
+            if ((wasd && kb[Key.S].isPressed) || (arrows && kb[Key.DownArrow].isPressed)) y -= 1f;
+            if ((wasd && kb[Key.W].isPressed) || (arrows && kb[Key.UpArrow].isPressed)) y += 1f;
+            bool jump = scheme == KeyboardScheme.Right ? kb[Key.Enter].isPressed || kb[Key.NumpadEnter].isPressed : kb[Key.Space].isPressed;
+            bool action = scheme == KeyboardScheme.Right ? kb[Key.RightShift].isPressed : kb[Key.E].isPressed;
+            return new PlayerInputState(new SVec2(x, y), jump, action);
+        }
+
+        public static Gamepad GamepadById(int deviceId)
+        {
+            for (int i = 0; i < Gamepad.all.Count; i++) if (Gamepad.all[i].deviceId == deviceId) return Gamepad.all[i];
+            return null;
         }
 
         public static PlayerInputState ReadGamepad(Gamepad pad)

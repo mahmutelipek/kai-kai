@@ -28,6 +28,9 @@ namespace ArtPreview
             public bool Backdrop = true;
             public bool Scenery = true;
             public bool Hud;
+            /// <summary>Front-end screen drawn over the scene (the in-game HUD is hidden behind title / lobby).</summary>
+            public Game.Frontend.MenuScreen Menu;
+            public Game.Frontend.Language Language;
             public string Countdown;
         }
 
@@ -54,6 +57,7 @@ namespace ArtPreview
 
         public static PreviewScene Build(Options o)
         {
+            Game.Frontend.Loc.Current = o.Language;
             var hud = new Game.Hud.HudPresenter();
             float simTime = 0f;
             RunSimulation run = Drive(o, (ev, r) =>
@@ -64,13 +68,30 @@ namespace ArtPreview
                 hud.Update(r, 0f, simTime, BoardScenario.Dt);
             });
             var s = new PreviewScene();
-            if (o.Hud)
+            Game.Frontend.Loc.Current = o.Language;
+            if (o.Hud || o.Menu != Game.Frontend.MenuScreen.None)
             {
                 hud.State.Human[0] = true;
                 if (o.Countdown != null) { hud.SetCountdown(o.Countdown); hud.State.CountdownAge = 0.4f; }
                 s.Hud = new System.Collections.Generic.List<Game.Hud.HudCmd>();
                 float k = s.HudWidth, h = s.HudHeight;
-                Game.Hud.HudLayout.Build(hud.State, k, h, 0f, 0f, k, h, s.Hud);
+                if (o.Menu == Game.Frontend.MenuScreen.None || o.Menu == Game.Frontend.MenuScreen.Pause)
+                    Game.Hud.HudLayout.Build(hud.State, k, h, 0f, 0f, k, h, s.Hud);
+                if (o.Menu != Game.Frontend.MenuScreen.None)
+                {
+                    var model = new Game.Frontend.FrontendModel(new Game.Frontend.GameSettings { Language = o.Language });
+                    model.Resolutions = new[] { "1280 x 720", "1920 x 1080", "2560 x 1440" };
+                    model.Lobby.Join(Game.Frontend.JoinedDevice.Keyboard(false));
+                    model.Lobby.Join(Game.Frontend.JoinedDevice.Pad(1));
+                    model.Lobby.Join(Game.Frontend.JoinedDevice.Pad(2));
+                    model.Lobby.CrewSize = 5;
+                    if (o.Menu == Game.Frontend.MenuScreen.Settings) { model.Open(Game.Frontend.MenuScreen.Pause, false); model.Open(Game.Frontend.MenuScreen.Settings); }
+                    else model.Open(o.Menu, false);
+                    if (o.Menu == Game.Frontend.MenuScreen.Settings) model.Handle(new Game.Frontend.MenuInput { Down = true });
+                    var menu = new System.Collections.Generic.List<Game.Hud.HudCmd>();
+                    Game.Hud.FrontendLayout.Build(model, 1f, k, h, 0f, 0f, k, h, menu);
+                    s.Hud.AddRange(menu);
+                }
             }
             BoardSimulation sim = run.Board;
             BoardState b = sim.Board.State;

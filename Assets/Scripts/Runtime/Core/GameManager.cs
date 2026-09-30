@@ -18,6 +18,8 @@ namespace Game
         [SerializeField] bool keyboardEnabled = true;
         [Tooltip("3-2-1-GO before every run")]
         [SerializeField] bool startCountdown = true;
+        [Tooltip("Title screen, lobby, pause and settings (the shipped game). Off = straight into a run (dev, tests)")]
+        [SerializeField] bool useFrontend = true;
 
         public BoardTuning Tuning => tuning;
         public BoardController Board { get; private set; }
@@ -30,10 +32,11 @@ namespace Game
         public GameFeel Feel { get; private set; }
         public HUDController Hud { get; private set; }
         public BackdropView Backdrop { get; private set; }
+        public FrontendController Frontend { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
         public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true,
-                                         RoadMode mode = RoadMode.Endless, int seed = 0, bool countdown = false)
+                                         RoadMode mode = RoadMode.Endless, int seed = 0, bool countdown = false, bool frontend = false)
         {
             var go = new GameObject("GameManager");
             go.SetActive(false); // configure before Awake runs
@@ -45,6 +48,7 @@ namespace Game
             gm.roadMode = mode;
             gm.seed = seed;
             gm.startCountdown = countdown;
+            gm.useFrontend = frontend;
             go.SetActive(true);
             return gm;
         }
@@ -89,7 +93,14 @@ namespace Game
             Hud = gameObject.AddComponent<HUDController>();
             Hud.Initialize(Board, Run, InputRouter, Overlay);
             gameObject.AddComponent<GameHotkeys>().Initialize(Board, InputRouter, Run, Overlay, tuningPanel, Hud);
-            if (startCountdown) Run.EnableCountdown(Hud);
+            PlatformServices.Initialize();
+            gameObject.AddComponent<AchievementReporter>().Initialize(Board, InputRouter);
+            if (startCountdown) Run.EnableCountdown(Hud, startNow: !useFrontend);
+            if (useFrontend)
+            {
+                Frontend = gameObject.AddComponent<FrontendController>();
+                Frontend.Initialize(this);
+            }
         }
     }
 }

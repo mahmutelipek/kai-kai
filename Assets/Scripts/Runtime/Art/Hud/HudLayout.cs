@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Frontend;
 
 namespace Game.Hud
 {
@@ -121,7 +122,7 @@ namespace Game.Hud
                 Img(o, HudTex.Panel, L + m - 14f * k, T + m, 440f * k, 104f * k, Dark, skew: -0.15f);
                 Txt(o, s.Distance, L + m + 18f * k, T + m + 8f * k, 420f * k, 88f * k, 70f * k, HudColor.White, HudAlign.Left, 4f * k);
                 Img(o, HudTex.Panel, L + m - 6f * k, T + m + 106f * k, 330f * k, 50f * k, Dark, skew: -0.15f);
-                Txt(o, "BEST", L + m + 18f * k, T + m + 110f * k, 110f * k, 42f * k, 28f * k, Cyan, HudAlign.Left, 2f * k);
+                Txt(o, Loc.T("BEST"), L + m + 18f * k, T + m + 110f * k, 110f * k, 42f * k, 28f * k, Cyan, HudAlign.Left, 2f * k);
                 Txt(o, s.Best, L + m + 128f * k, T + m + 110f * k, 190f * k, 42f * k, 28f * k, HudColor.White, HudAlign.Left, 2f * k);
                 for (int i = 0; i < s.LivesMax && i < 5; i++)
                 {
@@ -146,7 +147,7 @@ namespace Game.Hud
                 float pop = 1f + 0.3f * Clamp01(s.ComboPop);
                 float bw = 420f * k, bh = 104f * k, bx = R - m - bw;
                 Img(o, HudTex.Panel, bx, by, bw, bh, HudColor.Hex(0x0B0C12, 0.92f), rot: -8f, scale: pop);
-                TxtR(o, "COMBO", bx + 30f * k, by + 22f * k, 220f * k, 66f * k, 44f * k, HudColor.White, HudAlign.Left, -8f, pop, bx + bw * 0.5f, by + bh * 0.5f, k);
+                TxtR(o, Loc.T("COMBO"), bx + 30f * k, by + 22f * k, 220f * k, 66f * k, 44f * k, HudColor.White, HudAlign.Left, -8f, pop, bx + bw * 0.5f, by + bh * 0.5f, k);
                 TxtR(o, s.Combo, bx + 250f * k, by + 2f * k, 150f * k, 96f * k, 80f * k, Yellow, HudAlign.Left, -8f, pop, bx + bw * 0.5f, by + bh * 0.5f, k);
                 // progress to the next multiplier along the banner's lower edge
                 Img(o, HudTex.White, bx + 40f * k, by + bh - 16f * k, (bw - 80f * k), 6f * k, HudColor.Hex(0x3A3D48, 0.9f), rot: -8f, pivotX: bx + bw * 0.5f, pivotY: by + bh * 0.5f);
@@ -157,12 +158,12 @@ namespace Game.Hud
                 float nw = 330f * k, nh = 66f * k, nx = R - m - nw - 10f * k, ny = by + 118f * k;
                 float pulse = s.NitroActive ? 1f + 0.06f * (float)Math.Sin(s.Time * 18f) : 1f;
                 Img(o, HudTex.Panel, nx, ny, nw, nh, Cyan, rot: -8f, scale: pulse);
-                TxtR(o, s.NitroActive ? "NITRO!" : s.NitroText, nx, ny + 8f * k, nw, nh - 12f * k, 38f * k, Navy, HudAlign.Center, -8f, pulse, nx + nw * 0.5f, ny + nh * 0.5f, 0f);
+                TxtR(o, s.NitroActive ? Loc.T("NITRO!") : s.NitroText, nx, ny + 8f * k, nw, nh - 12f * k, 38f * k, Navy, HudAlign.Center, -8f, pulse, nx + nw * 0.5f, ny + nh * 0.5f, 0f);
             }
 
             // ---- bottom-right: speed + wedge of segments
             Txt(o, s.Speed, R - m - 330f * k, B - m - 196f * k, 300f * k, 124f * k, 118f * k, HudColor.White, HudAlign.Right, 5f * k);
-            Txt(o, "KM/H", R - m - 104f * k, B - m - 60f * k, 104f * k, 44f * k, 28f * k, HudColor.White, HudAlign.Right, 2f * k);
+            Txt(o, Loc.T("KM/H"), R - m - 104f * k, B - m - 60f * k, 104f * k, 44f * k, 28f * k, HudColor.White, HudAlign.Right, 2f * k);
             const int segs = 8;
             float barX = R - m - 400f * k, barY = B - m - 58f * k, barW = 270f * k, barH = 46f * k;
             Img(o, HudTex.White, barX - 8f * k, barY - 4f * k, barW + 20f * k, barH + 8f * k, Dark, skew: -0.35f);
@@ -195,7 +196,7 @@ namespace Game.Hud
             {
                 float pop = 0.6f + 0.4f * EaseOutBack(Clamp01(s.CountdownAge / 0.35f));
                 float fade = 1f - Clamp01((s.CountdownAge - 0.75f) / 0.25f);
-                bool go = s.Countdown == "GO!";
+                bool go = s.Countdown == Loc.T("GO!");
                 Txt(o, s.Countdown, (L + R) * 0.5f - 400f * k, (T + B) * 0.5f - 190f * k, 800f * k, 260f * k, 230f * k,
                     (go ? Yellow : HudColor.White).WithAlpha(fade), HudAlign.Center, 8f * k, pop);
             }
@@ -239,7 +240,7 @@ namespace Game.Hud
 
         // ------------------------------------------------------------------ helpers
 
-        static void Img(List<HudCmd> o, HudTex tex, float x, float y, float w, float h, HudColor c,
+        internal static void Img(List<HudCmd> o, HudTex tex, float x, float y, float w, float h, HudColor c,
                         float rot = 0f, float skew = 0f, float scale = 1f, float pivotX = float.NaN, float pivotY = float.NaN)
         {
             var cmd = new HudCmd { Tex = tex, X = x, Y = y, W = w, H = h, Color = c, Rotation = rot, Skew = skew, Scale = scale };
@@ -255,7 +256,7 @@ namespace Game.Hud
             o.Add(cmd);
         }
 
-        static void Txt(List<HudCmd> o, string text, float x, float y, float w, float h, float size, HudColor c, HudAlign align, float outline, float scale = 1f)
+        internal static void Txt(List<HudCmd> o, string text, float x, float y, float w, float h, float size, HudColor c, HudAlign align, float outline, float scale = 1f)
         {
             if (string.IsNullOrEmpty(text)) return;
             o.Add(new HudCmd { Text = text, X = x, Y = y, W = w, H = h, FontSize = size, Color = c, Align = align, Outline = outline, OutlineColor = Outline.WithAlpha(Outline.A * c.A), Scale = scale });

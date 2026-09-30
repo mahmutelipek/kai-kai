@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compile check of Assets/Scripts/Steam against Steamworks.NET from NuGet (the Unity package has the same API). -->
+  <PropertyGroup><AssemblyName>Game.Steam</AssemblyName><TreatWarningsAsErrors>true</TreatWarningsAsErrors><DefineConstants>$(DefineConstants);STEAMWORKS_NET</DefineConstants></PropertyGroup>
+  <ItemGroup><Compile Include="$(Repo)Assets/Scripts/Steam/**/*.cs" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Runtime/Game.Runtime.csproj" />
+    <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
+  </ItemGroup>
+</Project>

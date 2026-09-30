@@ -27,7 +27,24 @@ and assigns it as the default and per-quality-level pipeline (menu **Downhill �
 If that fails, the Console shows a warning with the manual steps. Materials use `Universal Render Pipeline/Lit`
 when URP is active and fall back to `Standard` otherwise.
 
+## Steam release (target platform)
+
+The game ships on **Steam** (Windows x64, Linux / Steam Deck, macOS optional). See **`Docs/STEAM_RELEASE.md`**
+(Turkish checklist: Steamworks setup, achievements, leaderboards, Steam Cloud, Steam Deck, Remote Play Together,
+store assets, upload). In short:
+- Front end: title (attract ride behind it) → **lobby: every gamepad presses (A) to join its own rider, Space joins
+  the keyboard (WASD), Enter a second keyboard rider (arrows)**, bots fill up to the crew size → 3-2-1-GO → run.
+  **Esc / Start** pauses (also on alt-tab, Steam overlay, or a controller disconnecting). Settings: display mode,
+  resolution, vsync, quality, reduce motion, language (English / Türkçe), volumes — saved to `settings.txt`.
+- Steam features in `Assets/Scripts/Steam` (achievements, stats, leaderboards, rich presence) compile only when the
+  Steamworks.NET package is installed; without it the game runs with `NullPlatform`. App ID: `SteamSettings.AppId`.
+- Builds: **Downhill → Build → Windows x64 (Steam release)** etc. (`BuildScript`), upload with `Tools/Steam/*.vdf`.
+- Font: bundled *Luckiest Guy* (Apache-2.0); notices in `Docs/THIRD_PARTY_NOTICES.md` (copied into builds).
+
 ## Controls (local testing)
+
+In the shipped game players join in the lobby (see above). The table below is the development setup
+(`GameManager → Use Frontend` off, or the editor / development builds, where the dev keys stay active).
 
 | Key | Action |
 |---|---|
@@ -43,7 +60,8 @@ when URP is active and fall back to `Standard` otherwise.
 | M | Switch between the endless road and the M1 test track |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |
-| F3 | Reduce motion: no camera shake, hit-stop / slow motion or speed lines (accessibility) |
+| F3 | Reduce motion: no camera shake, hit-stop / slow motion or speed lines (accessibility; also in Settings) |
+| Esc / gamepad Start | Pause menu (Resume, Restart, Settings, Main menu, Quit) |
 
 Crash → players are thrown off → the board respawns on the free line of the road ~2.5 s later (10 m back).
 The M1 test track (M key) is ~2.5 km: straight, left curve, straight, right curve, long straight with cones and a ramp.
@@ -168,6 +186,9 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
   allocation and step-time measurement
 - `ArtAcceptanceTests` — Milestone 4: riders distinct by construction and on the shared rig, every obstacle / pickup builds,
   chunk geometry deterministic, allocation-free and within a triangle budget, palette fits one texture, tuning pinned
+- `HudLayoutTests` / `FrontendTests` — HUD and menus inside the safe area on 7 screens incl. Steam Deck (text ≥ 9 px),
+  no per-frame allocation, settings file round trip, full Turkish coverage, console-style menu navigation, lobby joins,
+  achievements from a real run
 - `BoardPlayModeTests` — the same mechanics inside the engine (raycast ground on the test road, crash → respawn, ramp, player views vs deck);
   `M4_SixRiders_RenderStatsReport` logs frame time, batches, SetPass calls and triangles with six riders
 
@@ -214,7 +235,11 @@ Assets/Scripts/
     UI/HUDController.cs         draws the HUD commands with IMGUI (the preview draws the same commands on a canvas)
     CameraRig/                  CameraController (3/4 chase), GameFeel (hit-stop, crash slow-mo), SpeedLines, BackdropView
     CameraRig/CameraController.cs
-    Core/                       GameManager (bootstrap), RunManager, GameHotkeys, SceneAtmosphere (sun, sky, fog, post)
+    Core/                       GameManager (bootstrap), RunManager, GameHotkeys, SceneAtmosphere (sun, sky, fog, post),
+                                FrontendController (title / lobby / pause / settings, applies and saves settings)
+    Frontend/                   engine-free: FrontendModel + Lobby (menus, joins), GameSettings, Loc (EN / TR), achievements
+    Platform/                   IPlatformServices, NullPlatform, SteamSettings (App ID), AchievementReporter
+  Steam/                        Game.Steam.asmdef – SteamPlatform (Steamworks.NET; compiled only when the package exists)
     Util/                       ArtMeshes (palette texture + 3 shared materials), ArtBuilder (model → GameObjects), MaterialLibrary
     DebugTools/                 DebugOverlay (F1), TuningPanel (F2)
     Tuning/BoardTuning.cs       ScriptableObject wrapping BoardTuningData

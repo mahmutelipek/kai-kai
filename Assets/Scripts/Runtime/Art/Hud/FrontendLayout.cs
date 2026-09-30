@@ -1,0 +1,123 @@
+using System;
+using System.Collections.Generic;
+using Game.Frontend;
+using static Game.Hud.HudLayout;
+
+namespace Game.Hud
+{
+    /// <summary>
+    /// Title, lobby, pause and settings screens drawn with the HUD's style (torn brush panels, Luckiest Guy,
+    /// yellow focus). Same draw commands for Unity and the headless preview; anchored to the safe area.
+    /// </summary>
+    public static class FrontendLayout
+    {
+        static readonly string[] Tags = { "P1", "P2", "P3", "P4", "P5", "P6" };
+
+        public static void Build(FrontendModel m, float time, float screenW, float screenH, float safeX, float safeY, float safeW, float safeH, List<HudCmd> o)
+        {
+            o.Clear();
+            if (m.Screen == MenuScreen.None) return;
+            float k = ScaleFor(safeW, safeH);
+            float cx = safeX + safeW * 0.5f, top = safeY, bottom = safeY + safeH;
+            _hintWidth = Math.Min(1800f * k, safeW - 40f);
+
+            // dim the running game behind the menu
+            Img(o, HudTex.White, 0f, 0f, screenW, screenH, HudColor.Hex(0x05060C, m.Screen == MenuScreen.Pause ? 0.55f : 0.35f));
+            Img(o, HudTex.Vignette, 0f, 0f, screenW, screenH, HudColor.Hex(0x05060C, 0.8f));
+
+            switch (m.Screen)
+            {
+                case MenuScreen.Title:
+                    Logo(o, cx, top + safeH * 0.2f, k, time);
+                    List(m, o, cx, top + safeH * 0.5f, k, 420f);
+                    Hint(o, cx, bottom - 70f * k, k, Loc.T("MOVE: STICK / WASD   JUMP: (A) / SPACE   NITRO: (X) / E"));
+                    break;
+                case MenuScreen.Lobby:
+                    Title(o, Loc.T("WHO'S RIDING?"), cx, top + 50f * k, k);
+                    Slots(m, o, cx, top + 190f * k, k, time);
+                    List(m, o, cx, top + 470f * k, k, 820f, compact: true);
+                    Hint(o, cx, bottom - 110f * k, k, Loc.T("PRESS (A) / SPACE TO JOIN") + "   ·   " + Loc.T("ENTER: SECOND KEYBOARD RIDER (ARROWS)"));
+                    Hint(o, cx, bottom - 64f * k, k, Loc.T("(B) / ESC: LEAVE") + "   ·   " + Loc.T("STAND WHERE YOU WANT THE BOARD TO GO!"));
+                    break;
+                case MenuScreen.Pause:
+                    Title(o, Loc.T("PAUSED"), cx, top + safeH * 0.16f, k);
+                    List(m, o, cx, top + safeH * 0.34f, k, 420f);
+                    break;
+                case MenuScreen.Settings:
+                    Title(o, Loc.T("SETTINGS"), cx, top + 40f * k, k);
+                    List(m, o, cx, top + 170f * k, k, 760f, compact: true);
+                    break;
+            }
+        }
+
+        static void Logo(List<HudCmd> o, float cx, float y, float k, float time)
+        {
+            float bob = (float)Math.Sin(time * 2f) * 4f * k;
+            Img(o, HudTex.Panel, cx - 520f * k, y - 90f * k + bob, 1040f * k, 190f * k, HudColor.Hex(0x0B0C12, 0.92f), rot: -4f);
+            Txt(o, "DOWNHILL", cx - 500f * k, y - 92f * k + bob, 1000f * k, 110f * k, 104f * k, Yellow, HudAlign.Center, 6f * k);
+            Txt(o, "PARTY BOARD", cx - 500f * k, y + 6f * k + bob, 1000f * k, 90f * k, 78f * k, Cyan, HudAlign.Center, 5f * k);
+        }
+
+        static void Title(List<HudCmd> o, string text, float cx, float y, float k)
+        {
+            Img(o, HudTex.Panel, cx - 360f * k, y, 720f * k, 110f * k, HudColor.Hex(0x0B0C12, 0.92f), rot: -3f);
+            Txt(o, text, cx - 340f * k, y + 6f * k, 680f * k, 96f * k, 70f * k, Yellow, HudAlign.Center, 4f * k);
+        }
+
+        static float _hintWidth;
+
+        static void Hint(List<HudCmd> o, float cx, float y, float k, string text) =>
+            Txt(o, text, cx - _hintWidth * 0.5f, y, _hintWidth, 44f * k, 28f * k, HudColor.Hex(0xE8ECF5), HudAlign.Center, 3f * k);
+
+        /// <summary>Vertical list; the focused item is a yellow panel with navy text, slightly bigger.</summary>
+        static void List(FrontendModel m, List<HudCmd> o, float cx, float y, float k, float width, bool compact = false)
+        {
+            MenuItem[] items = m.Items;
+            float h = (compact ? 66f : 84f) * k, gap = (compact ? 10f : 16f) * k, w = width * k;
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i] == MenuItem.Quit && !m.AllowQuit) continue;
+                bool focus = i == m.Focus;
+                (string label, string value) = m.Describe(items[i]);
+                float iy = y + i * (h + gap);
+                float scale = focus ? 1.06f : 1f;
+                Img(o, HudTex.Panel, cx - w * 0.5f, iy, w, h, focus ? Yellow : HudColor.Hex(0x14161E, 0.88f), skew: -0.12f, scale: scale);
+                HudColor text = focus ? Navy : HudColor.White;
+                float size = (compact ? 38f : 50f) * k;
+                if (value == null)
+                    Txt(o, label, cx - w * 0.5f, iy + 4f * k, w, h - 8f * k, size, text, HudAlign.Center, focus ? 0f : 3f * k, scale);
+                else
+                {
+                    Txt(o, label, cx - w * 0.5f + 36f * k, iy + 4f * k, w * 0.55f, h - 8f * k, size, text, HudAlign.Left, focus ? 0f : 3f * k, scale);
+                    Txt(o, "<  " + value + "  >", cx, iy + 4f * k, w * 0.5f - 36f * k, h - 8f * k, size, focus ? Navy : Cyan, HudAlign.Right, focus ? 0f : 3f * k, scale);
+                }
+            }
+        }
+
+        /// <summary>Six rider cards: avatar, tag, and who drives it (device, bot, or "join").</summary>
+        static void Slots(FrontendModel m, List<HudCmd> o, float cx, float y, float k, float time)
+        {
+            Lobby lobby = m.Lobby;
+            float cw = 190f * k, ch = 250f * k, gap = 22f * k, x0 = cx - (6 * cw + 5 * gap) * 0.5f;
+            int riders = lobby.RiderCount;
+            for (int i = 0; i < 6; i++)
+            {
+                float x = x0 + i * (cw + gap);
+                bool human = i < lobby.Joined.Count;
+                bool bot = !human && i < riders;
+                HudColor pc = PlayerColors[i];
+                Img(o, HudTex.Pill, x, y, cw, ch, human ? HudColor.Hex(0x1C2030, 0.95f) : HudColor.Hex(0x14161E, 0.7f));
+                if (human) Img(o, HudTex.White, x + 14f * k, y + ch - 12f * k, cw - 28f * k, 6f * k, pc);
+                float pulse = human ? 1f : 0.92f + 0.05f * (float)Math.Sin(time * 4f + i);
+                Img(o, (HudTex)((int)HudTex.Avatar0 + i), x + cw * 0.5f - 60f * k, y + 16f * k, 120f * k, 120f * k,
+                    human || bot ? HudColor.White : new HudColor(0.35f, 0.35f, 0.4f, 0.8f), scale: human ? 1f : pulse);
+                Txt(o, Tags[i], x, y + 138f * k, cw, 48f * k, 40f * k, human || bot ? pc : pc.WithAlpha(0.5f), HudAlign.Center, 3f * k);
+                string who = human ? DeviceName(lobby.Joined[i]) : bot ? Loc.T("BOT") : Loc.T("JOIN");
+                Txt(o, who, x, y + 186f * k, cw, 40f * k, 26f * k, human ? HudColor.White : HudColor.Hex(0x9AA0B4), HudAlign.Center, 2f * k);
+            }
+        }
+
+        static string DeviceName(JoinedDevice d) =>
+            d.Kind == DeviceKind.KeyboardLeft ? Loc.T("KEYBOARD") : d.Kind == DeviceKind.KeyboardRight ? Loc.T("KEYBOARD (ARROWS)") : Loc.T("GAMEPAD");
+    }
+}

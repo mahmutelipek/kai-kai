@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.Frontend;
 using Game.Simulation;
 using UnityEngine;
 
@@ -28,6 +30,9 @@ namespace Game
         readonly BotBrain[] _bots = new BotBrain[BoardSimulation.MaxPlayers];
         readonly InputSourceKind[] _sources = new InputSourceKind[BoardSimulation.MaxPlayers];
         readonly int[] _gamepadForSlot = new int[BoardSimulation.MaxPlayers];
+        readonly LocalDeviceInput.KeyboardScheme[] _schemeForSlot = new LocalDeviceInput.KeyboardScheme[BoardSimulation.MaxPlayers];
+        readonly List<JoinedDevice> _joined = new List<JoinedDevice>(BoardSimulation.MaxPlayers);
+        bool _useJoined;
         RunSimulation _run;
         int _roadHint;
 
@@ -43,6 +48,24 @@ namespace Game
             _run = run;
             BotsEnabled = botsEnabled;
             ApplyPreset(BotPreset.Mixed);
+        }
+
+        /// <summary>
+        /// Lobby mode: slot i is driven by joined device i (keyboard halves or a gamepad by device id); bots fill
+        /// the remaining slots when enabled. Pass null to go back to automatic assignment (dev / tests).
+        /// </summary>
+        public void SetJoinedDevices(IReadOnlyList<JoinedDevice> joined)
+        {
+            _joined.Clear();
+            _useJoined = joined != null;
+            if (joined != null) for (int i = 0; i < joined.Count; i++) _joined.Add(joined[i]);
+        }
+
+        /// <summary>Attract mode behind the title screen: every slot is a cooperative bot.</summary>
+        public void SetAttract(bool on)
+        {
+            if (on) { SetJoinedDevices(new List<JoinedDevice>()); BotsEnabled = true; ApplyPreset(BotPreset.AllCooperative); }
+            else ApplyPreset(BotPreset.Mixed);
         }
 
         public void CyclePreset() => ApplyPreset(Preset == BotPreset.Mixed ? BotPreset.AllCooperative : BotPreset.Mixed);
@@ -94,10 +117,10 @@ namespace Game
                 switch (_sources[i])
                 {
                     case InputSourceKind.Keyboard:
-                        into[i] = LocalDeviceInput.ReadKeyboard();
+                        into[i] = LocalDeviceInput.ReadKeyboard(_useJoined ? _schemeForSlot[i] : LocalDeviceInput.KeyboardScheme.Full);
                         break;
                     case InputSourceKind.Gamepad:
-                        into[i] = LocalDeviceInput.ReadGamepad(LocalDeviceInput.GetGamepad(_gamepadForSlot[i]));
+                        into[i] = LocalDeviceInput.ReadGamepad(_useJoined ? LocalDeviceInput.GamepadById(_gamepadForSlot[i]) : LocalDeviceInput.GetGamepad(_gamepadForSlot[i]));
                         break;
                     case InputSourceKind.Bot:
                         ctx.Self = i;
@@ -113,6 +136,27 @@ namespace Game
         void AssignSources(int active)
         {
             for (int i = 0; i < _sources.Length; i++) _sources[i] = InputSourceKind.None;
+            if (_useJoined)
+            {
+                bool twoKeyboards = false;
+                int kbCount = 0;
+                foreach (JoinedDevice d in _joined) if (d.Kind != DeviceKind.Gamepad) kbCount++;
+                twoKeyboards = kbCount > 1;
+                for (int i = 0; i < active && i < _joined.Count; i++)
+                {
+                    JoinedDevice d = _joined[i];
+                    if (d.Kind == DeviceKind.Gamepad) { _sources[i] = InputSourceKind.Gamepad; _gamepadForSlot[i] = d.GamepadId; }
+                    else
+                    {
+                        _sources[i] = InputSourceKind.Keyboard;
+                        _schemeForSlot[i] = !twoKeyboards ? LocalDeviceInput.KeyboardScheme.Full
+                            : d.Kind == DeviceKind.KeyboardRight ? LocalDeviceInput.KeyboardScheme.Right : LocalDeviceInput.KeyboardScheme.Left;
+                    }
+                }
+                for (int i = 0; i < active; i++)
+                    if (_sources[i] == InputSourceKind.None && BotsEnabled) _sources[i] = InputSourceKind.Bot;
+                return;
+            }
             if (KeyboardEnabled) _sources[KeyboardSlot] = InputSourceKind.Keyboard;
 
             int pads = LocalDeviceInput.GamepadCount;

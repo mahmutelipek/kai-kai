@@ -1,0 +1,15 @@
+"DepotBuild"
+{
+	"DepotID" "YOUR_WINDOWS_DEPOT_ID"
+	"FileMapping"
+	{
+		"LocalPath" "Windows/*"
+		"DepotPath" "."
+		"Recursive" "1"
+	}
+	// never ship the dev app id file or debug symbols
+	"FileExclusion" "steam_appid.txt"
+	"FileExclusion" "*.pdb"
+	"FileExclusion" "*_BurstDebugInformation_DoNotShip"
+	"FileExclusion" "*_BackUpThisFolder_ButDontShipItWithYourGame"
+}

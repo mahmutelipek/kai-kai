@@ -54,11 +54,11 @@ namespace Game
         public static int NewSeed(int fixedSeed) => fixedSeed != 0 ? fixedSeed : Random.Range(1, int.MaxValue);
 
         /// <summary>Enables the 3-2-1-GO start (scene play); PlayMode tests leave it off.</summary>
-        public void EnableCountdown(HUDController hud)
+        public void EnableCountdown(HUDController hud, bool startNow = true)
         {
             _hud = hud;
             _countdownEnabled = true;
-            StartCountdown();
+            if (startNow) StartCountdown();
         }
 
         void StartCountdown()
@@ -73,9 +73,9 @@ namespace Game
             if (_board == null || _board.Run == null) return;
             if (_countdownEnabled && _countdown > -1f)
             {
-                _countdown -= Time.unscaledDeltaTime;
+                _countdown -= Time.deltaTime; // scaled: the countdown waits while the game is paused
                 if (_countdown <= 0f && _board.Frozen) _board.Frozen = false;
-                string text = _countdown > 0f ? CountdownTexts[Mathf.Clamp(Mathf.CeilToInt(_countdown), 1, 3)] : _countdown > -0.8f ? CountdownTexts[0] : null;
+                string text = _countdown > 0f ? CountdownTexts[Mathf.Clamp(Mathf.CeilToInt(_countdown), 1, 3)] : _countdown > -0.8f ? Game.Frontend.Loc.T(CountdownTexts[0]) : null;
                 _hud?.SetCountdown(text);
             }
             BestDistance = Mathf.Max(BestDistance, _board.Run.MaxDistance);
@@ -90,10 +90,19 @@ namespace Game
             RestartRun();
         }
 
-        public void RestartRun()
+        public void RestartRun() => RestartRun(countdown: true);
+
+        /// <summary>New run; <paramref name="countdown"/> false for the attract-mode ride behind the title.</summary>
+        public void RestartRun(bool countdown)
         {
             _board.RestartRun(NewSeed(_fixedSeed), TrackFor(_mode));
-            StartCountdown();
+            if (countdown) StartCountdown();
+            else
+            {
+                _countdown = -1f;
+                _board.Frozen = false;
+                _hud?.SetCountdown(null);
+            }
         }
     }
 }

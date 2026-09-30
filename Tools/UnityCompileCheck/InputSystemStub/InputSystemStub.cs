@@ -32,8 +32,8 @@ namespace UnityEngine.InputSystem
     public enum Key { None, Space, Enter, Tab, A = 15, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
         Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0,
         Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9,
-        LeftArrow = 63, RightArrow, UpArrow, DownArrow, F1 = 94, F2, F3, F4 }
-    public class InputDevice { }
+        LeftArrow = 63, RightArrow, UpArrow, DownArrow, Escape = 60, Backspace = 61, NumpadEnter = 77, LeftShift = 51, RightShift = 52, LeftCtrl = 55, RightCtrl = 56, F1 = 94, F2, F3, F4 }
+    public class InputDevice { public int deviceId => 0; }
     public class Keyboard : InputDevice
     {
         public static Keyboard current => null;
@@ -50,5 +50,9 @@ namespace UnityEngine.InputSystem
         public ButtonControl buttonWest => null;
         public ButtonControl buttonNorth => null;
         public ButtonControl buttonEast => null;
+        public ButtonControl startButton => null;
+        public ButtonControl selectButton => null;
+        public ButtonControl leftShoulder => null;
+        public ButtonControl rightShoulder => null;
     }
 }

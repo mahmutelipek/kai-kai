@@ -27,6 +27,13 @@ namespace Game.EditorTools
             };
         }
 
+        /// <summary>Everything a build needs: URP active (with post-processing data) and the game scene.</summary>
+        public static void EnsureAll()
+        {
+            UrpSetup.EnsureUrpActive();
+            if (!File.Exists(ScenePath)) CreateTestScene(openAfterwards: false);
+        }
+
         [MenuItem("Downhill/Rebuild M1 Test Scene")]
         public static void RebuildTestScene() => CreateTestScene(openAfterwards: true);
 

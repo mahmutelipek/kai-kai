@@ -20,6 +20,7 @@ namespace Game.Tests
             ("21:9", 2560, 1080, 0, 0, 2560, 1080),
             ("phone landscape with notch", 2436, 1125, 132, 0, 2172, 1062),
             ("4K", 3840, 2160, 0, 0, 3840, 2160),
+            ("Steam Deck 1280x800", 1280, 800, 0, 0, 1280, 800),
         };
 
         static HudState FullState()

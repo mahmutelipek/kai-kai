@@ -11,5 +11,6 @@
   <ItemGroup>
     <Compile Include="../../../Assets/Scripts/Runtime/Simulation/**/*.cs" />
     <Compile Include="../../../Assets/Scripts/Runtime/Art/**/*.cs" />
+    <Compile Include="../../../Assets/Scripts/Runtime/Frontend/**/*.cs" />
   </ItemGroup>
 </Project>

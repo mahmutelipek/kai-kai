@@ -1,0 +1,13 @@
+"DepotBuild"
+{
+	"DepotID" "YOUR_LINUX_DEPOT_ID"
+	"FileMapping"
+	{
+		"LocalPath" "Linux/*"
+		"DepotPath" "."
+		"Recursive" "1"
+	}
+	"FileExclusion" "steam_appid.txt"
+	"FileExclusion" "*_BurstDebugInformation_DoNotShip"
+	"FileExclusion" "*_BackUpThisFolder_ButDontShipItWithYourGame"
+}
