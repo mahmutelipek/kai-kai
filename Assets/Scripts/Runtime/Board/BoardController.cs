@@ -12,6 +12,9 @@ namespace Game
     [RequireComponent(typeof(Rigidbody))]
     public sealed class BoardController : MonoBehaviour
     {
+        /// <summary>Profiler marker around the simulation step (skill: tools-unity-profiling).</summary>
+        static readonly Unity.Profiling.ProfilerMarker StepMarker = new Unity.Profiling.ProfilerMarker("Downhill.RunSimulation.Step");
+
         public const float SimulationRate = 60f;
 
         BoardTuning _tuning;
@@ -58,7 +61,8 @@ namespace Game
             for (int i = 0; i < _inputs.Length; i++) _inputs[i] = PlayerInputState.None;
             _inputProvider?.CollectInputs(Run.Board, _inputs, Time.fixedDeltaTime);
 
-            RunStepEvents ev = Run.Step(Time.fixedDeltaTime, _inputs);
+            RunStepEvents ev;
+            using (StepMarker.Auto()) ev = Run.Step(Time.fixedDeltaTime, _inputs);
             LastEvents = ev;
 
             if (ev.Respawned)

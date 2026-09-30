@@ -35,6 +35,9 @@ namespace Game.Art
 
         public ArtColor Shade(float f) => new ArtColor(Math.Min(1f, R * f), Math.Min(1f, G * f), Math.Min(1f, B * f), Smoothness);
         public ArtColor Glossy(float smoothness) => new ArtColor(R, G, B, smoothness);
+        /// <summary>Self-lit colour (lamps, nitro, gems): rendered with the emissive material so bloom picks it up.</summary>
+        public ArtColor Glowing() => new ArtColor(R, G, B, 1f);
+        public bool Emissive => Smoothness >= 0.999f;
 
         public bool Equals(ArtColor o) => R == o.R && G == o.G && B == o.B && Smoothness == o.Smoothness;
         public override bool Equals(object obj) => obj is ArtColor o && Equals(o);

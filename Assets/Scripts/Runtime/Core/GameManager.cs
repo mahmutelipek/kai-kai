@@ -27,6 +27,7 @@ namespace Game
         public DebugOverlay Overlay { get; private set; }
         public GameFeel Feel { get; private set; }
         public HUDController Hud { get; private set; }
+        public BackdropView Backdrop { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
         public static GameManager Create(BoardTuning tuning = null, int players = 1, bool bots = true, bool keyboard = true,
@@ -52,10 +53,12 @@ namespace Game
             if (tuning == null) tuning = BoardTuning.CreateDefault();
             if (!tuning.data.Validate(out string error)) Debug.LogError("BoardTuning invalid: " + error);
 
-            EnsureLight();
+            Light sun = SceneAtmosphere.Apply();
             Board = BoardController.Create(tuning, RunManager.NewSeed(seed), startPlayerCount, RunManager.TrackFor(roadMode));
             Board.transform.SetParent(transform, true);
             BoardView = BoardView.Create(Board);
+            BoardFx.Create(Board, BoardView);
+            Backdrop = BackdropView.Create(transform, Board, sun);
             RoadView = RoadView.Create(transform, Board.Run.Road);
             ObstacleViews.Create(transform, Board.Run.Obstacles);
             PickupViews.Create(transform, Board.Run.Pickups);
@@ -80,24 +83,9 @@ namespace Game
             Overlay.Initialize(Board, BoardView, InputRouter, Run);
             var tuningPanel = gameObject.AddComponent<TuningPanel>();
             tuningPanel.Initialize(tuning);
-            gameObject.AddComponent<GameHotkeys>().Initialize(Board, InputRouter, Run, Overlay, tuningPanel);
             Hud = gameObject.AddComponent<HUDController>();
             Hud.Initialize(Board, Run, InputRouter, Overlay);
-        }
-
-        static void EnsureLight()
-        {
-            if (FindFirstObjectByType<Light>() != null) return;
-            var sun = new GameObject("Sun").AddComponent<Light>();
-            sun.type = LightType.Directional;
-            sun.color = new Color(1f, 0.95f, 0.85f);
-            sun.intensity = 1.2f;
-            sun.shadows = LightShadows.Soft;
-            sun.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.62f, 0.75f, 0.95f);
-            RenderSettings.ambientEquatorColor = new Color(0.75f, 0.78f, 0.8f);
-            RenderSettings.ambientGroundColor = new Color(0.4f, 0.42f, 0.38f);
+            gameObject.AddComponent<GameHotkeys>().Initialize(Board, InputRouter, Run, Overlay, tuningPanel, Hud);
         }
     }
 }

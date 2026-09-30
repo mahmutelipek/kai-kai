@@ -195,6 +195,13 @@ namespace Game.Art
             }
         }
 
+        /// <summary>Bakes only the parts of one group, in that group's own local space (pivot at the origin).</summary>
+        public void AddGroupLocal(ArtModel model, string group)
+        {
+            foreach (ArtPart p in model.Parts)
+                if (p.Group == group) AddShape(this[p.Color], p.Shape, p.Position, p.Rotation, p.Size);
+        }
+
         /// <summary>Adds one primitive (centre, rotation, full size) to a mesh.</summary>
         public static void AddShape(MeshData m, ArtShape shape, Vector3 c, Quaternion r, Vector3 s)
         {

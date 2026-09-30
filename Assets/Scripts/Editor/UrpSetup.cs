@@ -28,7 +28,11 @@ namespace Game.EditorTools
         /// <summary>Returns true if a render pipeline is active afterwards.</summary>
         public static bool EnsureUrpActive(bool force = false)
         {
-            if (!force && GraphicsSettings.defaultRenderPipeline != null) return true;
+            if (!force && GraphicsSettings.defaultRenderPipeline != null)
+            {
+                EnsurePostProcessData();
+                return true;
+            }
 
             var pipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(PipelinePath);
             if (pipeline == null) pipeline = CreatePipelineAsset();
@@ -43,8 +47,38 @@ namespace Game.EditorTools
             }
             QualitySettings.SetQualityLevel(current, false);
             AssetDatabase.SaveAssets();
+            EnsurePostProcessData();
             Debug.Log("Downhill: URP is now the active render pipeline (" + PipelinePath + ").");
             return true;
+        }
+
+        /// <summary>
+        /// M4 post-processing (tone mapping, bloom) needs the renderer's PostProcessData; a renderer created from
+        /// code may have none, so assign URP's default one.
+        /// </summary>
+        public static void EnsurePostProcessData()
+        {
+            try
+            {
+                Type rendererType = Type.GetType("UnityEngine.Rendering.Universal.UniversalRendererData, " + UrpAssembly);
+                if (rendererType == null) return;
+                FieldInfo field = rendererType.GetField("postProcessData", BindingFlags.Public | BindingFlags.Instance);
+                if (field == null) return;
+                foreach (string guid in AssetDatabase.FindAssets("t:" + rendererType.Name))
+                {
+                    var data = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (data == null || !rendererType.IsInstanceOfType(data) || field.GetValue(data) != null) continue;
+                    var ppd = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset");
+                    if (ppd == null) { Debug.LogWarning("Downhill: URP PostProcessData.asset not found; post-processing stays off."); return; }
+                    field.SetValue(data, ppd);
+                    EditorUtility.SetDirty(data);
+                }
+                AssetDatabase.SaveAssets();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("Downhill: could not assign URP PostProcessData (" + e.Message + ").");
+            }
         }
 
         static RenderPipelineAsset CreatePipelineAsset()

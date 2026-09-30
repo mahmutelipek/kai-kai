@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><AssemblyName>Game.Tests</AssemblyName><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup>
+  <PropertyGroup><AssemblyName>Game.Tests</AssemblyName><TreatWarningsAsErrors>true</TreatWarningsAsErrors><DefineConstants>$(DefineConstants);UNITY_EDITOR</DefineConstants></PropertyGroup>
   <ItemGroup><Compile Include="$(Repo)Assets/Scripts/Tests/**/*.cs" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Runtime/Game.Runtime.csproj" />
+    <Reference Include="$(UnityRefs)UnityEditor.dll" Private="false" />
     <ProjectReference Include="../TestRunnerStub/UnityEngine.TestRunner.csproj" />
     <PackageReference Include="NUnit" Version="3.14.0" />
   </ItemGroup>

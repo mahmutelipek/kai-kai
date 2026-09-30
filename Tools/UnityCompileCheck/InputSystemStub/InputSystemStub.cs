@@ -31,6 +31,7 @@ namespace UnityEngine.InputSystem
     using UnityEngine.InputSystem.Utilities;
     public enum Key { None, Space, Enter, Tab, A = 15, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
         Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9, Digit0,
+        Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9,
         LeftArrow = 63, RightArrow, UpArrow, DownArrow, F1 = 94, F2, F3, F4 }
     public class InputDevice { }
     public class Keyboard : InputDevice

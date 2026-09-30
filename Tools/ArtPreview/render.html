@@ -66,7 +66,10 @@ function buildScene(data, W, H) {
       g.setAttribute('position', new THREE.Float32BufferAttribute(part.v, 3));
       g.setIndex(part.i);
       g.computeVertexNormals();
-      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(part.c), roughness: 1 - part.s * 0.75, metalness: 0 });
+      // s == 1 marks self-lit colours (Unity: the emissive palette material)
+      const glow = part.s >= 0.999;
+      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(part.c), roughness: glow ? 0.5 : 1 - part.s * 0.75, metalness: 0,
+                                                   emissive: glow ? new THREE.Color(part.c) : new THREE.Color(0, 0, 0), emissiveIntensity: glow ? 0.9 : 0 });
       const mesh = new THREE.Mesh(g, mat);
       mesh.castShadow = obj.shadows !== false;
       mesh.receiveShadow = true;

@@ -48,7 +48,7 @@ namespace Game
             if (_board == null || _board.Simulation == null) return;
             float cap = Mathf.Max(_board.Tuning.data.softCapSpeed, 1f);
             float intensity = Mathf.InverseLerp(startAtSpeedFraction, 1.1f, _board.State.Speed / cap);
-            bool visible = intensity > 0.01f && !_board.State.Crashed;
+            bool visible = intensity > 0.01f && !_board.State.Crashed && !CameraController.ReduceMotion;
             float move = _board.State.Speed * 1.5f * Time.deltaTime;
             for (int i = 0; i < Count; i++)
             {

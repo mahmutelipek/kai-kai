@@ -40,18 +40,18 @@ namespace Game.Art
         public static readonly ArtColor Wood = H(0xC8904F);
         public static readonly ArtColor WoodDark = H(0x8A5A2B);
         public static readonly ArtColor Glass = H(0x2E4A66, 0.85f);
-        public static readonly ArtColor Headlight = H(0xFFF3B0, 0.8f);
-        public static readonly ArtColor Taillight = H(0xE02020, 0.6f);
+        public static readonly ArtColor Headlight = H(0xFFF3B0).Glowing();
+        public static readonly ArtColor Taillight = H(0xE02020).Glowing();
         public static readonly ArtColor Tire = H(0x202125);
-        public static readonly ArtColor Lamp = H(0xFFF1B8, 0.6f);
+        public static readonly ArtColor Lamp = H(0xFFF1B8).Glowing();
         public static readonly ArtColor Yellow = H(0xFFD21F);
 
         // pickups
         public static readonly ArtColor Gold = H(0xFFC21A, 0.85f);
         public static readonly ArtColor GoldLight = H(0xFFE27A, 0.85f);
         public static readonly ArtColor Diamond = H(0xB44CFF, 0.9f);
-        public static readonly ArtColor DiamondLight = H(0xE3B2FF, 0.9f);
-        public static readonly ArtColor Nitro = H(0x18C8FF, 0.85f);
+        public static readonly ArtColor DiamondLight = H(0xE3B2FF).Glowing();
+        public static readonly ArtColor Nitro = H(0x18C8FF).Glowing();
         public static readonly ArtColor NitroLight = H(0x9FD4FF, 0.85f);
 
         // nature and buildings
@@ -91,6 +91,18 @@ namespace Game.Art
     public static class ArtLibrary
     {
         static readonly Dictionary<string, ArtModel> Cache = new Dictionary<string, ArtModel>();
+
+        // prop caches indexed by variant: looking a prop up allocates nothing (chunks rebuild while riding)
+        static readonly ArtModel[] PalmCache = new ArtModel[16];
+        static readonly ArtModel[] TreeCache = new ArtModel[8];
+        static readonly ArtModel[] BushCache = new ArtModel[8];
+        static readonly ArtModel[] HouseCache = new ArtModel[32];
+        static readonly ArtModel[] ApartmentCache = new ArtModel[16];
+        static readonly ArtModel[] RoadSignCache = new ArtModel[4];
+        static readonly ArtModel[] ParkedCarPropCache = new ArtModel[8];
+        static readonly ArtModel[] ChevronCache = new ArtModel[2];
+
+        static int Slot(int variant, int count) => ((variant % count) + count) % count;
 
         static ArtModel Cached(string key, Func<ArtModel> build)
         {
@@ -591,7 +603,13 @@ namespace Game.Art
 
         // ------------------------------------------------------------------ props (baked into chunk meshes)
 
-        public static ArtModel Palm(int variant) => Cached("Palm" + variant, () =>
+        public static ArtModel Palm(int variant)
+        {
+            int i = Slot(variant, PalmCache.Length);
+            return PalmCache[i] ?? (PalmCache[i] = BuildPalm(i));
+        }
+
+        static ArtModel BuildPalm(int variant)
         {
             var m = new ArtModel("Palm");
             var rng = new ArtRandom(variant * 7919 + 13);
@@ -620,7 +638,7 @@ namespace Game.Art
                 AddLeaf(m, mid, tip, i % 2 == 0 ? Pal.PalmLeaf : Pal.PalmLeafDark);
             }
             return m;
-        });
+        }
 
         static void AddLeaf(ArtModel m, Vector3 a, Vector3 b, ArtColor color)
         {
@@ -630,7 +648,13 @@ namespace Game.Art
             m.Add(ArtShape.Box, (a + b) * 0.5f, V(0.75f, 0.06f, len + 0.1f), color, "Leaf", "", r);
         }
 
-        public static ArtModel Tree(int variant) => Cached("Tree" + variant, () =>
+        public static ArtModel Tree(int variant)
+        {
+            int i = Slot(variant, TreeCache.Length);
+            return TreeCache[i] ?? (TreeCache[i] = BuildTree(i));
+        }
+
+        static ArtModel BuildTree(int variant)
         {
             var m = new ArtModel("Tree");
             var rng = new ArtRandom(variant * 104729 + 7);
@@ -640,9 +664,15 @@ namespace Game.Art
             m.Add(ArtShape.Sphere, V(0f, h + s * 0.35f, 0f), V(s, s * 0.85f, s), Pal.TreeLeaf, "Crown");
             m.Add(ArtShape.Sphere, V(s * 0.3f, h + s * 0.15f, s * 0.15f), V(s * 0.6f, s * 0.5f, s * 0.6f), Pal.GrassDark, "Crown");
             return m;
-        });
+        }
 
-        public static ArtModel Bush(int variant) => Cached("Bush" + variant, () =>
+        public static ArtModel Bush(int variant)
+        {
+            int i = Slot(variant, BushCache.Length);
+            return BushCache[i] ?? (BushCache[i] = BuildBush(i));
+        }
+
+        static ArtModel BuildBush(int variant)
         {
             var m = new ArtModel("Bush");
             var rng = new ArtRandom(variant * 31 + 3);
@@ -652,10 +682,16 @@ namespace Game.Art
                 m.Add(ArtShape.Sphere, V(rng.Range(-0.6f, 0.6f), s * 0.35f, rng.Range(-0.4f, 0.4f)), V(s, s * 0.75f, s), i == 1 ? Pal.GrassDark : Pal.TreeLeaf, "Bush");
             }
             return m;
-        });
+        }
 
         /// <summary>Pastel house with a terracotta roof, facing +Z (the road). Footprint about 8 x 7 m.</summary>
-        public static ArtModel House(int variant) => Cached("House" + variant, () =>
+        public static ArtModel House(int variant)
+        {
+            int i = Slot(variant, HouseCache.Length);
+            return HouseCache[i] ?? (HouseCache[i] = BuildHouse(i));
+        }
+
+        static ArtModel BuildHouse(int variant)
         {
             var m = new ArtModel("House");
             var rng = new ArtRandom(variant * 6151 + 1);
@@ -692,10 +728,16 @@ namespace Game.Art
             m.Add(ArtShape.Box, V(doorX, 1.05f, d * 0.5f + 0.06f), V(0.95f, 2.05f, 0.06f), Pal.Door, "Door");
             m.Add(ArtShape.Box, V(-w * 0.25f, h + rise * 0.6f, -d * 0.2f), V(0.7f, 1.6f, 0.7f), Pal.Concrete, "Chimney");
             return m;
-        });
+        }
 
         /// <summary>Flat-roofed apartment block, 3-5 floors, facing +Z.</summary>
-        public static ArtModel Apartment(int variant) => Cached("Apartment" + variant, () =>
+        public static ArtModel Apartment(int variant)
+        {
+            int i = Slot(variant, ApartmentCache.Length);
+            return ApartmentCache[i] ?? (ApartmentCache[i] = BuildApartment(i));
+        }
+
+        static ArtModel BuildApartment(int variant)
         {
             var m = new ArtModel("Apartment");
             var rng = new ArtRandom(variant * 977 + 5);
@@ -719,7 +761,7 @@ namespace Game.Art
             }
             m.Add(ArtShape.Box, V(0f, h * 0.5f, d * 0.5f + 0.02f), V(0.3f, h, 0.06f), Pal.Trim, "Pilaster");
             return m;
-        });
+        }
 
         /// <summary>Street light: pole with an arm reaching toward +X (the road) and a lamp.</summary>
         public static ArtModel StreetLight() => Cached("StreetLight", () =>
@@ -734,7 +776,13 @@ namespace Game.Art
         });
 
         /// <summary>Yellow chevron curve sign on a post; arrows point toward +X when <paramref name="right"/>.</summary>
-        public static ArtModel ChevronSign(bool right) => Cached("Chevron" + right, () =>
+        public static ArtModel ChevronSign(bool right)
+        {
+            int i = right ? 1 : 0;
+            return ChevronCache[i] ?? (ChevronCache[i] = BuildChevronSign(right));
+        }
+
+        static ArtModel BuildChevronSign(bool right)
         {
             var m = new ArtModel("ChevronSign");
             m.Add(ArtShape.Box, V(0f, 0.8f, 0f), V(0.1f, 1.6f, 0.1f), Pal.Metal, "Post");
@@ -747,10 +795,16 @@ namespace Game.Art
                 m.Add(ArtShape.Box, V(x, 1.78f, 0.04f), V(0.1f, 0.4f, 0.02f), Pal.Black, "Chevron", "", Euler(0f, 0f, dir * 40f));
             }
             return m;
-        });
+        }
 
         /// <summary>Round road sign (speed / warning) on a post, facing +Z.</summary>
-        public static ArtModel RoadSign(int variant) => Cached("RoadSign" + variant, () =>
+        public static ArtModel RoadSign(int variant)
+        {
+            int i = Slot(variant, RoadSignCache.Length);
+            return RoadSignCache[i] ?? (RoadSignCache[i] = BuildRoadSign(i));
+        }
+
+        static ArtModel BuildRoadSign(int variant)
         {
             var m = new ArtModel("RoadSign");
             m.Add(ArtShape.Cylinder, V(0f, 1.1f, 0f), V(0.09f, 2.2f, 0.09f), Pal.Metal, "Post");
@@ -769,7 +823,7 @@ namespace Game.Art
                 m.Add(ArtShape.Box, V(0f, 2.22f, 0.08f), V(0.08f, 0.08f, 0.02f), Pal.Black, "Dot");
             }
             return m;
-        });
+        }
 
         public static ArtModel Barrel() => Cached("Barrel", () =>
         {
@@ -789,12 +843,18 @@ namespace Game.Art
             return m;
         });
 
-        public static ArtModel ParkedCarProp(int variant) => Cached("CarProp" + variant, () =>
+        public static ArtModel ParkedCarProp(int variant)
+        {
+            int i = Slot(variant, ParkedCarPropCache.Length);
+            return ParkedCarPropCache[i] ?? (ParkedCarPropCache[i] = BuildParkedCarProp(i));
+        }
+
+        static ArtModel BuildParkedCarProp(int variant)
         {
             var m = new ArtModel("CarProp");
             Car(m, Pal.CarPaint[variant % Pal.CarPaint.Length], false);
             return m;
-        });
+        }
 
         public static ArtModel Fence(float length) => Cached($"Fence{length:F1}", () =>
         {

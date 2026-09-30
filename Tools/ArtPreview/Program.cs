@@ -86,6 +86,11 @@ namespace ArtPreview
 
         static int Main(string[] args)
         {
+            if (args.Length > 0 && args[0] == "drawcalls")
+            {
+                DrawCalls.Report(7, new[] { 300f, 1500f, 3000f, 6000f });
+                return 0;
+            }
             string outDir = args.Length > 0 ? args[0] : "out";
             Directory.CreateDirectory(outDir);
             var scenes = new Dictionary<string, Func<PreviewScene>>
@@ -137,9 +142,9 @@ namespace ArtPreview
         /// <summary>Chase camera exactly as CameraController frames it (board at origin, yaw 0, cruise speed).</summary>
         static void ChaseCamera(PreviewScene s, Vector3 board, float speedNorm = 0.5f)
         {
-            s.CameraPos = board + V(0f, 3.5f, -(7f + 1.3f * speedNorm));
-            s.CameraTarget = board + V(0f, 0f, 6f);
-            s.Fov = 65f + (80f - 65f) * speedNorm;
+            s.CameraPos = board + V(CameraRigDefaults.LateralOffset, CameraRigDefaults.Height, -(CameraRigDefaults.Distance + CameraRigDefaults.ExtraDistanceAtSpeed * speedNorm));
+            s.CameraTarget = board + V(0f, CameraRigDefaults.LookHeight, CameraRigDefaults.LookAhead);
+            s.Fov = CameraRigDefaults.FovMin + (CameraRigDefaults.FovMax - CameraRigDefaults.FovMin) * speedNorm;
         }
 
         static Vector2[] DeckSpots() => new[]

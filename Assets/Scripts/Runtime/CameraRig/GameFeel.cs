@@ -47,7 +47,7 @@ namespace Game
 
         void Update()
         {
-            if (!Enabled) return;
+            if (!Enabled || CameraController.ReduceMotion) { Time.timeScale = 1f; return; }
             float now = Time.unscaledTime;
             float scale = 1f;
             if (now < _slowMoUntil)

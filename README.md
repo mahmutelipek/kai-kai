@@ -3,7 +3,9 @@
 Co-op endless downhill party game prototype (Unity 6, URP). 1–6 players stand on one giant longboard (2–6 is the real game; 1 is a solo test mode).
 There is no steering input: **the board is steered only by where the players stand.**
 
-Current state: **Milestone 3 – pickups, scoring, combo** (primitive placeholder art). Milestones 1–2 are done.
+Current state: **Milestone 4 – stylised visual pass** (6 distinct riders, giant longboard, coastal hillside with bay, bridge and
+skyline, glowing pickups, wheel dust, 3/4 chase camera, post-processing) plus a more dynamic tuning. Milestones 1–3 are done.
+Screenshots (headless preview of the same geometry): `Docs/M4/`.
 
 ---
 
@@ -34,11 +36,12 @@ when URP is active and fall back to `Standard` otherwise.
 | Gamepad | Each connected gamepad takes over one more player (left stick / d-pad, A/Cross = jump) |
 | B | Bots on / off (bots drive every slot not taken by keyboard / gamepad) |
 | C | Bot mix: *Mixed* (cooperative, stubborn-left, stubborn-right, wanderer, greedy-front, scared-rear) ↔ *All cooperative*. Every bot keeps its own lane along the deck; all but the stubborn ones partly follow the road |
-| 1 – 6 | Number of players on the board. The game starts **solo (1 player)**: you alone steer the board, which is the clearest way to feel the mechanic. Add players / bots with 2–6 |
+| 1 – 6 (or numpad) | Exactly that many riders on the board (1 = solo, shown as "RIDERS: n"). The game starts **solo**: you alone steer the board, the clearest way to feel the mechanic. Add players / bots with 2–6 |
 | R | Restart the run (endless: new random road). On the end screen also Space / gamepad A |
 | M | Switch between the endless road and the M1 test track |
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |
+| F3 | Reduce motion: no camera shake, hit-stop / slow motion or speed lines (accessibility) |
 
 Crash → players are thrown off → the board respawns on the free line of the road ~2.5 s later (10 m back).
 The M1 test track (M key) is ~2.5 km: straight, left curve, straight, right curve, long straight with cones and a ramp.
@@ -113,12 +116,12 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 | Board | boardLength / boardWidth | 6 / 2.4 m | Deck size (visuals update after restart) |
 | | wheelRadius / deckHeight | 0.35 / 0.85 m | |
 | Steering | steeringExponent | 1.6 | Response curve; > 1 = centre players matter less, edge players more |
-| | steeringSmoothingTime | 0.4 s | Heaviness / delay of the response |
+| | steeringSmoothingTime | 0.28 s (M3: 0.4) | Heaviness / delay of the response |
 | | airborneWeightFactor | 0.25 | Weight of a jumping player |
-| | yawRateBaseDeg / yawRatePerSpeedDeg | 20 / 1.2 | Max yaw rate = base + perSpeed·speed (deg/s): steering gets stronger with speed |
-| | yawResponseTime | 0.25 s | How fast the yaw rate follows its target (the "torque") |
+| | yawRateBaseDeg / yawRatePerSpeedDeg | 24 (M3: 20) / 1.2 | Max yaw rate = base + perSpeed·speed (deg/s): steering gets stronger with speed |
+| | yawResponseTime | 0.18 s (M3: 0.25) | How fast the yaw rate follows its target (the "torque") |
 | | tractionAlignRate | 8 /s | How quickly the travel direction follows the heading (× grip) |
-| Roll | maxRollDeg / rollResponseTime | 18° / 0.2 s | Lean into turns |
+| Roll | maxRollDeg / rollResponseTime | 24° / 0.15 s (M3: 18° / 0.2) | Lean into turns |
 | Stability | stabilityFactorLowSpeed / HighSpeed | 1.25 / 1.8 | Danger multiplier, interpolated by speed / stabilityReferenceSpeed (35) |
 | | frontWeightInstability | 0.15 | Extra danger from front weight at speed |
 | | crashThreshold | 1.0 | Danger = 1 means crash zone |
@@ -126,9 +129,9 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 | | wobbleMaxRollDeg / wobbleFrequencyHz | 6° / 4.5 Hz | |
 | | gripLossMax | 0.5 | Grip at danger 1 = 50 % |
 | | crashTipTime / tipRecoveryTime | 0.5 / 1.0 s | Time in the crash zone before flipping / recovering |
-| Speed | startSpeed / speedRampPerSecond / softCapSpeed | 8 m/s / 0.25 / 35 m/s | Cruise speed rises over time to the soft cap |
+| Speed | startSpeed / speedRampPerSecond / softCapSpeed | 12 m/s / 0.4 / 38 m/s (M3: 8 / 0.25 / 35) | Cruise speed rises over time to the soft cap |
 | | cruiseGain | 0.35 /s | Pull toward cruise speed |
-| | frontAcceleration / rearBraking | 4 / 6 m/s² | Scaled by longitudinal weight |
+| | frontAcceleration / rearBraking | 6 (M3: 4) / 6 m/s² | Scaled by longitudinal weight |
 | | frontAccelFadeAboveCap | 0.15 | Front push fades between 0.85× and 1.15× the cap |
 | | minSpeed / offroadDrag | 3 m/s / 5 m/s² | |
 | | lightImpactSpeedLoss | 0.08 | Cone hit |
@@ -138,13 +141,13 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 | | heavyStaggerTime / heavyFallThreshold | 0.7 s / 0.55 | Players beyond 55 % of the deck toward the impact fall off |
 | | potholeSpeedLoss / wallScrapeSpeedLoss / wallCrashLateralSpeed | 0.06 / 0.12 / 11 m/s | |
 | Difficulty | difficultyFullDistance / difficultySpeedCapBonus | 8000 m / 0.25 | |
-| Crash | respawnSpeedFraction | 0.6 | After a crash the board resumes at 60 % of its previous cruise speed |
+| Crash | respawnSpeedFraction | 0.7 (M3: 0.6) | After a crash the board resumes at 70 % of its previous cruise speed |
 | Nitro | nitroDuration / nitroSpeedBonus / nitroAcceleration / nitroInstability | 3 s / 12 m/s / 10 m/s² / 1.35 | |
 | Score | pointsPerMeter / coinPoints / diamondPoints / nearMissPoints / airtimePointsPerSecond | 1 / 10 / 100 / 50 / 100 | Base points |
 | | comboStep / comboMaxMultiplier / comboIdleTime / comboDrainPerSecond | 10 / 6 / 4 s / 2 per s | |
 | | nearMissDistance / nearMissMinSpeed / minScoredAirtime / livesPerRun | 1.2 m / 10 m/s / 0.35 s / 3 | |
 | Players | playerRadius / playerHeight | 0.33 / 1.1 m | |
-| | playerMoveSpeed / GroundAcceleration / AirAcceleration | 3.6 m/s / 20 / 6 m/s² | |
+| | playerMoveSpeed / GroundAcceleration / AirAcceleration | 4.2 m/s (M3: 3.6) / 20 / 6 m/s² | |
 | | playerJumpVelocity / playerGravity / playerJumpCooldown | 4.5 m/s / 14 m/s² / 0.25 s | |
 | | respawnDelay | 1.5 s | After falling off the deck |
 | | bumpRestitution / staggerRelativeSpeed / staggerTime / staggerControlFactor | 0.5 / 2.8 m/s / 0.35 s / 0.2 | Player-player bumps |
@@ -161,7 +164,10 @@ the low side. At ≥ 1.0 a tip accumulator fills in `crashTipTime`; when full th
 - `RoadAcceptanceTests` — Milestone 2: 10 km soak on 5 seeds with a validity check at every chunk join, scripted
   ideal driver over 10 km, difficulty curve (set `DOWNHILL_REPORT_DIR` to also write `M2_difficulty_curve.csv`),
   allocation and step-time measurement
-- `BoardPlayModeTests` — the same mechanics inside the engine (raycast ground on the test road, crash → respawn, ramp, player views vs deck)
+- `ArtAcceptanceTests` — Milestone 4: riders distinct by construction and on the shared rig, every obstacle / pickup builds,
+  chunk geometry deterministic, allocation-free and within a triangle budget, palette fits one texture, tuning pinned
+- `BoardPlayModeTests` — the same mechanics inside the engine (raycast ground on the test road, crash → respawn, ramp, player views vs deck);
+  `M4_SixRiders_RenderStatsReport` logs frame time, batches, SetPass calls and triangles with six riders
 
 **Without Unity (headless, .NET 8 SDK):**
 ```bash
@@ -193,21 +199,28 @@ Assets/Scripts/
       RunSimulation.cs          one authoritative run: road + obstacles + difficulty + board
       Input/PlayerInputState.cs the only input the sim reads
       Tuning/BoardTuningData.cs every tuning value
-    Board/                      BoardController (hosts RunSimulation in FixedUpdate, kinematic Rigidbody), BoardView
-    Players/PlayerView.cs       primitive character visuals
+    Art/                        engine-free art (System.Numerics): ArtModel / MeshData primitives, ArtLibrary (riders,
+                                board, obstacles, pickups, props), ChunkGeometry (road + scenery), Backdrop (bay, bridge,
+                                skyline), RiderPose, Palette, Atmosphere (+ camera framing constants)
+    Board/                      BoardController (hosts RunSimulation in FixedUpdate, kinematic Rigidbody), BoardView, BoardFx (wheel dust, sparks)
+    Players/PlayerView.cs       rider on the art rig, procedural skate pose (RiderPose)
     Input/                      PlayerInputRouter (keyboard / gamepads / bots), LocalDeviceInput
     Road/                       RoadView + ChunkView (pooled chunk meshes)
-    Obstacles/ObstacleViews.cs  pooled primitive models mirroring the obstacle pool
+    Obstacles/ObstacleViews.cs  pooled art models mirroring the obstacle pool
     Pickups/PickupViews.cs      spinning coins, diamonds, nitro bottles
     UI/HUDController.cs         HUD (reference layout), event popups, end-of-run screen
-    CameraRig/                  CameraController, GameFeel (hit-stop, crash slow-mo), SpeedLines
+    CameraRig/                  CameraController (3/4 chase), GameFeel (hit-stop, crash slow-mo), SpeedLines, BackdropView
     CameraRig/CameraController.cs
-    Core/                       GameManager (bootstrap), RunManager, GameHotkeys
+    Core/                       GameManager (bootstrap), RunManager, GameHotkeys, SceneAtmosphere (sun, sky, fog, post)
+    Util/                       ArtMeshes (palette texture + 3 shared materials), ArtBuilder (model → GameObjects), MaterialLibrary
     DebugTools/                 DebugOverlay (F1), TuningPanel (F2)
     Tuning/BoardTuning.cs       ScriptableObject wrapping BoardTuningData
   Editor/                       Game.Editor.asmdef – ProjectSetup
   Tests/                        Game.Tests.asmdef – Simulation/ (NUnit), PlayMode/ (UnityTest)
 Tools/Headless/                 dotnet projects for headless tests
 Tools/UnityCompileCheck/        dotnet compile check against Unity reference assemblies
+Tools/ArtPreview/               exports Game.Art geometry and renders it headless (three.js + Chromium): screenshots,
+                                silhouette / contrast measurements, draw-call estimate (see its README)
+.claude/skills/                 vendored agent skills used as review checklists (licenses inside)
 Docs/                           milestone reports
 ```

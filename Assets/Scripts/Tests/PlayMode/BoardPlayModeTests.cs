@@ -170,6 +170,46 @@ namespace Game.Tests
             Assert.AreEqual(0f, _gm.Board.Run.Score.Score, 1e-3);
         }
 
+        /// <summary>
+        /// M4 acceptance 2: six riders on the endless road with the full art, 30 s. Logs frame time and (in the
+        /// editor) batches / SetPass calls / triangles from UnityStats. Editor numbers include the editor; profile a
+        /// player build for the real 60 fps check (skill: performance-optimization, "profile a release build").
+        /// </summary>
+        [UnityTest]
+        public IEnumerator M4_SixRiders_RenderStatsReport()
+        {
+            Start(RoadMode.Endless, players: 6, bots: true);
+            _gm.InputRouter.CyclePreset(); // all cooperative
+            yield return new WaitForSeconds(2f); // let the road and pools warm up
+            var frameMs = new List<float>(4000);
+            long batches = 0, setPass = 0, tris = 0;
+            int maxBatches = 0, samples = 0;
+            float t = 0f;
+            while (t < 30f)
+            {
+                t += Time.deltaTime;
+                frameMs.Add(Time.unscaledDeltaTime * 1000f);
+#if UNITY_EDITOR
+                batches += UnityEditor.UnityStats.batches;
+                setPass += UnityEditor.UnityStats.setPassCalls;
+                tris += UnityEditor.UnityStats.triangles;
+                maxBatches = Mathf.Max(maxBatches, UnityEditor.UnityStats.batches);
+                samples++;
+#endif
+                yield return null;
+            }
+            frameMs.Sort();
+            float mean = 0f; foreach (float f in frameMs) mean += f; mean /= frameMs.Count;
+            int n = Mathf.Max(samples, 1);
+            Debug.Log($"M4 render stats, 6 riders, 30 s: frame mean {mean:0.0} ms, p95 {frameMs[(int)(frameMs.Count * 0.95f)]:0.0} ms, " +
+                      $"max {frameMs[frameMs.Count - 1]:0.0} ms | batches avg {batches / n} max {maxBatches}, SetPass avg {setPass / n}, " +
+                      $"triangles avg {tris / n:N0} | active chunks {_gm.RoadView.ActiveViews}, obstacles {_gm.Board.Run.Obstacles.ActiveCount}");
+            Assert.That(_gm.Run.Distance, Is.GreaterThan(300f));
+#if UNITY_EDITOR
+            Assert.That(maxBatches, Is.LessThan(1500), "draw-call ceiling (generous; see the logged average)");
+#endif
+        }
+
         [UnityTest]
         public IEnumerator Endless_ViewsFollowSimulation_FrameTimeAndGcReport()
         {

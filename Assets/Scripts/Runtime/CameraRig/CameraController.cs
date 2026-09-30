@@ -1,10 +1,12 @@
+using Game.Art;
 using Game.Simulation;
 using UnityEngine;
 
 namespace Game
 {
     /// <summary>
-    /// Chase camera: ~7 m behind, 3.5 m above, ~15 deg down, FOV 65 -> 80 with speed, mild banking.
+    /// Chase camera, M4: a low 3/4 view from behind-right like the reference image (5.4 m behind, 2.9 m up,
+    /// 1.8 m to the right, sliding toward the outside of turns), FOV 70 -> 86 with speed, mild banking.
     /// Feel: pulls back with speed, leads into turns, dips on hard landings, kicks away from impacts,
     /// trembles while the board wobbles, shakes near top speed, pulls up and back while crashed.
     /// Always keeps the board, its tilt and the road ahead readable.
@@ -12,19 +14,23 @@ namespace Game
     public sealed class CameraController : MonoBehaviour
     {
         [Header("Framing")]
-        public float distanceBehind = 7f;
-        public float extraDistanceAtSpeed = 1.3f;
-        public float heightAbove = 3.5f;
-        public float lookAhead = 6f;
-        public float lookHeight = 0f;
+        public float distanceBehind = CameraRigDefaults.Distance;
+        public float extraDistanceAtSpeed = CameraRigDefaults.ExtraDistanceAtSpeed;
+        public float heightAbove = CameraRigDefaults.Height;
+        public float lookAhead = CameraRigDefaults.LookAhead;
+        public float lookHeight = CameraRigDefaults.LookHeight;
+        [Tooltip("Camera offset to the right of the board (3/4 view)")]
+        public float lateralOffset = CameraRigDefaults.LateralOffset;
+        [Tooltip("Metres the camera slides toward the outside of a turn per rad/s of yaw rate")]
+        public float turnSlide = 2.5f;
         public float positionSmoothTime = 0.12f;
         public float yawSmoothTime = 0.35f;
         [Tooltip("Seconds of yaw rate the camera looks ahead into a turn")]
         public float turnLead = 0.35f;
 
         [Header("Feedback")]
-        public float fovMin = 65f;
-        public float fovMax = 80f;
+        public float fovMin = CameraRigDefaults.FovMin;
+        public float fovMax = CameraRigDefaults.FovMax;
         public float bankFactor = 0.25f;
         public float highSpeedShake = 0.06f;
         public float impactShake = 0.35f;
@@ -32,11 +38,15 @@ namespace Game
         public float landingDipPerMs = 0.03f;
         public float nitroFovBoost = 8f;
 
+        /// <summary>Accessibility (skill: game-feel): no camera shake, no hit-stop / slow motion, no speed lines. F3 toggles.</summary>
+        public static bool ReduceMotion;
+
         Camera _camera;
         BoardController _board;
         Vector3 _velocity;
         float _yaw, _yawVelocity;
         float _impact;
+        float _lateral;
         float _noiseSeed;
         // spring for landing dips / impact kicks (camera-local offset)
         Vector3 _kick, _kickVelocity;
@@ -60,7 +70,7 @@ namespace Game
         {
             _camera = cam;
             _camera.nearClipPlane = 0.2f;
-            _camera.farClipPlane = 1500f;
+            SceneAtmosphere.SetupCamera(_camera);
             _board = board;
             _board.Impact += OnImpact;
             _board.Landed += OnLanded;
@@ -93,6 +103,7 @@ namespace Game
             if (_board == null) return;
             _yaw = _board.State.TravelYaw * Mathf.Rad2Deg;
             _yawVelocity = 0f;
+            _lateral = lateralOffset;
             _velocity = Vector3.zero;
             _kick = _kickVelocity = Vector3.zero;
             transform.position = DesiredPosition(_board.transform.position, _yaw, 0f);
@@ -115,6 +126,8 @@ namespace Game
             }
 
             float speedNorm = Mathf.Clamp01(s.Speed / Mathf.Max(t.softCapSpeed, 1f));
+            float lateralTarget = lateralOffset - Mathf.Clamp(s.YawRate * turnSlide, -2.5f, 2.5f);
+            _lateral = Mathf.Lerp(_lateral, lateralTarget, 1f - Mathf.Exp(-2.5f * dt));
             float crashPull = s.Crashed ? Mathf.Clamp01(s.CrashTimer / 1f) : 0f;
             Vector3 desired = DesiredPosition(boardPos, _yaw, speedNorm)
                               + (Vector3.up * 2f - SimConvert.YawForward(_yaw * Mathf.Deg2Rad) * 3f) * crashPull;
@@ -140,6 +153,7 @@ namespace Game
             float amp = highSpeedShake * Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.7f, 1f, speedNorm))
                         + impactShake * _impact * _impact
                         + wobbleShake * s.Wobble;
+            if (ReduceMotion) amp = 0f;
             if (amp > 1e-4f)
             {
                 float time = Time.time * 18f;
@@ -152,7 +166,7 @@ namespace Game
         {
             Vector3 fwd = SimConvert.YawForward(yawDeg * Mathf.Deg2Rad);
             float distance = distanceBehind + extraDistanceAtSpeed * speedNorm;
-            return boardPos - fwd * distance + Vector3.up * heightAbove;
+            return boardPos - fwd * distance + Vector3.up * heightAbove + SimConvert.YawRight(yawDeg * Mathf.Deg2Rad) * _lateral;
         }
 
         Vector3 LookTarget(Vector3 boardPos, float yawDeg, float lateral)

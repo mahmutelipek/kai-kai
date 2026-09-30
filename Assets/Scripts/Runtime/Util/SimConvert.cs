@@ -10,6 +10,7 @@ namespace Game
         public static Vector3 ToUnity(this SVec3 v) => new Vector3(v.X, v.Y, v.Z);
         public static SVec3 ToSim(this Vector3 v) => new SVec3(v.x, v.y, v.z);
         public static Vector2 ToUnity(this SVec2 v) => new Vector2(v.X, v.Y);
+        public static Quaternion ToUnity(this System.Numerics.Quaternion q) => new Quaternion(q.X, q.Y, q.Z, q.W);
         public static SVec2 ToSim(this Vector2 v) => new SVec2(v.x, v.y);
 
         /// <summary>Board-local deck point (sim X right, Y forward) at a height above the deck, as a Unity local position.</summary>

@@ -1,9 +1,10 @@
+using Game.Art;
 using Game.Simulation;
 using UnityEngine;
 
 namespace Game
 {
-    /// <summary>Primitive placeholder longboard: deck, grip, stripes, trucks, spinning oversized wheels.</summary>
+    /// <summary>The giant longboard: stylised model, spinning oversized wheels, landing squash-and-stretch.</summary>
     public sealed class BoardView : MonoBehaviour
     {
         BoardController _board;
@@ -27,43 +28,16 @@ namespace Game
             _board = board;
             BoardTuningData t = board.Tuning.data;
             float w = t.boardWidth, l = t.boardLength, r = t.wheelRadius, deckTop = t.deckHeight;
-            const float deckThickness = 0.14f;
 
             var visual = new GameObject("Visual").transform;
             visual.SetParent(transform, false);
             _visual = visual;
             board.Landed += speed => _squashVelocity -= Mathf.Clamp(speed * 0.12f, 0f, 1.6f);
 
-            // deck: middle slab + round nose and tail
-            float deckY = deckTop - deckThickness * 0.5f;
-            float slab = l - w;
-            PrimitiveFactory.Visual(PrimitiveType.Cube, visual, new Vector3(0f, deckY, 0f), new Vector3(w, deckThickness, slab), MaterialLibrary.DeckWood, "Deck");
-            PrimitiveFactory.Visual(PrimitiveType.Cylinder, visual, new Vector3(0f, deckY, slab * 0.5f), new Vector3(w, deckThickness * 0.5f, w), MaterialLibrary.DeckWood, "Nose");
-            PrimitiveFactory.Visual(PrimitiveType.Cylinder, visual, new Vector3(0f, deckY, -slab * 0.5f), new Vector3(w, deckThickness * 0.5f, w), MaterialLibrary.DeckWood, "Tail");
-            PrimitiveFactory.Visual(PrimitiveType.Cube, visual, new Vector3(0f, deckTop + 0.005f, 0f), new Vector3(w * 0.94f, 0.01f, slab), MaterialLibrary.DeckGrip, "Grip");
-            for (int i = -1; i <= 1; i += 2)
-                PrimitiveFactory.Visual(PrimitiveType.Cube, visual, new Vector3(0f, deckTop + 0.012f, i * slab * 0.22f), new Vector3(w * 0.94f, 0.01f, 0.35f), MaterialLibrary.DeckStripe, "Stripe");
-
-            // trucks and wheels (front / rear axle at 35% of the length, like the ground probes)
+            // M4: stylised longboard from Game.Art (deck, grip, red bands, trucks, groups "Wheel0".."Wheel3")
+            var parts = ArtBuilder.Build(ArtLibrary.Board(w, l, deckTop, r), visual);
             _wheels = new Transform[4];
-            float axleZ = l * 0.35f;
-            int k = 0;
-            for (int zSign = -1; zSign <= 1; zSign += 2)
-            {
-                float z = zSign * axleZ;
-                PrimitiveFactory.Visual(PrimitiveType.Cube, visual, new Vector3(0f, (r + deckTop - deckThickness) * 0.5f, z), new Vector3(0.35f, deckTop - deckThickness - r + 0.1f, 0.35f), MaterialLibrary.Metal, "TruckBase");
-                PrimitiveFactory.Visual(PrimitiveType.Cube, visual, new Vector3(0f, r, z), new Vector3(w * 0.85f, 0.12f, 0.16f), MaterialLibrary.Metal, "Axle");
-                for (int xSign = -1; xSign <= 1; xSign += 2)
-                {
-                    var hub = new GameObject("Wheel").transform;
-                    hub.SetParent(visual, false);
-                    hub.localPosition = new Vector3(xSign * (w * 0.5f - 0.05f), r, z);
-                    GameObject tire = PrimitiveFactory.Visual(PrimitiveType.Cylinder, hub, Vector3.zero, new Vector3(r * 2f, 0.16f, r * 2f), MaterialLibrary.Wheel, "Tire");
-                    tire.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-                    PrimitiveFactory.Visual(PrimitiveType.Cube, hub, new Vector3(xSign * 0.17f, 0f, 0f), new Vector3(0.02f, r * 1.2f, 0.12f), MaterialLibrary.LineWhite, "Spoke");
-                    _wheels[k++] = hub;
-                }
-            }
+            for (int k = 0; k < 4; k++) _wheels[k] = parts["Wheel" + k];
 
             DeckTop = new GameObject("DeckTop").transform;
             DeckTop.SetParent(transform, false);

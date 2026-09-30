@@ -1,3 +1,4 @@
+using Game.Art;
 using Game.Simulation;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace Game
         BoardView _boardView;
         int _slot;
 
-        Transform _pose, _armL, _armR, _marker;
+        Transform _pose, _torso, _head, _armL, _armR, _marker;
         bool _detached;
         Vector3 _flightVelocity, _spin;
         float _flightTime, _popTimer, _facingYaw, _celebrateTimer;
@@ -41,56 +42,17 @@ namespace Game
             board.Landed += speed => { if (speed > 3f && board.Simulation != null && !board.State.Crashed) _celebrateTimer = 1.1f; };
 
             Color main = MaterialLibrary.PlayerColors[slot % MaterialLibrary.PlayerColors.Length];
-            Color accent = Color.Lerp(main, Color.white, 0.55f);
 
-            _pose = new GameObject("Pose").transform;
-            _pose.SetParent(transform, false);
+            // M4: the stylised rider from Game.Art (rig groups Pose > Torso > Head / ArmL / ArmR)
+            var rig = ArtBuilder.Build(ArtLibrary.Character(slot), transform);
+            _pose = rig["Pose"];
+            _torso = rig["Torso"];
+            _head = rig["Head"];
+            _armL = rig["ArmL"];
+            _armR = rig["ArmR"];
 
-            for (int side = -1; side <= 1; side += 2)
-            {
-                PrimitiveFactory.Visual(PrimitiveType.Cube, _pose, new Vector3(side * 0.11f, 0.07f, 0.04f), new Vector3(0.17f, 0.13f, 0.32f), Color.white, "Sneaker");
-                PrimitiveFactory.Visual(PrimitiveType.Cube, _pose, new Vector3(side * 0.11f, 0.02f, 0.04f), new Vector3(0.18f, 0.04f, 0.33f), main, "Sole");
-                PrimitiveFactory.Visual(PrimitiveType.Capsule, _pose, new Vector3(side * 0.1f, 0.3f, 0f), new Vector3(0.14f, 0.18f, 0.14f), MaterialLibrary.Pants, "Leg");
-            }
-            PrimitiveFactory.Visual(PrimitiveType.Capsule, _pose, new Vector3(0f, 0.6f, 0f), new Vector3(0.44f, 0.24f, 0.32f), main, "Hoodie");
-            _armL = Arm(-1, main);
-            _armR = Arm(1, main);
-            PrimitiveFactory.Visual(PrimitiveType.Sphere, _pose, new Vector3(0f, 0.98f, 0f), new Vector3(0.46f, 0.44f, 0.44f), MaterialLibrary.Skin, "Head");
-            for (int side = -1; side <= 1; side += 2)
-                PrimitiveFactory.Visual(PrimitiveType.Sphere, _pose, new Vector3(side * 0.08f, 1.0f, 0.2f), new Vector3(0.06f, 0.08f, 0.04f), Color.black, "Eye");
-
-            // headwear differs per slot so silhouettes differ even before the art pass
-            switch (slot % 3)
-            {
-                case 0: // cap
-                    PrimitiveFactory.Visual(PrimitiveType.Sphere, _pose, new Vector3(0f, 1.1f, -0.01f), new Vector3(0.48f, 0.26f, 0.48f), accent, "Cap");
-                    PrimitiveFactory.Visual(PrimitiveType.Cube, _pose, new Vector3(0f, 1.1f, 0.26f), new Vector3(0.3f, 0.03f, 0.2f), accent, "Visor");
-                    break;
-                case 1: // beanie
-                    PrimitiveFactory.Visual(PrimitiveType.Sphere, _pose, new Vector3(0f, 1.13f, 0f), new Vector3(0.47f, 0.34f, 0.47f), accent, "Beanie");
-                    PrimitiveFactory.Visual(PrimitiveType.Sphere, _pose, new Vector3(0f, 1.3f, 0f), new Vector3(0.1f, 0.1f, 0.1f), accent, "Pompom");
-                    break;
-                default: // spiky hair
-                    for (int i = 0; i < 5; i++)
-                    {
-                        GameObject spike = PrimitiveFactory.Visual(PrimitiveType.Cube, _pose, new Vector3((i - 2) * 0.07f, 1.18f, -0.03f), new Vector3(0.07f, 0.18f, 0.2f), new Color(0.15f, 0.1f, 0.08f), "Hair");
-                        spike.transform.localRotation = Quaternion.Euler(-20f, 0f, (i - 2) * 12f);
-                    }
-                    break;
-            }
-
-            _marker = PrimitiveFactory.Visual(PrimitiveType.Cube, transform, new Vector3(0f, 1.55f, 0f), new Vector3(0.16f, 0.16f, 0.16f), main, "YouMarker").transform;
+            _marker = PrimitiveFactory.Visual(PrimitiveType.Cube, transform, new Vector3(0f, 2.1f, 0f), new Vector3(0.16f, 0.16f, 0.16f), main, "YouMarker").transform;
             _marker.localRotation = Quaternion.Euler(45f, 0f, 45f);
-        }
-
-        Transform Arm(int side, Color color)
-        {
-            var pivot = new GameObject(side < 0 ? "ArmL" : "ArmR").transform;
-            pivot.SetParent(_pose, false);
-            pivot.localPosition = new Vector3(side * 0.24f, 0.72f, 0f);
-            PrimitiveFactory.Visual(PrimitiveType.Capsule, pivot, new Vector3(side * 0.02f, -0.17f, 0f), new Vector3(0.11f, 0.17f, 0.11f), color, "Sleeve");
-            PrimitiveFactory.Visual(PrimitiveType.Sphere, pivot, new Vector3(side * 0.03f, -0.34f, 0f), new Vector3(0.1f, 0.1f, 0.1f), MaterialLibrary.Skin, "Hand");
-            return pivot;
         }
 
         void LateUpdate()
@@ -127,30 +89,33 @@ namespace Game
             float targetYaw = v.sqrMagnitude > 0.25f ? Mathf.Atan2(v.x, v.y) * Mathf.Rad2Deg : 0f;
             _facingYaw = Mathf.MoveTowardsAngle(_facingYaw, targetYaw, 540f * Time.deltaTime);
 
-            // lean into own motion, counter-lean against the board roll, shake while staggered
+            // procedural skate pose (shared with the headless preview): deep crouch, lean into turns, balance arms
             float speedNorm = Mathf.Clamp01(board.Speed / Mathf.Max(t.softCapSpeed, 1f));
-            float leanForward = Mathf.Clamp(v.magnitude * 5f, 0f, 18f) + speedNorm * 10f;
-            float counterRoll = board.Roll * Mathf.Rad2Deg * 0.6f;
-            float shake = p.StaggerTimer > 0f ? Mathf.Sin(Time.time * 40f) * 12f : 0f;
-            _pose.localRotation = Quaternion.Euler(0f, _facingYaw, 0f) * Quaternion.Euler(leanForward, 0f, counterRoll + shake);
-
-            // crouch with speed and danger, stretch while jumping; pop after respawn
-            float crouch = 1f - 0.12f * speedNorm - 0.15f * board.Wobble;
-            float stretch = p.Height > 0.05f ? (p.VerticalVelocity > 0f ? 1.15f : 1.05f) : 1f;
-            _popTimer = Mathf.Max(0f, _popTimer - Time.deltaTime);
-            float pop = 1f + Mathf.Sin(_popTimer / 0.3f * Mathf.PI) * 0.25f;
-            float thin = stretch > 1f ? 0.93f : 1f;
-            _pose.localScale = new Vector3(pop * thin, crouch * pop * stretch, pop * thin);
-
-            // arms: balance out wide at speed, flail when wobbling, up in the air when cheering
             _celebrateTimer = Mathf.Max(0f, _celebrateTimer - Time.deltaTime);
             float cheer = _celebrateTimer > 0f && board.Wobble < 0.1f ? Mathf.Sin(Mathf.Min(1f, _celebrateTimer / 1.1f) * Mathf.PI) : 0f;
-            float spread = Mathf.Lerp(15f + 35f * speedNorm + 90f * board.Wobble, 160f, cheer);
-            float flail = board.Wobble * Mathf.Sin(Time.time * 18f + _slot) * 40f + cheer * Mathf.Sin(Time.time * 14f + _slot) * 15f;
-            _armL.localRotation = Quaternion.Euler(0f, 0f, -spread - flail);
-            _armR.localRotation = Quaternion.Euler(0f, 0f, spread - flail);
+            RiderPoseOutput pose = RiderPose.Compute(new RiderPoseInput
+            {
+                SpeedNorm = speedNorm, Wobble = board.Wobble, BoardRoll = board.Roll, YawRate = board.YawRate,
+                Cheer = cheer, Stagger = p.StaggerTimer > 0f ? 1f : 0f, Time = Time.time, Slot = _slot,
+                Jump = p.Height > 0.05f ? 1f : 0f,
+            });
+            // walking: lean into your own motion a little
+            float walkLean = Mathf.Clamp(v.magnitude * 4f, 0f, 12f);
+            _pose.localRotation = Quaternion.Euler(0f, _facingYaw, 0f) * pose.Pose.ToUnity() * Quaternion.Euler(walkLean, 0f, 0f);
+            _torso.localRotation = pose.Torso.ToUnity();
+            _head.localRotation = pose.Head.ToUnity();
+            _armL.localRotation = pose.ArmL.ToUnity();
+            _armR.localRotation = pose.ArmR.ToUnity();
 
-            _marker.localPosition = new Vector3(0f, 1.55f + Mathf.Sin(Time.time * 4f) * 0.06f, 0f);
+            // squash with danger, stretch while jumping; pop after respawn
+            float crouch = 1f - 0.08f * speedNorm - 0.12f * board.Wobble;
+            float stretch = p.Height > 0.05f ? (p.VerticalVelocity > 0f ? 1.12f : 1.04f) : 1f;
+            _popTimer = Mathf.Max(0f, _popTimer - Time.deltaTime);
+            float pop = 1f + Mathf.Sin(_popTimer / 0.3f * Mathf.PI) * 0.25f;
+            float thin = stretch > 1f ? 0.94f : 1f;
+            _pose.localScale = new Vector3(pop * thin, crouch * pop * stretch, pop * thin);
+
+            _marker.localPosition = new Vector3(0f, 2.1f + Mathf.Sin(Time.time * 4f) * 0.06f, 0f);
             _marker.Rotate(0f, 180f * Time.deltaTime, 0f, Space.World);
         }
 
