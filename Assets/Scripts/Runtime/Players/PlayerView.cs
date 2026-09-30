@@ -45,6 +45,7 @@ namespace Game
 
             // M4: the stylised rider from Game.Art (rig groups Pose > Torso > Head / ArmL / ArmR)
             var rig = ArtBuilder.Build(ArtLibrary.Character(slot), transform);
+            transform.localScale = Vector3.one * ArtLibrary.RiderScale;
             _pose = rig["Pose"];
             _torso = rig["Torso"];
             _head = rig["Head"];

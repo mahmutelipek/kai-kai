@@ -160,8 +160,9 @@ namespace Game.Tests
         {
             BoardTuningData t = new BoardTuningData();
             BoardSimulation sim = BoardScenario.Create(2, t);
-            sim.Players[0].PlaceAt(new Vector2(-1f, 0f));
-            sim.Players[1].PlaceAt(new Vector2(1f, 0f));
+            float x = t.HalfWidth * 0.83f; // same spots relative to the deck at any board size
+            sim.Players[0].PlaceAt(new Vector2(-x, 0f));
+            sim.Players[1].PlaceAt(new Vector2(x, 0f));
             sim.Players[1].Height = 0.5f; // right player mid-jump
             float lateral = sim.ComputeWeight().Lateral;
             Assert.That(lateral, Is.LessThan(-0.4f), "board should lean to the grounded player");

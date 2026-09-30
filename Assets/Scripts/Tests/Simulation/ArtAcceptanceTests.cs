@@ -149,6 +149,9 @@ namespace Game.Tests
                 // M4 follow-up ("more playable"): friendlier near misses and combo idle time
                 ["nearMissDistance"] = (1.2f, 1.5f),
                 ["comboIdleTime"] = (4f, 5f),
+                // M4.5 ("the board should be bigger next to the riders")
+                ["boardLength"] = (6f, 6.75f),
+                ["boardWidth"] = (2.4f, 2.7f),
             };
             var d = new BoardTuningData();
             float Get(string name) => (float)typeof(BoardTuningData).GetField(name).GetValue(d);
@@ -175,10 +178,30 @@ namespace Game.Tests
             Assert.AreEqual(M3UnchangedWeightedSum, sum, 1e-3, "a tuning value changed that the user did not ask for");
         }
 
+        /// <summary>Old Unity tuning assets keep stale defaults: the migration upgrades exactly the changed fields, keeps hand-tuned ones.</summary>
+        [Test]
+        public void TuningMigration_UpgradesStaleDefaults_KeepsHandTunedValues()
+        {
+            var old = new BoardTuningData { boardLength = 6f, boardWidth = 2.4f, startSpeed = 8f, softCapSpeed = 33f, comboIdleTime = 4f };
+            int n = TuningMigration.Upgrade(old);
+            var current = new BoardTuningData();
+            Assert.AreEqual(4, n);
+            Assert.AreEqual(current.boardLength, old.boardLength);
+            Assert.AreEqual(current.boardWidth, old.boardWidth);
+            Assert.AreEqual(current.startSpeed, old.startSpeed);
+            Assert.AreEqual(current.comboIdleTime, old.comboIdleTime);
+            Assert.AreEqual(33f, old.softCapSpeed, "a hand-tuned value is kept");
+            Assert.AreEqual(0, TuningMigration.Upgrade(old), "idempotent");
+            Assert.AreEqual(0, TuningMigration.Upgrade(new BoardTuningData()), "current defaults need nothing");
+            foreach ((string field, float[] olds) in TuningMigration.History)
+                Assert.IsNotNull(typeof(BoardTuningData).GetField(field), field);
+        }
+
         // From the M3 defaults (tag m3-done, commit 0fededf) excluding the fields listed above;
         // `git diff 0fededf -- BoardTuningData.cs` shows only those fields changed.
-        const int M3UnchangedFieldCount = 70;
-        const double M3UnchangedWeightedSum = 57933.40000034869;
+        // (M4.5: boardLength / boardWidth moved to the requested changes: 68 fields remain, same values as at M3)
+        const int M3UnchangedFieldCount = 68;
+        const double M3UnchangedWeightedSum = 42179.68000065535;
 
         [Test]
         public void M4_RiderCountKeys_OneLeavesExactlyOneRider()

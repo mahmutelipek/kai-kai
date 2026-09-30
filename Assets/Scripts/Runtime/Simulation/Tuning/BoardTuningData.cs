@@ -10,8 +10,8 @@ namespace Game.Simulation
     public class BoardTuningData
     {
         // ---------------- Board geometry ----------------
-        [TuningRange("Board", 3f, 10f)] public float boardLength = 6f;
-        [TuningRange("Board", 1.2f, 4f)] public float boardWidth = 2.4f;
+        [TuningRange("Board", 3f, 10f)] public float boardLength = 6.75f;
+        [TuningRange("Board", 1.2f, 4f)] public float boardWidth = 2.7f;
         [TuningRange("Board", 0.15f, 0.6f)] public float wheelRadius = 0.35f;
         [TuningRange("Board", 0.4f, 1.5f)] public float deckHeight = 0.85f;
 

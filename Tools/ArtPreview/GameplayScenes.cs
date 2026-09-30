@@ -159,7 +159,7 @@ namespace ArtPreview
                     SpeedNorm = SimMath.Clamp01(b.Speed / Math.Max(t.softCapSpeed, 1f)), Wobble = b.Wobble, BoardRoll = b.Roll,
                     YawRate = b.YawRate, Time = i * 0.37f, Slot = i,
                 });
-                s.Set("P" + (i + 1)).Add(ArtLibrary.Character(i), world, boardRot, 1f, RiderPose.AsLookup(pose), null);
+                s.Set("P" + (i + 1)).Add(ArtLibrary.Character(i), world, boardRot, ArtLibrary.RiderScale, RiderPose.AsLookup(pose), null);
             }
 
             // chase camera as CameraController frames it

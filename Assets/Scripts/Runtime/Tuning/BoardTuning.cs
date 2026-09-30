@@ -21,6 +21,16 @@ namespace Game
 
         public void ResetToDefaults() => data = new BoardTuningData();
 
+        /// <summary>Fields upgraded from an older default on the last load (the editor saves the asset when &gt; 0).</summary>
+        [System.NonSerialized] public int MigratedFields;
+
+        void OnEnable()
+        {
+            if (data == null) data = new BoardTuningData();
+            MigratedFields = TuningMigration.Upgrade(data);
+            if (MigratedFields > 0) Debug.Log($"Downhill: BoardTuning upgraded {MigratedFields} field(s) to the current defaults (hand-tuned values kept).", this);
+        }
+
         void OnValidate()
         {
             if (data == null) data = new BoardTuningData();

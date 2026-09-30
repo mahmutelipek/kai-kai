@@ -24,6 +24,7 @@ namespace Game.EditorTools
                 if (EditorApplication.isPlayingOrWillChangePlaymode) return;
                 UrpSetup.EnsureUrpActive();
                 if (!File.Exists(ScenePath)) CreateTestScene(openAfterwards: string.IsNullOrEmpty(SceneManager.GetActiveScene().path));
+                SaveMigratedTuning();
             };
         }
 
@@ -32,6 +33,16 @@ namespace Game.EditorTools
         {
             UrpSetup.EnsureUrpActive();
             if (!File.Exists(ScenePath)) CreateTestScene(openAfterwards: false);
+        }
+
+        /// <summary>BoardTuning upgrades stale defaults when it loads; write that back so the asset shows the real values.</summary>
+        static void SaveMigratedTuning()
+        {
+            var tuning = AssetDatabase.LoadAssetAtPath<BoardTuning>(TuningPath);
+            if (tuning == null || tuning.MigratedFields == 0) return;
+            EditorUtility.SetDirty(tuning);
+            AssetDatabase.SaveAssets();
+            tuning.MigratedFields = 0;
         }
 
         [MenuItem("Downhill/Rebuild M1 Test Scene")]

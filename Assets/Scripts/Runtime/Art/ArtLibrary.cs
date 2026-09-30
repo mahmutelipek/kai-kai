@@ -267,6 +267,9 @@ namespace Game.Art
         }
 
         /// <summary>Torso pivot (hips) and head pivot (neck) of the rider rig, in "Pose" space.</summary>
+        /// <summary>Riders are drawn a little smaller than modelled so the giant board reads giant next to them (visual only).</summary>
+        public const float RiderScale = 0.88f;
+
         public static readonly Vector3 TorsoPivot = V(0f, 0.58f, -0.08f), HeadPivot = V(0f, 1.1f, 0f);
 
         /// <summary>

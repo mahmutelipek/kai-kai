@@ -15,6 +15,7 @@ namespace Game.Simulation
         /// <summary>Allowed lateral change of the board centre per metre travelled (~3.4 deg path angle).</summary>
         public const float LateralSlope = 0.06f;
         public const float Margin = 0.75f;
+        public const float ExtraMarginPerWidth = 1.5f;
 
         readonly float[] _free = new float[MaxSamples * MaxIntervals * 2];
         readonly int[] _freeCount = new int[MaxSamples];
@@ -30,7 +31,9 @@ namespace Game.Simulation
         {
             int n = chunk.SampleCount;
             if (n > MaxSamples) throw new InvalidOperationException("chunk too long for the planner");
-            float boardHalfW = t.HalfWidth + Margin;
+            // a board wider than the original 2.4 m one gets proportionally more clearance: the crew tracks the line with
+            // the same lateral error, which leaves less room between obstacles on a bigger deck
+            float boardHalfW = t.HalfWidth + Margin + Math.Max(0f, t.HalfWidth - 1.2f) * ExtraMarginPerWidth;
             float boardHalfL = t.HalfLength + 1f;
 
             // 1) free centre intervals per sample

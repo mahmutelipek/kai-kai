@@ -507,7 +507,8 @@ namespace Game.Simulation
                     for (float a = 35f; a < L - 30f; a += spacing)
                     {
                         float hw = HalfWidthAt(chunk, a);
-                        float inner = SimMath.Lerp(1.0f, 0.3f, d);
+                        // designed around the original 2.4 m board: a wider board gets the same weave (not a tighter one)
+                        float inner = SimMath.Lerp(1.0f, 0.3f, d) + Math.Max(0f, _tuning.HalfWidth - 1.2f);
                         float lo = side > 0f ? inner : -hw - 0.3f;
                         float hi = side > 0f ? hw + 0.3f : -inner;
                         Place(chunk, ObstacleKind.ConcreteBarrier, a, (lo + hi) * 0.5f, 0f, new Vector2((hi - lo) * 0.5f, 0.35f));
