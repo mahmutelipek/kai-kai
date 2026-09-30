@@ -128,7 +128,43 @@ namespace Game
             Override(profile, "Bloom", ("threshold", 0.95f), ("intensity", 0.6f), ("scatter", 0.65f));
             Override(profile, "ColorAdjustments", ("saturation", 12f), ("contrast", 8f), ("postExposure", 0.15f));
             Override(profile, "Vignette", ("intensity", 0.2f));
-            Override(profile, "MotionBlur", ("intensity", 0.18f));
+            Override(profile, "MotionBlur", ("intensity", Game.Art.SpeedFeel.BaseMotionBlur));
+            // speed effects driven every frame by SpeedFx (0 at rest)
+            Override(profile, "ChromaticAberration", ("intensity", 0f));
+            Override(profile, "LensDistortion", ("intensity", 0f));
+            MotionBlurIntensity = FloatSetter(profile, "MotionBlur", "intensity");
+            ChromaIntensity = FloatSetter(profile, "ChromaticAberration", "intensity");
+            LensDistortionIntensity = FloatSetter(profile, "LensDistortion", "intensity");
+        }
+
+        /// <summary>
+        /// Allocation-free setters for the speed post effects (null when URP or the override is missing). Bound once
+        /// to the parameter's typed <c>value</c> setter, so calling them every frame does not box.
+        /// </summary>
+        public static Action<float> ChromaIntensity, LensDistortionIntensity, MotionBlurIntensity;
+
+        static Action<float> FloatSetter(object profile, string component, string field)
+        {
+            try
+            {
+                Type t = Type.GetType("UnityEngine.Rendering.Universal." + component + ", " + UrpAssembly);
+                if (t == null) return null;
+                MethodInfo tryGet = null;
+                foreach (MethodInfo m in profile.GetType().GetMethods())
+                    if (m.Name == "TryGet" && m.IsGenericMethodDefinition && m.GetParameters().Length == 1) { tryGet = m; break; }
+                if (tryGet == null) return null;
+                var args = new object[] { null };
+                if (!(bool)tryGet.MakeGenericMethod(t).Invoke(profile, args) || args[0] == null) return null;
+                object parameter = t.GetField(field)?.GetValue(args[0]);
+                MethodInfo set = parameter?.GetType().GetProperty("value")?.GetSetMethod();
+                if (set == null || set.GetParameters()[0].ParameterType != typeof(float)) return null;
+                return (Action<float>)Delegate.CreateDelegate(typeof(Action<float>), parameter, set);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Downhill: speed post effect {component}.{field} unavailable: {e.Message}");
+                return null;
+            }
         }
 
         /// <summary>profile.Add(type, true) and sets each parameter's value (enums by int).</summary>

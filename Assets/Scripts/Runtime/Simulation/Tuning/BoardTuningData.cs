@@ -74,6 +74,27 @@ namespace Game.Simulation
         /// <summary>Stability multiplier while boosting: >1 means the same weight shift is more dangerous.</summary>
         [TuningRange("Nitro", 1f, 3f)] public float nitroInstability = 1.35f;
 
+        // ---------------- Moves (M4.3): crew ollie, carve boost, slipstream ----------------
+        /// <summary>Board hop when enough of the crew jumps together (solo: every jump).</summary>
+        [TuningRange("Moves", 0f, 12f)] public float ollieVelocity = 6.5f;
+        /// <summary>Hop when every rider on the deck jumps together.</summary>
+        [TuningRange("Moves", 0f, 14f)] public float perfectOllieVelocity = 8f;
+        [TuningRange("Moves", 0.05f, 1f)] public float ollieWindow = 0.35f;
+        [TuningRange("Moves", 0.2f, 1f)] public float ollieCrewFraction = 0.6f;
+        [TuningRange("Moves", 0f, 3f)] public float ollieCooldown = 0.9f;
+        /// <summary>Hold a carve at least this hard (|steering|) ...</summary>
+        [TuningRange("Moves", 0.1f, 1f)] public float carveMinSteering = 0.3f;
+        /// <summary>... for this long, then straighten out (not wobbling) for a speed boost.</summary>
+        [TuningRange("Moves", 0.1f, 3f)] public float carveMinTime = 0.8f;
+        [TuningRange("Moves", 0f, 15f)] public float carveBoostSpeed = 5f;
+        [TuningRange("Moves", 0f, 3f)] public float carveBoostTime = 1.2f;
+        [TuningRange("Moves", 0f, 30f)] public float carveBoostAcceleration = 9f;
+        /// <summary>Riding right behind a car going the same way: less drag, more speed.</summary>
+        [TuningRange("Moves", 0f, 40f)] public float slipstreamDistance = 16f;
+        [TuningRange("Moves", 0f, 4f)] public float slipstreamWidth = 1.6f;
+        [TuningRange("Moves", 0f, 15f)] public float slipstreamBonus = 5f;
+        [TuningRange("Moves", 0f, 3f)] public float slipstreamBuildTime = 0.5f;
+
         // ---------------- Scoring (M3) ----------------
         [TuningRange("Score", 0f, 10f)] public float pointsPerMeter = 1f;
         [TuningRange("Score", 0f, 100f)] public float coinPoints = 10f;
@@ -88,6 +109,9 @@ namespace Game.Simulation
         [TuningRange("Score", 0f, 30f)] public float nearMissMinSpeed = 10f;
         [TuningRange("Score", 0f, 2f)] public float minScoredAirtime = 0.35f;
         [TuningRange("Score", 0f, 10f)] public float livesPerRun = 3f;
+        [TuningRange("Score", 0f, 500f)] public float olliePoints = 20f;
+        [TuningRange("Score", 0f, 500f)] public float carveBoostPoints = 40f;
+        [TuningRange("Score", 0f, 500f)] public float slipstreamPoints = 30f;
 
         // ---------------- Vertical ----------------
         [TuningRange("Vertical", 5f, 40f)] public float gravity = 20f;

@@ -45,6 +45,12 @@ namespace Game.Simulation
 
         /// <summary>Seconds of nitro boost left (0 = off).</summary>
         public float NitroTimer;
+        /// <summary>Seconds the current hard carve has been held (carve boost charge).</summary>
+        public float CarveCharge;
+        /// <summary>Seconds of carve boost left.</summary>
+        public float BoostTimer;
+        /// <summary>Extra target speed from outside the board (slipstream), set by the run each step.</summary>
+        public float ExternalSpeedBonus;
 
         public bool Grounded;
         public SurfaceKind Surface;
@@ -60,6 +66,8 @@ namespace Game.Simulation
         public bool Landed;
         public bool HardLanding;
         public float LandingSpeed;
+        /// <summary>0 = none, 1 = carve boost, 2 = long carve (bigger boost).</summary>
+        public int CarveBoost;
     }
 
     /// <summary>
@@ -132,12 +140,32 @@ namespace Game.Simulation
             State.NitroTimer = Math.Max(State.NitroTimer, duration);
         }
 
+        /// <summary>Crew ollie: the grounded board hops with the given upward speed. Returns false in the air / crashed.</summary>
+        public bool Ollie(float velocity)
+        {
+            if (State.Crashed || !State.Grounded || velocity <= 0f) return false;
+            State.VerticalVelocity = velocity;
+            State.Grounded = false;
+            _snapToGround = false;
+            return true;
+        }
+
+        /// <summary>Extra upward speed for an ollie in progress (perfect-ollie upgrade); only while still rising.</summary>
+        public bool OllieLift(float extraVelocity)
+        {
+            if (State.Crashed || State.Grounded || State.VerticalVelocity <= 0f || extraVelocity <= 0f) return false;
+            State.VerticalVelocity += extraVelocity;
+            return true;
+        }
+
         public void ForceCrash()
         {
             if (State.Crashed) return;
             State.Crashed = true;
             State.CrashTimer = 0f;
             State.NitroTimer = 0f;
+            State.BoostTimer = 0f;
+            State.CarveCharge = 0f;
             State.CrashDirection = State.Steering >= 0f ? 1f : -1f;
         }
 
@@ -167,6 +195,11 @@ namespace Game.Simulation
                 s.TargetSpeed += t.nitroSpeedBonus;
                 cap += t.nitroSpeedBonus;
             }
+            bool boost = s.BoostTimer > 0f;
+            if (boost) s.BoostTimer = Math.Max(0f, s.BoostTimer - dt);
+            float bonus = (boost ? t.carveBoostSpeed : 0f) + Math.Max(0f, s.ExternalSpeedBonus);
+            s.TargetSpeed += bonus;
+            cap += bonus;
 
             // 1) smoothed steering: heavy, delayed, momentum-like
             s.Steering += (weight.RawSteering - s.Steering) * SimMath.LagAlpha(dt, t.steeringSmoothingTime);
@@ -181,6 +214,24 @@ namespace Game.Simulation
             s.Grip = 1f - t.gripLossMax * s.Wobble;
             s.WobblePhase = SimMath.WrapAngle(s.WobblePhase + SimMath.TwoPi * t.wobbleFrequencyHz * (0.8f + 0.4f * s.Wobble) * dt);
             float wobbleWave = MathF.Sin(s.WobblePhase);
+
+            // carve boost: hold a hard carve, then straighten out cleanly -> short speed boost (risk / reward)
+            if (s.Grounded)
+            {
+                float carve = Math.Abs(s.Steering);
+                if (carve >= t.carveMinSteering && s.Tip <= 0f) s.CarveCharge += dt;
+                else if (carve < t.carveMinSteering * 0.5f)
+                {
+                    if (s.CarveCharge >= t.carveMinTime && s.Wobble <= 0f)
+                    {
+                        bool big = s.CarveCharge >= t.carveMinTime * 2f;
+                        s.BoostTimer = t.carveBoostTime * (big ? 1.5f : 1f);
+                        ev.CarveBoost = big ? 2 : 1;
+                    }
+                    s.CarveCharge = 0f;
+                }
+                if (s.Tip > 0f) s.CarveCharge = 0f; // tipping over forfeits the charge
+            }
 
             // 3) yaw: steering -> target yaw rate (stronger at speed) -> torque-like first-order response
             if (s.Grounded)
@@ -217,7 +268,8 @@ namespace Game.Simulation
                               - t.rearBraking * Math.Max(0f, -s.Longitudinal)
                               - (s.Surface == SurfaceKind.Offroad ? t.offroadDrag : 0f)
                               - SlipSpeedLoss * MathF.Abs(MathF.Sin(slip)) * s.Speed
-                              + (nitro && s.Speed < s.TargetSpeed ? t.nitroAcceleration : 0f);
+                              + (nitro && s.Speed < s.TargetSpeed ? t.nitroAcceleration : 0f)
+                              + (boost && s.Speed < s.TargetSpeed ? t.carveBoostAcceleration : 0f);
                 float newSpeed = Math.Max(s.Speed + accel * dt, Math.Min(t.minSpeed, s.Speed));
                 s.Acceleration = (newSpeed - s.Speed) / dt;
                 s.Speed = newSpeed;

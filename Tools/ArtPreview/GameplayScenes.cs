@@ -32,6 +32,8 @@ namespace ArtPreview
             public Game.Frontend.MenuScreen Menu;
             public Game.Frontend.Language Language;
             public string Countdown;
+            /// <summary>Fire nitro once the spot is reached and ride this many seconds more (wind streaks, edge flash).</summary>
+            public float NitroSeconds = -1f;
         }
 
         public static RunSimulation Drive(Options o) => Drive(o, null);
@@ -51,6 +53,16 @@ namespace ArtPreview
                 RoadChunk c = run.Road.ChunkAt(run.Distance);
                 if (run.Distance < o.MinDistance || run.Board.Board.State.Crashed || !run.Board.Board.State.Grounded) continue;
                 if (o.Kind == null || (c.Kind == o.Kind && run.Distance - c.StartAlong > o.LocalAlong)) break;
+            }
+            if (o.NitroSeconds >= 0f)
+            {
+                run.Board.Board.StartNitro(t.nitroDuration);
+                perStep?.Invoke(new RunStepEvents { NitroStarted = true }, run);
+                for (float time = 0f; time < o.NitroSeconds; time += dt)
+                {
+                    driver.Drive(dt);
+                    perStep?.Invoke(run.Step(dt, none), run);
+                }
             }
             return run;
         }

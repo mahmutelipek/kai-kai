@@ -76,7 +76,8 @@ namespace Game.Frontend
         static readonly MenuItem[] PauseItems = { MenuItem.Resume, MenuItem.Restart, MenuItem.Settings, MenuItem.MainMenu, MenuItem.Quit };
         static readonly MenuItem[] SettingsItems =
         {
-            MenuItem.DisplayMode, MenuItem.Resolution, MenuItem.VSync, MenuItem.Quality, MenuItem.ReduceMotion, MenuItem.Language,
+            // Language is hidden until more languages ship (English only for now; Loc keeps the Turkish table)
+            MenuItem.DisplayMode, MenuItem.Resolution, MenuItem.VSync, MenuItem.Quality, MenuItem.ReduceMotion,
             MenuItem.MasterVolume, MenuItem.MusicVolume, MenuItem.EffectsVolume, MenuItem.Back,
         };
 

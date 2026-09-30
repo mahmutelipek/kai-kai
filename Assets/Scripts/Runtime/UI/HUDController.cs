@@ -53,7 +53,8 @@ namespace Game
         {
             if (_board == null || _board.Run == null) return;
             RunSimulation r = _board.Run;
-            _presenter.Update(r, _run != null ? _run.BestDistance : 0f, Time.unscaledTime, Time.unscaledDeltaTime);
+            _presenter.Feel.ReduceMotion = CameraController.ReduceMotion;
+            _presenter.Update(r, _run != null ? _run.BestDistance : 0f, Time.unscaledTime, Time.unscaledDeltaTime, Time.deltaTime);
             HudState s = _presenter.State;
             for (int i = 0; i < s.Human.Length; i++) s.Human[i] = _router != null && _router.IsHumanControlled(i);
             s.DebugPanelOpen = _overlay != null && _overlay.Visible;

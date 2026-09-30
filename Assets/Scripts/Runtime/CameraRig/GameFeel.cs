@@ -18,6 +18,12 @@ namespace Game
 
         public bool Enabled { get; set; } = true;
 
+        /// <summary>
+        /// The pause menu owns time while open: this component writes Time.timeScale every frame, so without the flag
+        /// it would reset the pause's 0 back to 1 (countdown, particles and effects kept running under the menu).
+        /// </summary>
+        public bool Paused { get; set; }
+
         public void Initialize(BoardController board)
         {
             _board = board;
@@ -47,6 +53,7 @@ namespace Game
 
         void Update()
         {
+            if (Paused) { Time.timeScale = 0f; return; }
             if (!Enabled || CameraController.ReduceMotion) { Time.timeScale = 1f; return; }
             float now = Time.unscaledTime;
             float scale = 1f;

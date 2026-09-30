@@ -10,6 +10,10 @@ namespace Game.Simulation
         public int PlayersFell;
         public int PlayersRespawned;
         public int Staggers;
+        /// <summary>The crew jumped together: the board hopped (M4.3).</summary>
+        public bool Ollie;
+        /// <summary>Everyone on the deck jumped together: bigger hop.</summary>
+        public bool PerfectOllie;
     }
 
     /// <summary>
@@ -27,6 +31,16 @@ namespace Game.Simulation
         public readonly List<PlayerSim> Players = new List<PlayerSim>(MaxPlayers);
         public WeightResult LastWeight;
         public float Time;
+        readonly float[] _lastJump = { -9f, -9f, -9f, -9f, -9f, -9f };
+        float _ollieCooldown;
+        /// <summary>
+        /// Seconds after an ollie pops during which the riders who were late can still join and upgrade it to a
+        /// PERFECT OLLIE (extra lift while the board is rising). Without it "everyone together" would mean the last
+        /// riders pressing in the very same 1/60 s frame as the threshold rider: impossible for humans.
+        /// </summary>
+        public const float PerfectOllieGrace = 0.15f;
+        float _perfectGrace;
+        readonly bool[] _ollieCrew = new bool[MaxPlayers];
 
         readonly WeightSample[] _samples = new WeightSample[MaxPlayers];
 
@@ -77,6 +91,10 @@ namespace Game.Simulation
         /// <summary>Default start formation: two columns, spread along the deck.</summary>
         public void PlaceInFormation()
         {
+            _perfectGrace = 0f;
+            _ollieCooldown = 0f;
+            Array.Clear(_ollieCrew, 0, _ollieCrew.Length);
+            for (int i = 0; i < _lastJump.Length; i++) _lastJump[i] = -9f;
             float x = Tuning.HalfWidth * 0.4f;
             for (int i = 0; i < ActivePlayerCount; i++)
             {
@@ -139,11 +157,51 @@ namespace Game.Simulation
                 }
             }
 
-            // 5) weight model -> board physics
+            // 5) crew ollie: enough riders jumping within a short window make the board hop
+            _ollieCooldown = Math.Max(0f, _ollieCooldown - dt);
+            int onDeck = 0, jumped = 0, crew = 0;
+            for (int i = 0; i < ActivePlayerCount; i++)
+            {
+                PlayerSim p = Players[i];
+                if (!p.IsOnBoard) continue;
+                onDeck++;
+                if (p.JumpStarted) { _lastJump[i] = Time; if (_perfectGrace > 0f) _ollieCrew[i] = true; }
+                if (Time - _lastJump[i] <= t.ollieWindow) jumped++;
+                if (_ollieCrew[i]) crew++;
+            }
+            if (_perfectGrace > 0f)
+            {
+                // late riders joined in time: upgrade to perfect (only while the board is still going up)
+                _perfectGrace -= dt;
+                if (crew >= onDeck && onDeck > 1 && Board.OllieLift(t.perfectOllieVelocity - t.ollieVelocity))
+                {
+                    events.PerfectOllie = true;
+                    _perfectGrace = 0f;
+                }
+                if (_perfectGrace <= 0f) Array.Clear(_ollieCrew, 0, _ollieCrew.Length);
+            }
+            else if (onDeck > 0 && _ollieCooldown <= 0f && jumped >= Math.Max(1, (int)MathF.Ceiling(t.ollieCrewFraction * onDeck)))
+            {
+                bool perfect = jumped >= onDeck && onDeck > 1;
+                if (Board.Ollie(perfect ? t.perfectOllieVelocity : t.ollieVelocity))
+                {
+                    events.Ollie = true;
+                    events.PerfectOllie = perfect;
+                    _ollieCooldown = t.ollieCooldown;
+                    if (!perfect && onDeck > 1)
+                    {
+                        _perfectGrace = PerfectOllieGrace;
+                        for (int i = 0; i < _ollieCrew.Length; i++) _ollieCrew[i] = i < ActivePlayerCount && Time - _lastJump[i] <= t.ollieWindow;
+                    }
+                    for (int i = 0; i < _lastJump.Length; i++) _lastJump[i] = -9f;
+                }
+            }
+
+            // 6) weight model -> board physics
             LastWeight = ComputeWeight();
             events.Board = Board.Step(dt, LastWeight, t, Ground);
 
-            // 6) reactions to board events
+            // 7) reactions to board events
             if (events.Board.Crashed)
             {
                 for (int i = 0; i < ActivePlayerCount; i++)

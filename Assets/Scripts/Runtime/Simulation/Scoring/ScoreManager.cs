@@ -58,6 +58,8 @@ namespace Game.Simulation
             Score = 0f; Combo = 0; BestCombo = 0; Coins = 0; Diamonds = 0; NearMisses = 0; CleanLandings = 0; SectionsCleared = 0;
             Airtime = 0f; Distance = 0f; _distanceCarry = 0f; _idle = 0f; _drainCarry = 0f;
             DistancePoints = CoinPoints = DiamondPoints = NearMissPoints = AirtimePoints = 0f;
+            Ollies = CarveBoosts = Slipstreams = 0;
+            MovePoints = 0f;
         }
 
         /// <summary>Advances time: distance points and combo drain after comboIdleTime without a combo event.</summary>
@@ -113,6 +115,17 @@ namespace Game.Simulation
         public void OnNearMiss() { NearMisses++; NearMissPoints += Award(_t.nearMissPoints); AddCombo(ComboPerNearMiss); }
 
         public void OnNitroPickup() => AddCombo(ComboPerNitroPickup);
+
+        // M4.3 moves
+        public int Ollies { get; private set; }
+        public int CarveBoosts { get; private set; }
+        public int Slipstreams { get; private set; }
+        public float MovePoints { get; private set; }
+        public void OnOllie(bool perfect) { Ollies++; MovePoints += Award(_t.olliePoints * (perfect ? 2f : 1f)); AddCombo(perfect ? 2 : 1); }
+        /// <summary>An ollie already scored as normal became perfect: add the difference (same totals as a perfect one).</summary>
+        public void OnPerfectOllieUpgrade() { MovePoints += Award(_t.olliePoints); AddCombo(1); }
+        public void OnCarveBoost(bool big) { CarveBoosts++; MovePoints += Award(_t.carveBoostPoints * (big ? 2f : 1f)); AddCombo(big ? 3 : 2); }
+        public void OnSlipstream() { Slipstreams++; MovePoints += Award(_t.slipstreamPoints); AddCombo(1); }
 
         /// <summary>Airtime always scores (if long enough); only clean landings grow the combo.</summary>
         public void OnLanding(float airtime, bool clean)

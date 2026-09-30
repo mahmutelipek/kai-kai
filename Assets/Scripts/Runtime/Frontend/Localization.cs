@@ -110,6 +110,13 @@ namespace Game.Frontend
             ["NEW BEST DISTANCE!"] = "YENİ MESAFE REKORU!",
             ["PRESS R, SPACE OR (A) TO RIDE AGAIN"] = "TEKRAR İÇİN R, BOŞLUK YA DA (A)",
             ["ACHIEVEMENT UNLOCKED"] = "BAŞARIM AÇILDI",
+            ["OLLIE!"] = "OLLIE!",
+            ["PERFECT OLLIE!"] = "MÜKEMMEL OLLIE!",
+            ["CARVE BOOST!"] = "VİRAJ TURBOSU!",
+            ["MEGA CARVE BOOST!"] = "MEGA VİRAJ TURBOSU!",
+            ["SLIPSTREAM!"] = "RÜZGAR TÜNELİ!",
+            ["TRICKS"] = "HAREKETLER",
+            ["JUMP TOGETHER TO OLLIE!"] = "BİRLİKTE ZIPLA, TAHTA SIÇRASIN!",
         };
     }
 }

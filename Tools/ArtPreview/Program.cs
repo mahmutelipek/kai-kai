@@ -126,6 +126,11 @@ namespace ArtPreview
 
         static int Main(string[] args)
         {
+            if (args.Length > 1 && args[0] == "audio")
+            {
+                AudioExport.Run(args[1]);
+                return 0;
+            }
             if (args.Length > 0 && args[0] == "drawcalls")
             {
                 DrawCalls.Report(7, new[] { 300f, 1500f, 3000f, 6000f });
@@ -147,8 +152,11 @@ namespace ArtPreview
                 ["menu_title"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.GentleCurve, LocalAlong = 20f, Menu = Game.Frontend.MenuScreen.Title }),
                 ["menu_lobby"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 400f, Menu = Game.Frontend.MenuScreen.Lobby }),
                 ["menu_pause_tr"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 40f, Hud = true, Menu = Game.Frontend.MenuScreen.Pause, Language = Game.Frontend.Language.Turkish }),
+                ["menu_pause"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Bridge, LocalAlong = 40f, Hud = true, Menu = Game.Frontend.MenuScreen.Pause }),
                 ["menu_settings"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 300f, Menu = Game.Frontend.MenuScreen.Settings }),
                 ["hud_curve_tr"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.HardCurve, LocalAlong = 15f, Hud = true, Language = Game.Frontend.Language.Turkish }),
+                ["hud_nitro"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Straight, LocalAlong = 20f, MinDistance = 500f, Hud = true, NitroSeconds = 0.12f }),
+                ["hud_nitro_wind"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Straight, LocalAlong = 20f, MinDistance = 500f, Hud = true, NitroSeconds = 1.2f }),
                 ["hud_start"] = () => GameplayScenes.Build(new GameplayScenes.Options { MinDistance = 60f, Hud = true, Countdown = "2" }),
                 ["game_ramp"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Ramp, LocalAlong = 20f }),
                 ["game_construction"] = () => GameplayScenes.Build(new GameplayScenes.Options { Kind = ChunkKind.Construction, LocalAlong = 30f }),

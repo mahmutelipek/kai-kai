@@ -34,6 +34,8 @@ namespace Game.Simulation
         public float FallTimer;
         public float StaggerTimer;
         public float JumpCooldown;
+        /// <summary>True on the step this player took off (crew ollie detection).</summary>
+        public bool JumpStarted;
         public float BodyWeight = 1f;
         /// <summary>Normalized direction (board-local) the player left the board in; used by visuals.</summary>
         public Vector2 FallDirection;
@@ -110,6 +112,7 @@ namespace Game.Simulation
                 return;
             }
 
+            JumpStarted = false;
             JumpCooldown = Math.Max(0f, JumpCooldown - dt);
             StaggerTimer = Math.Max(0f, StaggerTimer - dt);
             bool airborne = IsAirborne;
@@ -139,6 +142,7 @@ namespace Game.Simulation
             {
                 VerticalVelocity = t.playerJumpVelocity;
                 JumpCooldown = t.playerJumpCooldown;
+                JumpStarted = true;
             }
             if (Height > 0f || VerticalVelocity > 0f)
             {

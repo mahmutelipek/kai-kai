@@ -14,6 +14,8 @@ namespace Game.Hud
     public sealed class HudPresenter
     {
         public readonly HudState State = new HudState();
+        /// <summary>The shared sense-of-speed signals (the Unity camera, post effects, particles and audio read these too).</summary>
+        public readonly Game.Art.SpeedFeel Feel = new Game.Art.SpeedFeel();
 
         int _distance = -1, _best = -1, _coins = -1, _diamonds = -1, _score = -1, _mult = -1, _speed = -1, _nitro = -1;
         float _wobbleWarnCooldown;
@@ -21,7 +23,8 @@ namespace Game.Hud
         static readonly CultureInfo Ci = CultureInfo.InvariantCulture;
 
         /// <summary>Per-frame update from the current run state (no allocation unless a shown value changed).</summary>
-        public void Update(RunSimulation r, float bestDistance, float time, float dt)
+        /// <param name="simDt">Game-time step (0 while paused) for the speed feel; negative = same as <paramref name="dt"/>.</param>
+        public void Update(RunSimulation r, float bestDistance, float time, float dt, float simDt = -1f)
         {
             HudState s = State;
             s.Time = time;
@@ -50,6 +53,15 @@ namespace Game.Hud
             for (int i = 0; i < s.OnBoard.Length; i++) s.OnBoard[i] = i < r.Board.ActivePlayerCount && r.Board.Players[i].IsOnBoard;
             s.LivesLeft = r.LivesLeft;
             s.LivesMax = r.LivesPerRun;
+
+            // wind streaks: advance on game time, so they freeze with the pause menu
+            if (simDt < 0f) simDt = dt;
+            Feel.Update(r, simDt);
+            s.Wind = Feel.Wind;
+            s.WindNitro = Feel.Nitro;
+            s.WindBoost = Feel.Boost;
+            s.WindTime += simDt;
+            s.FlashAge += dt;
 
             // decays
             s.CoinPop = Math.Max(0f, s.CoinPop - dt * 5f);
@@ -88,9 +100,25 @@ namespace Game.Hud
             if (ev.Diamonds > 0) Push(Loc.T("DIAMOND!") + "  +" + ((int)(r.Tuning.diamondPoints * mult)).ToString(Ci), HudColor.Hex(0xD08CFF));
             if (ev.NitroPickups > 0) Push(Loc.T("NITRO GET!"), HudLayout.Cyan);
             if (ev.NitroStarted) Push(Loc.T("NITRO BOOST!"), HudLayout.Cyan);
+            Feel.OnStep(ev);
+            if (ev.NitroStarted) Flash(HudColor.Hex(0x8FEFFF, 0.95f));
+            else if (ev.CarveBoost > 0) Flash(HudColor.Hex(0xFFC070, ev.CarveBoost > 1 ? 0.6f : 0.4f));
+            else if (ev.PerfectOllie) Flash(HudColor.Hex(0xFFFFFF, 0.35f));
+            if (ev.PerfectOllie) Push(Loc.T("PERFECT OLLIE!") + "  +" + ((int)(r.Tuning.olliePoints * 2f * mult)).ToString(Ci), HudLayout.Yellow);
+            else if (ev.Ollie) Push(Loc.T("OLLIE!"), HudColor.White);
+            if (ev.CarveBoost > 1) Push(Loc.T("MEGA CARVE BOOST!"), HudColor.Hex(0xFF8A1F));
+            else if (ev.CarveBoost > 0) Push(Loc.T("CARVE BOOST!"), HudColor.Hex(0xFFB347));
+            if (ev.SlipstreamStarted) Push(Loc.T("SLIPSTREAM!"), HudLayout.Cyan);
             if (ev.HeavyHits > 0) Push(Loc.T("OUCH! COMBO LOST"), HudColor.Hex(0xFF6A50));
             if (ev.Crashed) Push(r.LivesPerRun > 0 ? Loc.T("WIPEOUT!") + "  " + r.LivesLeft.ToString(Ci) + " " + Loc.T("LEFT") : Loc.T("WIPEOUT!"), HudLayout.Red);
         }
+
+        void Flash(HudColor c)
+        {
+            State.FlashColor = c;
+            State.FlashAge = 0f;
+        }
+
 
         /// <summary>Forces every cached string to rebuild (language changed).</summary>
         public void Invalidate()
@@ -123,6 +151,7 @@ namespace Game.Hud
             s.EndLines.Add((Loc.T("COINS"), sc.Coins.ToString(Ci), "+" + sc.CoinPoints.ToString("N0", Ci)));
             s.EndLines.Add((Loc.T("DIAMONDS"), sc.Diamonds.ToString(Ci), "+" + sc.DiamondPoints.ToString("N0", Ci)));
             s.EndLines.Add((Loc.T("NEAR MISSES"), sc.NearMisses.ToString(Ci), "+" + sc.NearMissPoints.ToString("N0", Ci)));
+            s.EndLines.Add((Loc.T("TRICKS"), (sc.Ollies + sc.CarveBoosts + sc.Slipstreams).ToString(Ci), "+" + sc.MovePoints.ToString("N0", Ci)));
             s.EndLines.Add((Loc.T("AIRTIME"), sc.Airtime.ToString("0.0", Ci) + " s", "+" + sc.AirtimePoints.ToString("N0", Ci)));
             s.EndLines.Add((Loc.T("BEST COMBO"), "x" + ScoreManager.MultiplierFor(sc.BestCombo, r.Tuning).ToString(Ci), ""));
             s.EndScore = Loc.T("SCORE") + "  " + sc.Score.ToString("N0", Ci);

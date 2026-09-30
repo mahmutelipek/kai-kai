@@ -7,6 +7,11 @@ Current state: **Milestone 4 – stylised visual pass** (6 distinct riders, gian
 skyline, glowing pickups, wheel dust, 3/4 chase camera, post-processing) plus a more dynamic tuning. Milestones 1–3 are done.
 M4.1 follow-up: reference-style HUD (brush panels, coin / gem pills, slanted COMBO and NITRO banners, speed wedge,
 rider avatars), 3-2-1-GO start, nitro flame and camera kick, landing dust, danger warning, a town below the road.
+M4.2: Steam-ready front end (title, lobby, pause, settings) and Steam platform layer.
+**M4.3: game-feel pass** — crew moves (ollie, carve boost, slipstream), speed and nitro effects (screen wind
+streaks, edge flash, FOV punch, lens warp, chromatic aberration, 3D wind lines, boost trails, shockwave ring) and a
+complete procedural sound bank with music. The game is **English only** for now (the Turkish table stays in code
+for a later language release). Report: `Docs/M4_3_REPORT.md`.
 Screenshots (headless preview of the same geometry and HUD draw commands): `Docs/M4/`.
 
 ---
@@ -35,7 +40,7 @@ store assets, upload). In short:
 - Front end: title (attract ride behind it) → **lobby: every gamepad presses (A) to join its own rider, Space joins
   the keyboard (WASD), Enter a second keyboard rider (arrows)**, bots fill up to the crew size → 3-2-1-GO → run.
   **Esc / Start** pauses (also on alt-tab, Steam overlay, or a controller disconnecting). Settings: display mode,
-  resolution, vsync, quality, reduce motion, language (English / Türkçe), volumes — saved to `settings.txt`.
+  resolution, vsync, quality, reduce motion, master / music / effects volume — saved to `settings.txt`.
 - Steam features in `Assets/Scripts/Steam` (achievements, stats, leaderboards, rich presence) compile only when the
   Steamworks.NET package is installed; without it the game runs with `NullPlatform`. App ID: `SteamSettings.AppId`.
 - Builds: **Downhill → Build → Windows x64 (Steam release)** etc. (`BuildScript`), upload with `Tools/Steam/*.vdf`.
@@ -75,12 +80,42 @@ The M1 test track (M key) is ~2.5 km: straight, left curve, straight, right curv
 - **Score** = (distance + coins + diamonds + near misses + airtime) × combo multiplier at the moment each point is earned.
   Multiplier = 1 + combo / `comboStep` (10), capped at `comboMaxMultiplier` (×6).
 - **Combo** +1 coin, +3 diamond, +2 near miss, +2 clean landing, +3 hard section survived, +1 nitro pickup.
-  It drains after `comboIdleTime` (4 s) without events; a light hit (cone, crate, pothole) halves it;
+  It drains after `comboIdleTime` (5 s) without events; a light hit (cone, crate, pothole) halves it;
   a heavy hit, a player falling off or a crash resets it.
-- **Near miss**: passing a solid obstacle or car within `nearMissDistance` (1.2 m) at ≥ 10 m/s without touching it.
+- **Near miss**: passing a solid obstacle or car within `nearMissDistance` (1.5 m) at ≥ 10 m/s without touching it.
 - **Clean landing**: board comes down balanced (below the wobble zone), nobody thrown off, no crash.
 - **Run end**: `livesPerRun` (3) crashes end the run → end screen with the breakdown and best score. 0 = endless practice.
 - **High score** (best score, best distance) is stored in `Application.persistentDataPath/highscores.txt`.
+
+## Crew moves (M4.3)
+
+All three are skill moves on top of steering by standing; each has a popup, a sound, an effect and points (× combo).
+
+- **Crew ollie**: when at least `ollieCrewFraction` (60 %) of the riders press jump within `ollieWindow` (0.35 s),
+  the board pops into the air at once (`ollieVelocity` 6.5 m/s, ~0.7 s of air). If the rest of the crew joins
+  within 0.15 s of the pop it becomes a **PERFECT OLLIE** (extra lift up to `perfectOllieVelocity` 8 m/s, ~0.85 s of
+  air, double points). A solo rider ollies alone. Cooldown `ollieCooldown` (0.9 s).
+  Use it to hop potholes and debris or to catch diamonds.
+- **Carve boost**: hold a hard carve (steering ≥ `carveMinSteering`) for `carveMinTime` (0.8 s), then straighten out
+  cleanly → **+`carveBoostSpeed` (5 m/s) for `carveBoostTime` (1.2 s)**; twice as long a carve = MEGA boost. Wobbling
+  or crashing cancels it (risk / reward: carving costs speed first).
+- **Slipstream**: ride within `slipstreamDistance` (16 m) behind a car going your way, inside `slipstreamWidth`
+  (1.6 m) of its line, for `slipstreamBuildTime` (0.5 s) → up to **+`slipstreamBonus` (5 m/s)** while you stay
+  there. Pull out before you hit it.
+
+## Speed feel and sound (M4.3)
+
+One engine-free `SpeedFeel` (Art/SpeedFeel.cs) drives every sense-of-speed signal so they agree: HUD wind streaks
+from the left and right screen edges (grow with speed and hard acceleration; full and **cyan under nitro**, orange on
+a carve boost), an edge flash when nitro / a boost fires, a camera FOV punch and lens warp, chromatic aberration and
+extra motion blur (URP volume), 3D wind lines rushing past the camera, cyan / orange light trails from the rear
+wheels and a shockwave ring on the road. **Reduce motion** turns off the camera-moving parts.
+
+Sound is synthesised at start-up (`Art/Audio/Synth.cs`, no asset files, license-free placeholders): wheel roll,
+wind and nitro-jet loops mixed from the ride (`AudioMix`), 21 one-shots (coin chains climb in pitch, combo steps,
+ollie pop, landings scale with airtime, crash, near-miss whoosh, countdown, menu ticks) and a 128 BPM party loop.
+Everything slows down with the crash slow-motion and fades under the pause menu. To listen outside Unity:
+`dotnet run --project Tools/ArtPreview -- audio <folder>` writes every sound as a WAV.
 
 ## Endless road (Milestone 2)
 

@@ -22,6 +22,10 @@ namespace Game.Simulation
         public bool SectionCleared;
         /// <summary>This step the run ended (no lives left).</summary>
         public bool RunEnded;
+        /// <summary>M4.3 moves: crew ollie, carve boost (1 / 2 = long carve), entering a car's slipstream.</summary>
+        public bool Ollie, PerfectOllie;
+        public int CarveBoost;
+        public bool SlipstreamStarted;
     }
 
     public enum RunState
@@ -84,6 +88,10 @@ namespace Game.Simulation
         public int LivesPerRun => (int)Tuning.livesPerRun;
         public bool NewBestScore { get; private set; }
         public bool NewBestDistance { get; private set; }
+        /// <summary>0..1: how deep the board is in a car's slipstream (1 = full bonus).</summary>
+        public float Slipstream { get; private set; }
+        float _draftTime, _draftLinger;
+        int _draftSlot = -1, _draftGeneration = -1;
 
         public RunSimulation(BoardTuningData tuning, int seed, int players, IList<FixedChunkSpec> fixedTrack = null)
         {
@@ -110,6 +118,9 @@ namespace Game.Simulation
             LivesLeft = LivesPerRun;
             NewBestScore = NewBestDistance = false;
             _airtime = 0f;
+            _draftTime = _draftLinger = 0f;
+            _draftSlot = _draftGeneration = -1;
+            Slipstream = 0f;
             _wasCrashed = false;
             _scoredDistance = 0f;
             _sectionSerial = -1;
@@ -150,6 +161,7 @@ namespace Game.Simulation
             Board.Board.SpeedCapMultiplier = _fixedTrack == null ? Difficulty.SpeedCapMultiplier(DifficultyLevel) : 1f;
             Obstacles.Step(dt, Road, Distance, Board.Board.State.Speed);
             Pickups.Step(dt);
+            UpdateSlipstream(dt, ref ev);
 
             ev.Sim = Board.Step(dt, inputs);
 
@@ -172,6 +184,49 @@ namespace Game.Simulation
                 }
             }
             return ev;
+        }
+
+        /// <summary>
+        /// Slipstream: close behind a car driving the same way (within slipstreamDistance, lateral offset under
+        /// slipstreamWidth) the board builds up draft and gets extra target speed. Lingers 1 s after leaving.
+        /// </summary>
+        void UpdateSlipstream(float dt, ref RunStepEvents ev)
+        {
+            ref BoardState b = ref Board.Board.State;
+            int found = -1;
+            if (!b.Crashed && b.Grounded && Projection.Valid)
+            {
+                for (int i = 0; i < ObstacleField.Capacity; i++)
+                {
+                    ref Obstacle o = ref Obstacles.Items[i];
+                    if (!o.Active || o.Knocked || o.Motion != ObstacleMotion.SameDirection) continue;
+                    float ahead = o.Along - Distance - o.HalfExtents.Y - Tuning.HalfLength;
+                    if (ahead < 0.5f || ahead > Tuning.slipstreamDistance) continue;
+                    if (Math.Abs(o.Lateral - Projection.Lateral) > Tuning.slipstreamWidth) continue;
+                    found = i;
+                    break;
+                }
+            }
+            if (found >= 0)
+            {
+                bool sameCar = found == _draftSlot && Obstacles.Items[found].Generation == _draftGeneration;
+                if (!sameCar) { _draftSlot = found; _draftGeneration = Obstacles.Items[found].Generation; _draftTime = 0f; }
+                float before = _draftTime;
+                _draftTime += dt;
+                if (before < Tuning.slipstreamBuildTime && _draftTime >= Tuning.slipstreamBuildTime)
+                {
+                    ev.SlipstreamStarted = true;
+                    Score.OnSlipstream();
+                }
+                _draftLinger = 1f;
+            }
+            else
+            {
+                _draftLinger = Math.Max(0f, _draftLinger - dt);
+                if (_draftLinger <= 0f) _draftTime = 0f;
+            }
+            Slipstream = _draftTime >= Tuning.slipstreamBuildTime ? _draftLinger : SimMath.Clamp01(_draftTime / Math.Max(Tuning.slipstreamBuildTime, 1e-3f)) * 0.5f;
+            b.ExternalSpeedBonus = _draftTime >= Tuning.slipstreamBuildTime ? Tuning.slipstreamBonus * _draftLinger : 0f;
         }
 
         static bool AnyAction(IReadOnlyList<PlayerInputState> inputs)
@@ -205,6 +260,11 @@ namespace Game.Simulation
             // near misses
             Obstacles.TrackNearMisses(s, Tuning, Distance, _nearMisses);
             for (int i = 0; i < _nearMisses.Count; i++) { LastNearMisses.Add(_nearMisses[i]); Score.OnNearMiss(); ev.NearMisses++; }
+
+            // moves
+            if (ev.Sim.Ollie) { ev.Ollie = true; ev.PerfectOllie = ev.Sim.PerfectOllie; Score.OnOllie(ev.PerfectOllie); }
+            else if (ev.Sim.PerfectOllie) { ev.PerfectOllie = true; Score.OnPerfectOllieUpgrade(); } // late riders joined in time
+            if (ev.Sim.Board.CarveBoost > 0) { ev.CarveBoost = ev.Sim.Board.CarveBoost; Score.OnCarveBoost(ev.CarveBoost > 1); }
 
             // airtime and landings
             if (!s.Grounded && !s.Crashed) _airtime += dt;

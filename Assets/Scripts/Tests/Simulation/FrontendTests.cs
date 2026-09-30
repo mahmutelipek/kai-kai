@@ -48,6 +48,8 @@ namespace Game.Tests
             var run = new RunSimulation(new BoardTuningData { livesPerRun = 3 }, 3, 6);
             var p = new HudPresenter();
             p.Update(run, 0f, 0f, 0.016f);
+            p.OnStep(new RunStepEvents { Ollie = true, PerfectOllie = true, CarveBoost = 2, SlipstreamStarted = true }, run);
+            p.OnStep(new RunStepEvents { Ollie = true, CarveBoost = 1 }, run);
             p.OnStep(new RunStepEvents { NearMisses = 1, CleanLanding = true, Landed = true, Airtime = 1f, SectionCleared = true, Diamonds = 1,
                                          NitroPickups = 1, NitroStarted = true, HeavyHits = 1, Crashed = true }, run);
             p.FillEndScreen(run);
@@ -94,11 +96,9 @@ namespace Game.Tests
             Assert.AreEqual(MenuScreen.Pause, m.Screen);
             Assert.AreEqual(MenuAction.Resume, m.Handle(new MenuInput { Back = true }));
 
-            // language cycles and reports a language change
+            // English only for now: no language item in the settings list
             m.Open(MenuScreen.Settings, push: false);
-            while (m.Focused != MenuItem.Language) m.Handle(new MenuInput { Down = true });
-            Assert.AreEqual(MenuAction.LanguageChanged, m.Handle(new MenuInput { Right = true }));
-            Assert.AreEqual(Language.Turkish, m.Settings.Language);
+            CollectionAssert.DoesNotContain(m.Items, MenuItem.Language);
         }
 
         [Test]

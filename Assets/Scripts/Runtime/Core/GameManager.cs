@@ -31,6 +31,7 @@ namespace Game
         public DebugOverlay Overlay { get; private set; }
         public GameFeel Feel { get; private set; }
         public HUDController Hud { get; private set; }
+        public AudioDirector Audio { get; private set; }
         public BackdropView Backdrop { get; private set; }
         public FrontendController Frontend { get; private set; }
 
@@ -80,7 +81,7 @@ namespace Game
             for (int i = 0; i < Game.Simulation.BoardSimulation.MaxPlayers; i++) PlayerView.Create(i, Board, BoardView, InputRouter);
 
             CameraRig = CameraController.Create(Board);
-            SpeedLines.Create(CameraRig.GetComponent<Camera>(), Board);
+            SpeedLines speedLines = SpeedLines.Create(CameraRig.GetComponent<Camera>(), Board);
             Feel = gameObject.AddComponent<GameFeel>();
             Feel.Initialize(Board);
             Run = gameObject.AddComponent<RunManager>();
@@ -92,6 +93,8 @@ namespace Game
             tuningPanel.Initialize(tuning);
             Hud = gameObject.AddComponent<HUDController>();
             Hud.Initialize(Board, Run, InputRouter, Overlay);
+            speedLines.Feel = CameraRig.Feel = Hud.Presenter.Feel;
+            Audio = AudioDirector.Create(gameObject, Board, Hud);
             gameObject.AddComponent<GameHotkeys>().Initialize(Board, InputRouter, Run, Overlay, tuningPanel, Hud);
             PlatformServices.Initialize();
             gameObject.AddComponent<AchievementReporter>().Initialize(Board, InputRouter);

@@ -154,12 +154,20 @@ namespace Game.Tests
             float Get(string name) => (float)typeof(BoardTuningData).GetField(name).GetValue(d);
             foreach (var kv in expectedChanges) Assert.AreEqual(kv.Value.m4, Get(kv.Key), 1e-6, kv.Key);
 
+            // fields added after M3 (M4.3 moves) are new, not changes
+            var added = new HashSet<string>
+            {
+                "ollieVelocity", "perfectOllieVelocity", "ollieWindow", "ollieCrewFraction", "ollieCooldown",
+                "carveMinSteering", "carveMinTime", "carveBoostSpeed", "carveBoostTime", "carveBoostAcceleration",
+                "slipstreamDistance", "slipstreamWidth", "slipstreamBonus", "slipstreamBuildTime",
+                "olliePoints", "carveBoostPoints", "slipstreamPoints",
+            };
             // everything else must still equal the M3 defaults (hash of the remaining fields)
             double sum = 0;
             int n = 0;
             foreach (FieldInfo f in typeof(BoardTuningData).GetFields())
             {
-                if (f.FieldType != typeof(float) || expectedChanges.ContainsKey(f.Name)) continue;
+                if (f.FieldType != typeof(float) || expectedChanges.ContainsKey(f.Name) || added.Contains(f.Name)) continue;
                 sum += (float)f.GetValue(d) * (++n % 7 + 1);
             }
             TestContext.WriteLine($"unchanged tuning fields: {n}, weighted sum {sum:R}");

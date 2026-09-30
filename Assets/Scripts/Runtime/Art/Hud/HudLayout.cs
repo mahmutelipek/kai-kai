@@ -62,6 +62,16 @@ namespace Game.Hud
         public readonly List<HudPopup> Popups = new List<HudPopup>(8);
         public bool DebugPanelOpen;
 
+        // speed feel (M4.3): screen-edge wind streaks and flashes
+        /// <summary>0..1 wind streak strength (speed, acceleration, nitro, boost, slipstream).</summary>
+        public float Wind;
+        /// <summary>Streak tint: 0 white, 1 nitro cyan; Boost tints orange.</summary>
+        public float WindNitro, WindBoost;
+        /// <summary>Streak animation clock (game time: stops while paused).</summary>
+        public float WindTime;
+        public HudColor FlashColor;
+        public float FlashAge = 9f;
+
         // end of run
         public bool Ended;
         public string EndTitle = "RUN OVER";
@@ -113,6 +123,15 @@ namespace Game.Hud
                 Img(o, HudTex.Vignette, 0f, 0f, screenW, screenH, Red.WithAlpha(Math.Min(0.85f, d * pulse)));
             }
             if (s.NitroActive) Img(o, HudTex.Vignette, 0f, 0f, screenW, screenH, Cyan.WithAlpha(0.45f + 0.1f * (float)Math.Sin(s.Time * 20f)));
+
+            WindStreaks(s, screenW, screenH, k, o);
+            if (s.FlashAge < FlashTime)
+            {
+                // edge burst: the glow rushes in from the screen border and fades (nitro / carve boost / perfect ollie)
+                float f = 1f - s.FlashAge / FlashTime;
+                Img(o, HudTex.Vignette, 0f, 0f, screenW, screenH, s.FlashColor.WithAlpha(s.FlashColor.A * f), scale: 1f + 0.25f * f);
+                Img(o, HudTex.Vignette, 0f, 0f, screenW, screenH, s.FlashColor.WithAlpha(s.FlashColor.A * f * f));
+            }
 
             if (s.Ended) { EndScreen(s, (L + R) * 0.5f, (T + B) * 0.5f, k, o); return; }
 
@@ -208,6 +227,51 @@ namespace Game.Hud
                 float pop = 0.5f + 0.5f * EaseOutBack(Clamp01(p.Age / 0.22f));
                 Txt(o, p.Text, (L + R) * 0.5f - 420f * k, py - p.Age * 36f * k, 840f * k, 64f * k, 48f * k, p.Color.WithAlpha(a), HudAlign.Center, 4f * k, pop);
                 py += 60f * k;
+            }
+        }
+
+        const int MaxStreaks = 60;
+        public const float FlashTime = 0.45f;
+
+        /// <summary>
+        /// Anime-style wind: thin streaks rushing outward along the left and right screen edges (the centre, where
+        /// the board and the road are, stays clear). Count, length and opacity grow with Wind; tinted cyan under
+        /// nitro and orange during a carve boost. Deterministic per streak (no allocation, no RNG state).
+        /// </summary>
+        static void WindStreaks(HudState s, float w, float h, float k, List<HudCmd> o)
+        {
+            if (s.Wind <= 0.02f) return;
+            int count = (int)(MaxStreaks * Clamp01(s.Wind));
+            float cx = w * 0.5f, cy = h * 0.55f;
+            HudColor tint = new HudColor(1f - 0.7f * s.WindNitro, 1f - 0.08f * s.WindNitro - 0.25f * s.WindBoost, 1f - 0.65f * s.WindBoost);
+            for (int i = 0; i < count; i++)
+            {
+                float r1 = Hash01(i * 3 + 1), r2 = Hash01(i * 3 + 2), r3 = Hash01(i * 3 + 3);
+                // angles hug the left and right sides (+-40 degrees around horizontal), a few more below the horizon
+                float side = i % 2 == 0 ? 0f : (float)Math.PI;
+                float spread = (r1 - 0.42f) * 1.4f;
+                float ang = side + (i % 2 == 0 ? spread : -spread);
+                float dirX = (float)Math.Cos(ang), dirY = (float)Math.Sin(ang);
+                // distance to the screen edge along this direction: streaks travel from 35 % of it to just past it
+                float edge = Math.Min(Math.Abs(dirX) > 1e-3f ? cx / Math.Abs(dirX) : 1e9f, Math.Abs(dirY) > 1e-3f ? cy / Math.Abs(dirY) : 1e9f);
+                float speed = 1.2f + 1.4f * r2 + 1.6f * s.Wind;
+                float t = (s.WindTime * speed + r3) % 1f;
+                float dist = edge * (0.38f + 0.7f * t);
+                float len = (140f + 260f * s.Wind) * k * (0.5f + 0.9f * r2) * (0.5f + t);
+                float thick = (4f + 5f * r3) * k * (0.6f + 0.6f * s.Wind);
+                float px = cx + dirX * dist, py = cy + dirY * dist;
+                float alpha = Clamp01(0.3f + s.Wind * 0.9f) * (float)Math.Sin(t * Math.PI) * (0.55f + 0.45f * r1);
+                Img(o, HudTex.Streak, px - len * 0.5f, py - thick, len, thick * 2f, tint.WithAlpha(alpha), rot: ang * 180f / (float)Math.PI);
+            }
+        }
+
+        static float Hash01(int n)
+        {
+            unchecked
+            {
+                uint x = (uint)n * 2654435761u;
+                x ^= x >> 16; x *= 2246822519u; x ^= x >> 13;
+                return (x & 0xFFFF) / 65535f;
             }
         }
 

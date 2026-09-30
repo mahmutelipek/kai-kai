@@ -51,11 +51,13 @@ namespace Game
 
         void GoToTitle()
         {
+            _gm.Feel.Paused = false;
             Time.timeScale = 1f;
             _gm.Board.Frozen = false;
             _gm.InputRouter.SetAttract(true);
             _gm.Board.Simulation.SetActivePlayerCount(6);
             _gm.Hud.Visible = false;
+            if (_gm.Audio != null) _gm.Audio.Attract = true;
             _model.Lobby.Joined.Clear();
             _model.Open(MenuScreen.Title, push: false);
             _gm.Run.RestartRun(countdown: false);
@@ -72,6 +74,7 @@ namespace Game
             _gm.Board.Simulation.SetActivePlayerCount(lobby.RiderCount);
             _model.Close();
             _gm.Hud.Visible = true;
+            if (_gm.Audio != null) _gm.Audio.Attract = false;
             SaveSettings();
             _gm.Run.RestartRun();
             PlatformServices.Current.SetRichPresence($"Riding downhill with {lobby.Joined.Count} player(s)");
@@ -82,12 +85,15 @@ namespace Game
             if (InMenu || _gm.Board.Run.State == Simulation.RunState.Ended) return;
             _model.Open(MenuScreen.Pause, push: false);
             _gm.Board.Frozen = true;
+            _gm.Feel.Paused = true;
             Time.timeScale = 0f;
+            _gm.Audio?.Ui(Audio.Sfx.UiBack);
         }
 
         public void Resume()
         {
             _model.Close();
+            _gm.Feel.Paused = false;
             Time.timeScale = 1f;
             _gm.Board.Frozen = _gm.Run.CountingDown;
         }
@@ -114,10 +120,21 @@ namespace Game
             if (_model.Lobby.Joined.Count == 0 && _model.Screen != MenuScreen.Pause && _gm.Board.Run.State == Simulation.RunState.Ended)
                 _gm.Run.RestartRun(countdown: false);
 
-            if (_model.Screen == MenuScreen.Lobby) HandleJoins();
+            if (_model.Screen == MenuScreen.Lobby)
+            {
+                int riders = _model.Lobby.Joined.Count;
+                HandleJoins();
+                int now = _model.Lobby.Joined.Count;
+                if (now > riders) _gm.Audio?.Ui(Audio.Sfx.Join);
+                else if (now < riders) _gm.Audio?.Ui(Audio.Sfx.UiBack);
+            }
             MenuInput input = ReadMenuInput();
             if (!input.Any) return;
-            switch (_model.Handle(input))
+            MenuScreen screenBefore = _model.Screen;
+            int focusBefore = _model.Focus;
+            MenuAction action = _model.Handle(input);
+            UiSound(input, action, screenBefore, focusBefore);
+            switch (action)
             {
                 case MenuAction.StartRun: StartRun(); break;
                 case MenuAction.Resume: Resume(); break;
@@ -127,6 +144,16 @@ namespace Game
                 case MenuAction.SettingsChanged: ApplySettings(_model.Settings); SaveSettings(); break;
                 case MenuAction.LanguageChanged: ApplySettings(_model.Settings); _gm.Hud.Presenter.Invalidate(); SaveSettings(); break;
             }
+        }
+
+        /// <summary>Menu feedback: a tick when the focus or a value moves, a chime on confirm, a lower one on back.</summary>
+        void UiSound(MenuInput input, MenuAction action, MenuScreen screenBefore, int focusBefore)
+        {
+            AudioDirector audio = _gm.Audio;
+            if (audio == null) return;
+            if (input.Back && (_model.Screen != screenBefore || action == MenuAction.Resume)) audio.Ui(Audio.Sfx.UiBack);
+            else if (input.Submit && action != MenuAction.None || _model.Screen != screenBefore) audio.Ui(Audio.Sfx.UiSelect);
+            else if (_model.Focus != focusBefore || action == MenuAction.SettingsChanged) audio.Ui(Audio.Sfx.UiMove);
         }
 
         void OnApplicationFocus(bool focus)
@@ -240,7 +267,7 @@ namespace Game
 
         GameSettings LoadSettings()
         {
-            var defaults = new GameSettings { Language = GameSettings.LanguageFor(Application.systemLanguage.ToString()) };
+            var defaults = new GameSettings { Language = Language.English };
             try
             {
                 return File.Exists(_settingsPath) ? GameSettings.Parse(File.ReadAllText(_settingsPath), defaults) : defaults;
@@ -285,9 +312,11 @@ namespace Game
 
         void ApplySettings(GameSettings s)
         {
-            Loc.Current = s.Language;
+            Loc.Current = Language.English; // English only for now (the settings keep the field for later)
             CameraController.ReduceMotion = s.ReduceMotion;
             AudioListener.volume = s.MasterVolume;
+            AudioDirector.MusicVolume = s.MusicVolume;
+            AudioDirector.EffectsVolume = s.EffectsVolume;
             QualitySettings.vSyncCount = s.VSync ? 1 : 0;
             Application.targetFrameRate = s.VSync ? -1 : 144;
             int levels = QualitySettings.names.Length;

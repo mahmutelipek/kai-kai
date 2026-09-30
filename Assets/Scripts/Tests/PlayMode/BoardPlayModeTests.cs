@@ -236,6 +236,8 @@ namespace Game.Tests
             float d = _gm.Run.Distance;
             yield return new WaitForSecondsRealtime(0.5f);
             Assert.AreEqual(d, _gm.Run.Distance, 1e-3, "paused: nothing moves");
+            Assert.AreEqual(0f, Time.timeScale, "paused: GameFeel must not reset time back to 1 under the menu");
+            Assert.IsNotNull(_gm.Audio, "sound director running");
             fe.Resume();
             yield return new WaitForSeconds(1f);
             Assert.That(_gm.Run.Distance, Is.GreaterThan(d), "resumed");

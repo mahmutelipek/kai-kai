@@ -61,7 +61,7 @@ namespace Game.Tests
                 var texts = new List<Box>();
                 foreach (HudCmd c in cmds)
                 {
-                    if (c.Tex == HudTex.Vignette) continue; // full-screen by design
+                    if (c.Tex == HudTex.Vignette || c.Tex == HudTex.Streak) continue; // full-screen effects by design
                     Box b = Bounds(c);
                     float tol = 2f;
                     Assert.That(b.X0 >= sc.sx - tol && b.Y0 >= sc.sy - tol && b.X1 <= sc.sx + sc.sw + tol && b.Y1 <= sc.sy + sc.sh + tol,
@@ -93,6 +93,67 @@ namespace Game.Tests
             for (int i = 0; i < 100; i++) HudLayout.Build(s, 1920, 1080, 0, 0, 1920, 1080, cmds);
             long alloc = GC.GetAllocatedBytesForCurrentThread() - before;
             Assert.AreEqual(0, alloc, "HUD layout must not allocate per frame");
+        }
+
+        static int Count(List<HudCmd> cmds, HudTex t)
+        {
+            int n = 0;
+            foreach (HudCmd c in cmds) if (c.Tex == t) n++;
+            return n;
+        }
+
+        [Test]
+        public void Hud_WindStreaks_GrowWithWind_StayOffTheCentre_AndDoNotAllocate()
+        {
+            HudState s = FullState();
+            var cmds = new List<HudCmd>(256);
+            int previous = -1;
+            foreach (float wind in new[] { 0f, 0.3f, 0.6f, 1f })
+            {
+                s.Wind = wind;
+                HudLayout.Build(s, 1920, 1080, 0, 0, 1920, 1080, cmds);
+                int n = Count(cmds, HudTex.Streak);
+                TestContext.WriteLine($"wind {wind:0.0}: {n} streaks");
+                Assert.That(n, Is.GreaterThan(previous), "more wind, more streaks");
+                previous = n;
+                foreach (HudCmd c in cmds)
+                {
+                    if (c.Tex != HudTex.Streak) continue;
+                    float cx = c.X + c.W * 0.5f, cy = c.Y + c.H * 0.5f;
+                    // the board and the road ahead (screen centre) stay readable
+                    Assert.That(Math.Abs(cx - 960f) > 300f || Math.Abs(cy - 560f) > 300f, $"streak at {cx:0},{cy:0} covers the centre");
+                }
+            }
+            Assert.AreEqual(0, Count(new List<HudCmd>(), HudTex.Streak));
+
+            s.WindTime = 3.7f; s.WindNitro = 1f; s.FlashAge = 0.1f; s.FlashColor = HudLayout.Cyan;
+            for (int i = 0; i < 20; i++) { s.WindTime += 0.016f; HudLayout.Build(s, 1920, 1080, 0, 0, 1920, 1080, cmds); } // warm (JIT)
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 100; i++) { s.WindTime += 0.016f; HudLayout.Build(s, 1920, 1080, 0, 0, 1920, 1080, cmds); }
+            long alloc = GC.GetAllocatedBytesForCurrentThread() - before;
+            Assert.AreEqual(0, alloc, $"wind streaks must not allocate per frame ({alloc} B, {cmds.Count} cmds, capacity {cmds.Capacity})");
+        }
+
+        [Test]
+        public void Hud_Nitro_FlashesTheEdges_AndBlowsFullWind_CrashStopsIt()
+        {
+            var run = new RunSimulation(new BoardTuningData { livesPerRun = 0 }, 9, 1);
+            var p = new HudPresenter();
+            p.Update(run, 0f, 0f, 0.016f);
+            Assert.That(p.State.Wind, Is.LessThan(0.05f), "standing still: no wind");
+
+            run.Board.Board.StartNitro(2f);
+            p.OnStep(new RunStepEvents { NitroStarted = true }, run);
+            Assert.That(p.State.FlashAge, Is.EqualTo(0f), "nitro fires an edge flash");
+            for (int i = 0; i < 60; i++) p.Update(run, 0f, i * 0.016f, 0.016f);
+            TestContext.WriteLine($"after 1 s of nitro: wind {p.State.Wind:0.00}, cyan {p.State.WindNitro:0.00}");
+            Assert.That(p.State.Wind, Is.GreaterThan(0.9f), "nitro = full wind");
+            Assert.That(p.State.WindNitro, Is.GreaterThan(0.9f), "nitro wind is cyan");
+            Assert.That(p.State.FlashAge, Is.GreaterThan(HudLayout.FlashTime), "the flash is short");
+
+            run.Board.Board.ForceCrash();
+            for (int i = 0; i < 60; i++) p.Update(run, 0f, 1f + i * 0.016f, 0.016f);
+            Assert.That(p.State.Wind, Is.LessThan(0.05f), "a crash stops the wind");
         }
 
         [Test]

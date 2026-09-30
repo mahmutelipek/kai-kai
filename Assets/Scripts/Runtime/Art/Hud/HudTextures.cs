@@ -7,6 +7,7 @@ namespace Game.Hud
     {
         None, White, Panel, Pill, Circle, Arrow, Vignette, Heart, Coin, Gem,
         Avatar0, Avatar1, Avatar2, Avatar3, Avatar4, Avatar5,
+        Streak,
     }
 
     /// <summary>RGBA8 image, rows top to bottom.</summary>
@@ -39,6 +40,7 @@ namespace Game.Hud
                 case HudTex.Circle: img = Fill(128, 128, (x, y) => Disc(x, y, 64, 64, 62)); break;
                 case HudTex.Arrow: img = Fill(64, 48, (x, y) => Poly(x, y, new[] { 4f, 4f, 60f, 4f, 32f, 44f })); break;
                 case HudTex.Vignette: img = VignetteImage(256); break;
+                case HudTex.Streak: img = StreakImage(128, 16); break;
                 case HudTex.Heart: img = Fill(64, 64, (x, y) => Math.Max(Math.Max(Disc(x, y, 21, 24, 15), Disc(x, y, 43, 24, 15)), Poly(x, y, new[] { 7f, 28f, 57f, 28f, 32f, 58f }))); break;
                 case HudTex.Coin: img = CoinImage(128); break;
                 case HudTex.Gem: img = GemImage(128); break;
@@ -149,6 +151,23 @@ namespace Game.Hud
                 int k = (y * n + x) * 4;
                 img.Rgba[k] = img.Rgba[k + 1] = img.Rgba[k + 2] = 255;
                 img.Rgba[k + 3] = (byte)(a * a * 255f);
+            }
+            return img;
+        }
+
+        /// <summary>Wind streak: a thin line with a bright head (right end) fading into a long tail, soft edges.</summary>
+        static HudImage StreakImage(int w, int h)
+        {
+            var img = new HudImage(w, h);
+            for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                float u = (x + 0.5f) / w, v = Math.Abs((y + 0.5f) / h * 2f - 1f);
+                float along = u < 0.85f ? u / 0.85f : (1f - u) / 0.15f;   // tail ramps up, head drops fast
+                float across = Clamp01(1f - v * v * 1.4f);
+                int k = (y * w + x) * 4;
+                img.Rgba[k] = img.Rgba[k + 1] = img.Rgba[k + 2] = 255;
+                img.Rgba[k + 3] = (byte)(Clamp01(along * along) * across * 255f);
             }
             return img;
         }

@@ -5,16 +5,21 @@ namespace Game
 {
     /// <summary>
     /// Speed feedback at the wheels (reference image: dust spraying from the big red wheels): dust puffs whose
-    /// rate grows with speed and with carving, a puff on landing, a spark burst on hard impacts / wall scrapes and a
-    /// blue exhaust while nitro burns.
+    /// rate grows with speed and with carving, a puff on landing, a spark burst on hard impacts / wall scrapes, a
+    /// blue exhaust while nitro burns, a shockwave ring when nitro / a carve boost fires, light trails from the rear
+    /// wheels while boosted (cyan nitro, orange carve boost) and a dust pop on a crew ollie.
     /// Visual only (game-feel skill: "feedback off the critical simulation"); pooled particle systems, no spawning.
     /// </summary>
     public sealed class BoardFx : MonoBehaviour
     {
         BoardController _board;
         ParticleSystem[] _dust;
-        ParticleSystem _sparks, _nitro;
-        static Material _material;
+        ParticleSystem _sparks, _nitro, _ring;
+        TrailRenderer[] _trails;
+        static Material _material, _trailMaterial;
+
+        static readonly Color NitroRing = new Color(0.45f, 0.95f, 1f, 0.9f);
+        static readonly Color BoostRing = new Color(1f, 0.72f, 0.3f, 0.9f);
 
         public static BoardFx Create(BoardController board, BoardView view)
         {
@@ -29,8 +34,15 @@ namespace Game
                 fx._dust[k++] = Dust(board.transform, new Vector3(xs * x, 0.1f, zs * axleZ));
             fx._sparks = Sparks(board.transform);
             fx._nitro = NitroFlame(board.transform, new Vector3(0f, 0.55f, -t.boardLength * 0.5f - 0.2f));
+            fx._ring = Shockwave(board.transform);
+            fx._trails = new[]
+            {
+                Trail(board.transform, new Vector3(-x, 0.12f, -axleZ)),
+                Trail(board.transform, new Vector3(x, 0.12f, -axleZ)),
+            };
             board.Impact += fx.OnImpact;
             board.Landed += fx.OnLanded;
+            board.Stepped += fx.OnStepped;
             return fx;
         }
 
@@ -39,6 +51,25 @@ namespace Game
             if (_board == null) return;
             _board.Impact -= OnImpact;
             _board.Landed -= OnLanded;
+            _board.Stepped -= OnStepped;
+        }
+
+        /// <summary>Nitro / carve boost: a flat ring of light bursting outward; ollie: dust pops from every wheel.</summary>
+        void OnStepped(RunStepEvents ev)
+        {
+            if (ev.NitroStarted) Burst(NitroRing, 90, 16f);
+            else if (ev.CarveBoost > 0) Burst(BoostRing, ev.CarveBoost > 1 ? 70 : 45, ev.CarveBoost > 1 ? 13f : 10f);
+            if (ev.Ollie || ev.PerfectOllie)
+                for (int i = 0; i < _dust.Length; i++) _dust[i].Emit(ev.PerfectOllie ? 16 : 10);
+        }
+
+        void Burst(Color color, int count, float speed)
+        {
+            var p = new ParticleSystem.EmitParams { startColor = color, applyShapeToPosition = true };
+            // velocity comes from the shape (radial); scale it through startSpeed for this burst
+            ParticleSystem.MainModule main = _ring.main;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(speed * 0.8f, speed);
+            _ring.Emit(p, count);
         }
 
         /// <summary>Landing puff from every wheel, bigger for harder landings.</summary>
@@ -64,6 +95,18 @@ namespace Game
             float rate = s.Grounded && !s.Crashed ? Mathf.Max(0f, speedNorm - 0.25f) * 70f * (0.5f + carve) : 0f;
             ParticleSystem.EmissionModule flame = _nitro.emission;
             flame.rateOverTimeMultiplier = s.NitroTimer > 0f && !s.Crashed ? 140f : 0f;
+            // light trails while boosted: cyan under nitro, orange on a carve boost
+            // (no trail through the air: it would draw a line from take-off to landing)
+            bool trail = !s.Crashed && s.Grounded && s.Speed > 4f && (s.NitroTimer > 0f || s.BoostTimer > 0f);
+            Color tc = s.NitroTimer > 0f ? NitroRing : BoostRing;
+            for (int i = 0; i < _trails.Length; i++)
+            {
+                TrailRenderer tr = _trails[i];
+                if (tr.emitting != trail) tr.emitting = trail;
+                if (!trail) continue;
+                tr.startColor = tc;
+                tr.endColor = new Color(tc.r, tc.g, tc.b, 0f);
+            }
             for (int i = 0; i < _dust.Length; i++)
             {
                 ParticleSystem.EmissionModule e = _dust[i].emission;
@@ -174,6 +217,61 @@ namespace Game
             col.color = g;
             ps.Play();
             return ps;
+        }
+
+        /// <summary>Flat ring at deck height: particles leave radially in the ground plane and fade while growing.</summary>
+        static ParticleSystem Shockwave(Transform parent)
+        {
+            ParticleSystem ps = Base("Boost Shockwave", parent, new Vector3(0f, 0.3f, 0f));
+            ParticleSystem.MainModule main = ps.main;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.28f, 0.4f);
+            main.startSpeed = 14f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);
+            main.maxParticles = 200;
+            ParticleSystem.EmissionModule e = ps.emission;
+            e.rateOverTime = 0f;
+            ParticleSystem.ShapeModule shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.6f;
+            shape.radiusThickness = 0f;           // spawn on the edge
+            shape.rotation = new Vector3(90f, 0f, 0f); // lie flat
+            ParticleSystem.SizeOverLifetimeModule size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 2.2f));
+            ParticleSystem.ColorOverLifetimeModule col = ps.colorOverLifetime;
+            col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                      new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            ParticleSystem.LimitVelocityOverLifetimeModule drag = ps.limitVelocityOverLifetime;
+            drag.enabled = true;
+            drag.drag = 3f;
+            ps.Play();
+            return ps;
+        }
+
+        static TrailRenderer Trail(Transform parent, Vector3 localPos)
+        {
+            var go = new GameObject("Boost Trail");
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            var tr = go.AddComponent<TrailRenderer>();
+            tr.time = 0.35f;
+            tr.minVertexDistance = 0.4f;
+            tr.widthCurve = AnimationCurve.Linear(0f, 0.16f, 1f, 0f);
+            tr.alignment = LineAlignment.View;
+            tr.emitting = false;
+            tr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            tr.receiveShadows = false;
+            if (_trailMaterial == null)
+            {
+                Shader shader = Shader.Find("Sprites/Default");
+                if (shader == null) shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                _trailMaterial = new Material(shader) { name = "Fx Boost Trail" };
+            }
+            tr.sharedMaterial = _trailMaterial;
+            return tr;
         }
 
         static ParticleSystem Sparks(Transform parent)

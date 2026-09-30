@@ -41,6 +41,9 @@ namespace Game
         /// <summary>Accessibility (skill: game-feel): no camera shake, no hit-stop / slow motion, no speed lines. F3 toggles.</summary>
         public static bool ReduceMotion;
 
+        /// <summary>Shared sense-of-speed signals (FOV punch, chroma, lens warp, blur); set by GameManager from the HUD.</summary>
+        public Game.Art.SpeedFeel Feel;
+
         Camera _camera;
         BoardController _board;
         Vector3 _velocity;
@@ -96,9 +99,13 @@ namespace Game
         /// <summary>Nitro kick: the camera is thrown back as the board surges (FOV widens separately).</summary>
         void OnStepped(RunStepEvents ev)
         {
-            if (!ev.NitroStarted) return;
-            _kickVelocity += new Vector3(0f, 0.6f, -4f);
-            _impact = Mathf.Max(_impact, 0.35f);
+            if (ev.NitroStarted)
+            {
+                _kickVelocity += new Vector3(0f, 0.6f, -4f);
+                _impact = Mathf.Max(_impact, 0.35f);
+            }
+            else if (ev.CarveBoost > 0) _kickVelocity += new Vector3(0f, 0.3f, ev.CarveBoost > 1 ? -3f : -2f);
+            if (ev.Ollie || ev.PerfectOllie) _kickVelocity += Vector3.up * (ev.PerfectOllie ? 2.5f : 1.5f);
         }
 
         void OnLanded(float landingSpeed)
@@ -150,7 +157,11 @@ namespace Game
             transform.rotation = look * Quaternion.Euler(0f, 0f, bank);
 
             float fovTarget = Mathf.Lerp(fovMin, fovMax, speedNorm) + (s.NitroTimer > 0f ? nitroFovBoost : 0f);
-            _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fovTarget, 1f - Mathf.Exp(-4f * dt));
+            if (_baseFov <= 0f) _baseFov = _camera.fieldOfView;
+            _baseFov = Mathf.Lerp(_baseFov, fovTarget, 1f - Mathf.Exp(-4f * dt));
+            // the punch rides on top unsmoothed, so it snaps out on nitro / boost fire and settles on its own curve
+            _camera.fieldOfView = _baseFov + (Feel != null ? Feel.FovPunch : 0f);
+            ApplyPost();
 
             // kick spring (landing dip, impact recoil)
             const float stiffness = 90f, damping = 14f;
@@ -170,6 +181,17 @@ namespace Game
                 var offset = new Vector3(Mathf.PerlinNoise(_noiseSeed, time) - 0.5f, Mathf.PerlinNoise(_noiseSeed + 10f, time) - 0.5f, 0f) * (2f * amp);
                 transform.position += transform.rotation * offset;
             }
+        }
+
+        float _baseFov;
+
+        /// <summary>Speed post effects (URP volume overrides bound once in SceneAtmosphere; no-ops without URP).</summary>
+        void ApplyPost()
+        {
+            if (Feel == null) return;
+            SceneAtmosphere.ChromaIntensity?.Invoke(Feel.Chroma);
+            SceneAtmosphere.LensDistortionIntensity?.Invoke(Feel.LensDistortion);
+            SceneAtmosphere.MotionBlurIntensity?.Invoke(Feel.MotionBlur);
         }
 
         Vector3 DesiredPosition(Vector3 boardPos, float yawDeg, float speedNorm)

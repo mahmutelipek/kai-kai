@@ -37,7 +37,7 @@ namespace Game.Hud
                     Slots(m, o, cx, top + 190f * k, k, time);
                     List(m, o, cx, top + 470f * k, k, 820f, compact: true);
                     Hint(o, cx, bottom - 110f * k, k, Loc.T("PRESS (A) / SPACE TO JOIN") + "   ·   " + Loc.T("ENTER: SECOND KEYBOARD RIDER (ARROWS)"));
-                    Hint(o, cx, bottom - 64f * k, k, Loc.T("(B) / ESC: LEAVE") + "   ·   " + Loc.T("STAND WHERE YOU WANT THE BOARD TO GO!"));
+                    Hint(o, cx, bottom - 64f * k, k, Loc.T("(B) / ESC: LEAVE") + "   ·   " + Loc.T("STAND WHERE YOU WANT THE BOARD TO GO!") + "   ·   " + Loc.T("JUMP TOGETHER TO OLLIE!"));
                     break;
                 case MenuScreen.Pause:
                     Title(o, Loc.T("PAUSED"), cx, top + safeH * 0.16f, k);

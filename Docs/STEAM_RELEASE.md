@@ -28,7 +28,7 @@ Kod hazır ve derleniyor: `Assets/Scripts/Steam/SteamPlatform.cs`, NuGet'teki St
 Steamworks → App Admin → Stats & Achievements. **API adları birebir aynı olmalı.**
 
 - Her başarım için 2 ikon lazım (açık/kapalı, 256×256 JPG).
-- Türkçe ad ve açıklamayı da gir.
+- Şimdilik yalnızca İngilizce ad ve açıklama yeterli (oyun şu an sadece İngilizce).
 
 | API adı | Ad | Açıklama |
 |---|---|---|
@@ -116,16 +116,16 @@ Boyutları Steamworks'teki güncel şablonlardan doğrula; Valve zaman zaman de�
 | Trailer | 30–60 sn, ilk 5 saniyede oyun görünsün |
 
 Diğer maddeler:
-- **Açıklama:** kısa + uzun, EN ve TR.
+- **Açıklama:** kısa + uzun, İngilizce (Türkçe dil desteği eklenince TR de).
 - **Etiketler:** Casual, Party, Local Co-Op, Sports, Skateboarding, Physics, Funny, Colorful.
-- **Diller:** English + Turkish (Arayüz: tam, Ses: yok).
+- **Diller:** Şimdilik yalnızca English (Arayüz: tam, Ses: yok). Türkçe çeviri tablosu kodda hazır; dil menüsü açılınca Turkish eklenir.
 - **Yaş derecelendirmesi:** Steamworks içindeki IARC anketi (şiddet yok → düşük).
 - **Fiyat ve bölgeler:** Önerilen fiyatları kontrol et. Parti oyunları genelde 5–15 USD aralığında.
 - **Gizlilik:** Oyun kişisel veri toplamıyor. Sadece yerel dosya ve Steam istatistikleri.
 
 ## 8. Çıkış öncesi oyun eksikleri (öncelik sırasıyla)
 
-1. **Ses ve müzik** (M5): tekerlek, rüzgâr, nitro, coin, combo, düşme; yüksek enerjili müzik. En büyük eksik bu.
+1. **Ses ve müzik:** M4.3'te tam bir **prosedürel ses seti** eklendi: tekerlek, rüzgâr, nitro, coin, combo, düşme, menü sesleri ve 128 BPM bir müzik döngüsü. Hepsi kodla üretiliyor, lisans sorunu yok. Yayın kalitesi için müziği ve birkaç ana efekti (nitro, crash) gerçek kayıt veya bir besteciyle değiştirmeni öneririm.
 2. **"Nasıl oynanır" ekranı:** "Tahtayı yönlendirmek için olduğun yerde dur" fikri ilk 30 saniyede anlaşılmalı.
 3. **Gerçek Unity ekran görüntüleri ve trailer:** şu an sadece headless önizleme var.
 4. **Oyun testi:** 60 fps ölçümü, Deck'te test, Remote Play Together'da 4+ kişi.
@@ -143,4 +143,4 @@ Diğer maddeler:
 - [ ] Steam overlay (Shift+Tab) oyunu duraklatıyor
 - [ ] Deck'te (veya 1280×800 pencerede) yazılar okunuyor
 - [ ] Remote Play Together ile bir arkadaş lobide katılabiliyor
-- [ ] Türkçe ve İngilizce dil seçimi çalışıyor
+- [ ] Tüm metinler İngilizce (menü, HUD, bitiş ekranı); ses ve müzik seviyeleri Ayarlar'dan değişiyor
