@@ -51,3 +51,12 @@ Tarih: 2026-09-30
   - Game over ekranında ve HIGH SCORES menüsünde aynı görünüm kullanılıyor.
 - **Karakterler:** Görsel ölçek 0.88'den **0.72**'ye düştü; sadece görünüm değişti, fizik aynı. Kaykay artık riderlara göre yaklaşık 1.56 kat büyük görünüyor. Karşılaştırma: `Docs/M4/board_size_before_after.jpg`.
 - **Test:** Headless 103/103 geçti, derleme kontrolü 0 hata ve 0 uyarı. Unity'de koşmadı.
+
+## 5. Ek tur ("zıplamalar kaykayı hafif etkilesin; kaykay hâlâ küçük")
+- **Zıplama tepkisi (DeckFlex):**
+  - Rider zıplarken ayağının altındaki güverte hafifçe iner, inişte tekrar çöker.
+  - Kenarda zıplayan rider kaykayı o tarafa, burunda zıplayan öne yatırıyor.
+  - Ölçüldü: sol ön köşeden bir zıplama ~5 cm iniş, ~2.6° yan, ~0.8° öne yatma. İki küçük sekmeyle ~1 saniyede duruluyor.
+  - Riderlar güverteyle birlikte sallanıyor. Sadece görsel; direksiyon ve fizik değişmedi.
+- **Oranlar:** Rider görsel ölçeği 0.72 → **0.60**. Kamera biraz yaklaştı (mesafe 5.4 → 4.7 m, yükseklik 2.9 → 2.6 m), kaykay ekranda belirgin şekilde daha büyük.
+- **Test:** Headless 104/104 (yeni `DeckFlexTests`), derleme kontrolü 0 hata / 0 uyarı. Unity'de koşmadı.

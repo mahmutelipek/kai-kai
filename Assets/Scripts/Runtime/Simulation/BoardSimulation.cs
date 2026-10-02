@@ -41,6 +41,8 @@ namespace Game.Simulation
         public const float PerfectOllieGrace = 0.15f;
         float _perfectGrace;
         readonly bool[] _ollieCrew = new bool[MaxPlayers];
+        /// <summary>Visual deck flex from riders jumping and landing (BoardView applies it).</summary>
+        public readonly DeckFlex Flex = new DeckFlex();
 
         readonly WeightSample[] _samples = new WeightSample[MaxPlayers];
 
@@ -91,6 +93,7 @@ namespace Game.Simulation
         /// <summary>Default start formation: two columns, spread along the deck.</summary>
         public void PlaceInFormation()
         {
+            Flex.Reset();
             _perfectGrace = 0f;
             _ollieCooldown = 0f;
             Array.Clear(_ollieCrew, 0, _ollieCrew.Length);
@@ -128,6 +131,16 @@ namespace Game.Simulation
                 PlayerInputState input = inputs != null && i < inputs.Count ? inputs[i] : PlayerInputState.None;
                 Players[i].Step(dt, input, ctx, t);
             }
+
+            // deck reacts to riders jumping off it and landing back on it (visual flex)
+            for (int i = 0; i < ActivePlayerCount; i++)
+            {
+                PlayerSim p = Players[i];
+                if (!p.IsOnBoard) continue;
+                if (p.JumpStarted) Flex.Kick(p.LocalPosition.X, p.LocalPosition.Y, DeckFlex.TakeoffKick, t);
+                if (p.JustLanded) Flex.Kick(p.LocalPosition.X, p.LocalPosition.Y, p.LandingSpeed * DeckFlex.LandingKick, t);
+            }
+            Flex.Step(dt);
 
             // 2) bumps / no interpenetration
             events.Staggers = PlayerCrowdSolver.Resolve(Players, ActivePlayerCount, t);

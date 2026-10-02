@@ -36,6 +36,9 @@ namespace Game.Simulation
         public float JumpCooldown;
         /// <summary>True on the step this player took off (crew ollie detection).</summary>
         public bool JumpStarted;
+        /// <summary>True on the step this player came down on the deck; <see cref="LandingSpeed"/> in m/s.</summary>
+        public bool JustLanded;
+        public float LandingSpeed;
         public float BodyWeight = 1f;
         /// <summary>Normalized direction (board-local) the player left the board in; used by visuals.</summary>
         public Vector2 FallDirection;
@@ -113,6 +116,7 @@ namespace Game.Simulation
             }
 
             JumpStarted = false;
+            JustLanded = false;
             JumpCooldown = Math.Max(0f, JumpCooldown - dt);
             StaggerTimer = Math.Max(0f, StaggerTimer - dt);
             bool airborne = IsAirborne;
@@ -150,6 +154,8 @@ namespace Game.Simulation
                 Height += VerticalVelocity * dt;
                 if (Height <= 0f)
                 {
+                    JustLanded = true;
+                    LandingSpeed = -VerticalVelocity;
                     Height = 0f;
                     VerticalVelocity = 0f;
                 }

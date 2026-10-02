@@ -15,6 +15,7 @@ namespace Game
 
         /// <summary>Parent for anything that stands on the deck; local (0, 0, 0) is deck-top centre.</summary>
         public Transform DeckTop { get; private set; }
+        Transform _flex;
 
         public static BoardView Create(BoardController board)
         {
@@ -29,8 +30,11 @@ namespace Game
             BoardTuningData t = board.Tuning.data;
             float w = t.boardWidth, l = t.boardLength, r = t.wheelRadius, deckTop = t.deckHeight;
 
+            // Flex: rocks the deck (and the riders standing on it) when riders jump and land
+            _flex = new GameObject("Flex").transform;
+            _flex.SetParent(transform, false);
             var visual = new GameObject("Visual").transform;
-            visual.SetParent(transform, false);
+            visual.SetParent(_flex, false);
             _visual = visual;
             board.Landed += speed => _squashVelocity -= Mathf.Clamp(speed * 0.12f, 0f, 1.6f);
 
@@ -40,7 +44,7 @@ namespace Game
             for (int k = 0; k < 4; k++) _wheels[k] = parts["Wheel" + k];
 
             DeckTop = new GameObject("DeckTop").transform;
-            DeckTop.SetParent(transform, false);
+            DeckTop.SetParent(_flex, false);
             DeckTop.localPosition = new Vector3(0f, deckTop + 0.01f, 0f);
         }
 
@@ -58,6 +62,15 @@ namespace Game
             _squashVelocity += (-160f * _squash - 12f * _squashVelocity) * dt;
             _squash = Mathf.Clamp(_squash + _squashVelocity * dt, -0.3f, 0.3f);
             _visual.localScale = new Vector3(1f - _squash * 0.4f, 1f + _squash, 1f - _squash * 0.2f);
+
+            // deck flex from riders jumping / landing (simulation state, interpolated between fixed steps)
+            DeckFlex f = _board.Simulation.Flex;
+            float alpha = Mathf.Clamp01((Time.time - Time.fixedTime) / Time.fixedDeltaTime);
+            float heave = Mathf.Lerp(f.PreviousHeave, f.Heave, alpha);
+            float roll = Mathf.Lerp(f.PreviousRoll, f.Roll, alpha) * Mathf.Rad2Deg;
+            float pitch = Mathf.Lerp(f.PreviousPitch, f.Pitch, alpha) * Mathf.Rad2Deg;
+            _flex.localPosition = new Vector3(0f, heave, 0f);
+            _flex.localRotation = Quaternion.Euler(pitch, 0f, -roll); // +x nose down; -z drops the right side
         }
     }
 }
