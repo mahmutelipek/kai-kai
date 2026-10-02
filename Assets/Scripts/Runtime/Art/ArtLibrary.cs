@@ -173,7 +173,39 @@ namespace Game.Art
         /// A rider on the shared rig: groups "Pose" (whole body, pivot at the feet), "ArmL" / "ArmR" (shoulders;
         /// arms hang down along -Y at rest and are raised by rotating around Z). Faces +Z. About 1.6 m tall.
         /// </summary>
-        public static ArtModel Character(int slot) => Cached("Character" + slot, () => BuildCharacter(OutfitFor(slot)));
+        public static ArtModel Character(int slot) =>
+            Cached("Character" + slot, () => FromAsset("Rider" + (((slot % CharacterCount) + CharacterCount) % CharacterCount)) ?? BuildCharacter(OutfitFor(slot)));
+
+        /// <summary>
+        /// Where exported models (Tools/Blender, ArtAsset format) come from: Unity reads Resources/Models/&lt;name&gt;,
+        /// the headless preview reads the same files from disk. Null, a missing name or a broken file means the
+        /// procedural model is used, so the game always has a complete set. Set it before the first model is built.
+        /// </summary>
+        public static Func<string, byte[]> ModelSource;
+
+        /// <summary>Which models came from exported files (for logs and tests).</summary>
+        public static readonly HashSet<string> LoadedAssets = new HashSet<string>();
+
+        static ArtModel FromAsset(string name)
+        {
+            byte[] data = null;
+            try { data = ModelSource?.Invoke(name); } catch (Exception) { data = null; }
+            if (data == null) return null;
+            try
+            {
+                ArtModel m = ArtAsset.Read(data);
+                LoadedAssets.Add(name);
+                return m;
+            }
+            catch (Exception) { return null; }
+        }
+
+        /// <summary>Clears the model caches (after changing <see cref="ModelSource"/>).</summary>
+        public static void ClearCache()
+        {
+            Cache.Clear();
+            LoadedAssets.Clear();
+        }
 
         static ArtModel BuildCharacter(Outfit o)
         {
@@ -373,6 +405,32 @@ namespace Game.Art
         /// </summary>
         public static ArtModel Board(float width, float length, float deckTop, float wheelRadius) =>
             Cached($"Board{width:F2}x{length:F2}x{deckTop:F2}x{wheelRadius:F2}", () =>
+                FitBoard(FromAsset("Board"), width, length, deckTop, wheelRadius) ?? BuildBoard(width, length, deckTop, wheelRadius));
+
+        /// <summary>Size the exported board was modelled at (Tools/Blender/build_models.py build_board defaults).</summary>
+        public const float BoardAssetWidth = 2.7f, BoardAssetLength = 6.75f, BoardAssetDeckTop = 0.85f, BoardAssetWheelRadius = 0.35f;
+
+        /// <summary>Stretches the exported board to the tuned deck size (wheels keep their shape, hubs follow the deck).</summary>
+        static ArtModel FitBoard(ArtModel asset, float width, float length, float deckTop, float wheelRadius)
+        {
+            if (asset == null) return null;
+            if (Math.Abs(deckTop - BoardAssetDeckTop) > 0.01f || Math.Abs(wheelRadius - BoardAssetWheelRadius) > 0.01f) return null; // modelled for these
+            float sx = width / BoardAssetWidth, sz = length / BoardAssetLength;
+            if (Math.Abs(sx - 1f) < 1e-3f && Math.Abs(sz - 1f) < 1e-3f) return asset;
+            var m = new ArtModel(asset.Name);
+            foreach (ArtGroup g in asset.Groups)
+                m.Group(g.Name, string.IsNullOrEmpty(g.Parent) ? new Vector3(g.Pivot.X + MathF.Sign(g.Pivot.X) * (width - BoardAssetWidth) * 0.5f, g.Pivot.Y, g.Pivot.Z * sz) : g.Pivot, g.Parent);
+            foreach (ArtPart p in asset.Parts)
+            {
+                ArtPart q = p;
+                if (string.IsNullOrEmpty(p.Group)) q.Size = new Vector3(sx, 1f, sz);
+                m.Parts.Add(q);
+            }
+            return m;
+        }
+
+        static ArtModel BuildBoard(float width, float length, float deckTop, float wheelRadius) =>
+            Cached($"BoardProcedural{width:F2}x{length:F2}x{deckTop:F2}x{wheelRadius:F2}", () =>
             {
                 var m = new ArtModel("Longboard");
                 const float thick = 0.14f;

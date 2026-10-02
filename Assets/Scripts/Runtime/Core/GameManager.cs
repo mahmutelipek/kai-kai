@@ -61,6 +61,12 @@ namespace Game
             if (tuning == null) tuning = BoardTuning.CreateDefault();
             if (!tuning.data.Validate(out string error)) Debug.LogError("BoardTuning invalid: " + error);
 
+            // Blender-made models (Resources/Models/*.bytes, see Tools/Blender); missing ones fall back to the procedural set
+            if (Game.Art.ArtLibrary.ModelSource == null)
+            {
+                Game.Art.ArtLibrary.ModelSource = name => Resources.Load<TextAsset>("Models/" + name)?.bytes;
+                Game.Art.ArtLibrary.ClearCache();
+            }
             Light sun = SceneAtmosphere.Apply();
             Board = BoardController.Create(tuning, RunManager.NewSeed(seed), startPlayerCount, RunManager.TrackFor(roadMode));
             Board.transform.SetParent(transform, true);

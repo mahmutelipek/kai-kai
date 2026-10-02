@@ -21,6 +21,8 @@ namespace Game.Art
         Wedge,
         /// <summary>Double pyramid (gem): diameter X/Z, height Y.</summary>
         Octahedron,
+        /// <summary>Baked triangles (<see cref="ArtPart.Mesh"/>, e.g. a Blender model), scaled by Size.</summary>
+        Mesh,
     }
 
     /// <summary>Colour + smoothness. Colours are linear-ish sRGB 0..1 (as used by the Unity materials).</summary>
@@ -48,6 +50,8 @@ namespace Game.Art
 
     public struct ArtPart
     {
+        /// <summary>Geometry of a <see cref="ArtShape.Mesh"/> part (part space); null for primitives.</summary>
+        public MeshData Mesh;
         /// <summary>Name of the group (pivot) this part hangs under; "" = model root.</summary>
         public string Group;
         public ArtShape Shape;

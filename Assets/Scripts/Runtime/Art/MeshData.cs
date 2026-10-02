@@ -191,7 +191,7 @@ namespace Game.Art
                 GroupTransform(model, p.Group, pose, out Vector3 gPos, out Quaternion gRot);
                 Vector3 c = position + Vector3.Transform((gPos + Vector3.Transform(p.Position, gRot)) * scale, rotation);
                 Quaternion r = rotation * gRot * p.Rotation;
-                AddShape(this[p.Color], p.Shape, c, r, p.Size * scale);
+                AddPart(this[p.Color], p, c, r, p.Size * scale);
             }
         }
 
@@ -199,7 +199,17 @@ namespace Game.Art
         public void AddGroupLocal(ArtModel model, string group)
         {
             foreach (ArtPart p in model.Parts)
-                if (p.Group == group) AddShape(this[p.Color], p.Shape, p.Position, p.Rotation, p.Size);
+                if (p.Group == group) AddPart(this[p.Color], p, p.Position, p.Rotation, p.Size);
+        }
+
+        /// <summary>Adds one part (a primitive or baked triangles) at centre / rotation / size.</summary>
+        public static void AddPart(MeshData m, in ArtPart p, Vector3 c, Quaternion r, Vector3 s)
+        {
+            if (p.Shape != ArtShape.Mesh) { AddShape(m, p.Shape, c, r, s); return; }
+            if (p.Mesh == null) return;
+            int start = m.Vertices.Count;
+            foreach (Vector3 v in p.Mesh.Vertices) m.Vertices.Add(c + Vector3.Transform(v * s, r));
+            foreach (int i in p.Mesh.Triangles) m.Triangles.Add(start + i);
         }
 
         /// <summary>Adds one primitive (centre, rotation, full size) to a mesh.</summary>
@@ -222,6 +232,7 @@ namespace Game.Art
                 }
                 case ArtShape.Cone: m.Cylinder(c, r, s.X * 0.5f, s.Y, 0, 0.001f); break;
                 case ArtShape.Wedge: m.Wedge(c - Vector3.Transform(new Vector3(0f, s.Y * 0.5f, s.Z * 0.5f), r), r, s.X, s.Z, s.Y); break;
+                case ArtShape.Mesh: break; // baked meshes go through AddPart
                 default: m.Octahedron(c, r, s); break;
             }
         }

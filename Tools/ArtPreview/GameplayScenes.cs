@@ -279,7 +279,7 @@ namespace ArtPreview
                     c *= scale;
                     size *= scale; // parts in "Scaled" are axis aligned (or only yawed a little)
                 }
-                MeshSet.AddShape(set[p.Color], p.Shape, pos + Vector3.Transform(c, rot), rot * p.Rotation, size);
+                MeshSet.AddPart(set[p.Color], p, pos + Vector3.Transform(c, rot), rot * p.Rotation, size);
             }
         }
     }

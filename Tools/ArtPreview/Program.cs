@@ -126,6 +126,16 @@ namespace ArtPreview
 
         static int Main(string[] args)
         {
+            // the Blender-made models, read from the same files Unity loads (PREVIEW_PROCEDURAL=1 shows the old primitives)
+            if (Environment.GetEnvironmentVariable("PREVIEW_PROCEDURAL") != "1")
+            {
+                string models = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../Assets/Resources/Models"));
+                Game.Art.ArtLibrary.ModelSource = name =>
+                {
+                    string f = Path.Combine(models, name + ".bytes");
+                    return File.Exists(f) ? File.ReadAllBytes(f) : null;
+                };
+            }
             if (args.Length > 1 && args[0] == "audio")
             {
                 AudioExport.Run(args[1]);

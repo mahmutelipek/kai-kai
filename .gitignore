@@ -37,3 +37,6 @@ Tools/ArtPreview/node_modules
 
 # ElevenLabs takes (variations); the chosen ones are copied to Assets/Resources/Audio
 Tools/SoundGen/takes/
+
+# Blender backups
+*.blend1
