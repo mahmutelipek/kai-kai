@@ -16,7 +16,7 @@ namespace Game
             if (kb[Key.D].isPressed || kb[Key.RightArrow].isPressed) x += 1f;
             if (kb[Key.S].isPressed || kb[Key.DownArrow].isPressed) y -= 1f;
             if (kb[Key.W].isPressed || kb[Key.UpArrow].isPressed) y += 1f;
-            return new PlayerInputState(new SVec2(x, y), kb[Key.Space].isPressed, kb[Key.E].isPressed);
+            return new PlayerInputState(new SVec2(x, y), kb[Key.Space].isPressed, kb[Key.E].isPressed, kb[Key.LeftShift].isPressed || kb[Key.RightShift].isPressed);
         }
 
         public static PlayerInputState ReadGamepad(Gamepad pad)
@@ -26,7 +26,7 @@ namespace Game
             UnityEngine.Vector2 dpad = pad.dpad.ReadValue();
             if (dpad.sqrMagnitude > stick.sqrMagnitude) stick = dpad;
             if (stick.sqrMagnitude < 0.02f) stick = UnityEngine.Vector2.zero; // dead zone
-            return new PlayerInputState(stick.ToSim(), pad.buttonSouth.isPressed, pad.buttonWest.isPressed);
+            return new PlayerInputState(stick.ToSim(), pad.buttonSouth.isPressed, pad.buttonWest.isPressed, pad.leftTrigger.ReadValue() > .35f);
         }
 
         public static int GamepadCount => Gamepad.all.Count;

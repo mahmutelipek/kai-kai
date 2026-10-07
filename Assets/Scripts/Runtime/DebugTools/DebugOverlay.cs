@@ -65,7 +65,8 @@ namespace Game
             Line($"danger        {s.Danger,7:0.00}  wobble {s.Wobble:0.00}  grip {s.Grip:0.00}  tip {s.Tip:0.00}");
             Line($"grounded {s.Grounded}  surface {s.Surface}  crashed {s.Crashed}");
             Line($"distance {_run.Distance:0} m   lateral offset {_run.LateralOffset:+0.0;-0.0} m   crashes {_run.Crashes}");
-            Line("chunk         n/a (procedural road arrives in M2)");
+            var streamer = _board.GetComponentInParent<GameManager>().Road.Streamer;
+            Line(streamer != null ? $"chunks {streamer.ActiveChunkCount}   diamonds {_run.Diamonds}" : "finite test track");
             Line($"road steer hint {_router.LastSteerHint:+0.00;-0.00} (cooperative bots only)");
             GUILayout.Space(6);
             for (int i = 0; i < sim.ActivePlayerCount; i++)

@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="60" result="Passed" total="60" passed="60" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:04:37Z" duration="79.7204811">
+  <test-suite type="TestSuite" id="1082" name="Kai Kai" fullname="Kai Kai" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:04:37Z" duration="79.720481" total="60" passed="60" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1076" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:04:37Z" duration="79.716188" total="60" passed="60" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="39411" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1077" name="Game" fullname="Game" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:04:37Z" duration="79.715789" total="60" passed="60" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1078" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:04:37Z" duration="79.715587" total="60" passed="60" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="AllRidersPlayModeTests" fullname="Game.Tests.AllRidersPlayModeTests" classname="Game.Tests.AllRidersPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:03:20Z" duration="2.533973" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1003" name="SixImportedRiders_FallAndRespawnWithoutLosingTheirRig" fullname="Game.Tests.AllRidersPlayModeTests.SixImportedRiders_FallAndRespawnWithoutLosingTheirRig" methodname="SixImportedRiders_FallAndRespawnWithoutLosingTheirRig" classname="Game.Tests.AllRidersPlayModeTests" runstate="Runnable" seed="382035339" result="Passed" start-time="2026-10-07 20:03:18Z" end-time="2026-10-07 20:03:20Z" duration="1.941081" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="SixImportedRiders_HaveDistinctArtAndFollowWalkingAndJumping" fullname="Game.Tests.AllRidersPlayModeTests.SixImportedRiders_HaveDistinctArtAndFollowWalkingAndJumping" methodname="SixImportedRiders_HaveDistinctArtAndFollowWalkingAndJumping" classname="Game.Tests.AllRidersPlayModeTests" runstate="Runnable" seed="547712449" result="Passed" start-time="2026-10-07 20:03:20Z" end-time="2026-10-07 20:03:20Z" duration="0.587851" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1004" name="ArcadeContentTests" fullname="Game.Tests.ArcadeContentTests" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-07 20:03:20Z" end-time="2026-10-07 20:03:24Z" duration="4.196220" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1005" name="CoinAndNitroTriggersCountOnceAndRestartClearsResources" fullname="Game.Tests.ArcadeContentTests.CoinAndNitroTriggersCountOnceAndRestartClearsResources" methodname="CoinAndNitroTriggersCountOnceAndRestartClearsResources" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="965859358" result="Passed" start-time="2026-10-07 20:03:20Z" end-time="2026-10-07 20:03:20Z" duration="0.124298" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1007" name="NitroAddsSpeedWithoutSettingSteeringAndRecoversAfterRelease" fullname="Game.Tests.ArcadeContentTests.NitroAddsSpeedWithoutSettingSteeringAndRecoversAfterRelease" methodname="NitroAddsSpeedWithoutSettingSteeringAndRecoversAfterRelease" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="1668146162" result="Passed" start-time="2026-10-07 20:03:20Z" end-time="2026-10-07 20:03:20Z" duration="0.002372" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="NitroPausesExpiresAndCannotStartInMenus" fullname="Game.Tests.ArcadeContentTests.NitroPausesExpiresAndCannotStartInMenus" methodname="NitroPausesExpiresAndCannotStartInMenus" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="500128354" result="Passed" start-time="2026-10-07 20:03:20Z" end-time="2026-10-07 20:03:24Z" duration="3.919595" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="StreamedRampLaunchesAndLandsWithoutCrashing" fullname="Game.Tests.ArcadeContentTests.StreamedRampLaunchesAndLandsWithoutCrashing" methodname="StreamedRampLaunchesAndLandsWithoutCrashing" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="962749612" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.133907" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1035" name="ArcadeHandlingTests" fullname="Game.Tests.ArcadeHandlingTests" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.052221" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1042" name="CooperativeCrewSupportsAnEdgeLeaningPlayerWithWeightAndDrift" fullname="Game.Tests.ArcadeHandlingTests.CooperativeCrewSupportsAnEdgeLeaningPlayerWithWeightAndDrift" methodname="CooperativeCrewSupportsAnEdgeLeaningPlayerWithWeightAndDrift" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="883678338" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.001804" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1043" name="DownhillGradeAddsSpeedComparedWithFlatRoad" fullname="Game.Tests.ArcadeHandlingTests.DownhillGradeAddsSpeedComparedWithFlatRoad" methodname="DownhillGradeAddsSpeedComparedWithFlatRoad" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="1686889139" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.000348" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1041" name="DriftHasBoundedSlipAndRecoversAfterRelease" fullname="Game.Tests.ArcadeHandlingTests.DriftHasBoundedSlipAndRecoversAfterRelease" methodname="DriftHasBoundedSlipAndRecoversAfterRelease" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="1609813146" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.000269" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1040" name="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap" fullname="Game.Tests.ArcadeHandlingTests.SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.034198" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1036" name="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(1.0f,0.0f)" fullname="Game.Tests.ArcadeHandlingTests.SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(1.0f,0.0f)" methodname="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="569380879" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.003540" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1037" name="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(-1.0f,0.0f)" fullname="Game.Tests.ArcadeHandlingTests.SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(-1.0f,0.0f)" methodname="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="327620203" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.002975" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1038" name="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(0.0f,1.0f)" fullname="Game.Tests.ArcadeHandlingTests.SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(0.0f,1.0f)" methodname="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="288975594" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.006895" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(1.0f,1.0f)" fullname="Game.Tests.ArcadeHandlingTests.SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap(1.0f,1.0f)" methodname="SupportedCrewCanHoldTheEdgeWithoutImmediateFallsOrOverlap" classname="Game.Tests.ArcadeHandlingTests" runstate="Runnable" seed="1955283998" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.006763" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1009" name="ArcadePlayModeTests" fullname="Game.Tests.ArcadePlayModeTests" classname="Game.Tests.ArcadePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:26Z" duration="1.801238" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1011" name="EndlessRoadContainsVisibleChangingGradesAndModerateBends" fullname="Game.Tests.ArcadePlayModeTests.EndlessRoadContainsVisibleChangingGradesAndModerateBends" methodname="EndlessRoadContainsVisibleChangingGradesAndModerateBends" classname="Game.Tests.ArcadePlayModeTests" runstate="Runnable" seed="14145902" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:24Z" duration="0.047268" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1010" name="FallenRiderLandsAboveTheRoadInsteadOfPassingThroughIt" fullname="Game.Tests.ArcadePlayModeTests.FallenRiderLandsAboveTheRoadInsteadOfPassingThroughIt" methodname="FallenRiderLandsAboveTheRoadInsteadOfPassingThroughIt" classname="Game.Tests.ArcadePlayModeTests" runstate="Runnable" seed="1048583598" result="Passed" start-time="2026-10-07 20:03:24Z" end-time="2026-10-07 20:03:26Z" duration="1.753197" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1012" name="BlueRiderPlayModeTests" fullname="Game.Tests.BlueRiderPlayModeTests" classname="Game.Tests.BlueRiderPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-07 20:03:26Z" end-time="2026-10-07 20:03:29Z" duration="2.465096" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1014" name="ImportedRider_FallsAndRespawnsWithRigIntact" fullname="Game.Tests.BlueRiderPlayModeTests.ImportedRider_FallsAndRespawnsWithRigIntact" methodname="ImportedRider_FallsAndRespawnsWithRigIntact" classname="Game.Tests.BlueRiderPlayModeTests" runstate="Runnable" seed="1549390760" result="Passed" start-time="2026-10-07 20:03:26Z" end-time="2026-10-07 20:03:28Z" duration="1.844968" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1013" name="ImportedRider_WalksAndJumpsWithSimulation" fullname="Game.Tests.BlueRiderPlayModeTests.ImportedRider_WalksAndJumpsWithSimulation" methodname="ImportedRider_WalksAndJumpsWithSimulation" classname="Game.Tests.BlueRiderPlayModeTests" runstate="Runnable" seed="1456924976" result="Passed" start-time="2026-10-07 20:03:28Z" end-time="2026-10-07 20:03:29Z" duration="0.603749" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1044" name="BoardAcceptanceTests" fullname="Game.Tests.BoardAcceptanceTests" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.359946" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1051" name="A1_BalancedBoard_GoesStraight" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.038037" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1045" name="A1_BalancedBoard_GoesStraight(&quot;LLLRRR&quot;,8.0f)" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight(&quot;LLLRRR&quot;,8.0f)" methodname="A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="91467438" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.007397" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LLLRRR @ 8 m/s: max|yaw rate| pinned 0.0000 deg/s, held 0.0000 deg/s
+]]></output>
+              </test-case>
+              <test-case id="1046" name="A1_BalancedBoard_GoesStraight(&quot;LLLRRR&quot;,20.0f)" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight(&quot;LLLRRR&quot;,20.0f)" methodname="A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="983705060" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002832" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LLLRRR @ 20 m/s: max|yaw rate| pinned 0.0000 deg/s, held 0.0000 deg/s
+]]></output>
+              </test-case>
+              <test-case id="1047" name="A1_BalancedBoard_GoesStraight(&quot;LLLRRR&quot;,35.0f)" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight(&quot;LLLRRR&quot;,35.0f)" methodname="A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="2084874776" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002722" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LLLRRR @ 35 m/s: max|yaw rate| pinned 0.0000 deg/s, held 0.0000 deg/s
+]]></output>
+              </test-case>
+              <test-case id="1048" name="A1_BalancedBoard_GoesStraight(&quot;CCCCCC&quot;,20.0f)" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight(&quot;CCCCCC&quot;,20.0f)" methodname="A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="472816705" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002813" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[CCCCCC @ 20 m/s: max|yaw rate| pinned 0.0000 deg/s, held 0.0000 deg/s
+]]></output>
+              </test-case>
+              <test-case id="1049" name="A1_BalancedBoard_GoesStraight(&quot;CCCCCC&quot;,35.0f)" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight(&quot;CCCCCC&quot;,35.0f)" methodname="A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="2059554333" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002616" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[CCCCCC @ 35 m/s: max|yaw rate| pinned 0.0000 deg/s, held 0.0000 deg/s
+]]></output>
+              </test-case>
+              <test-case id="1050" name="A1_BalancedBoard_GoesStraight(&quot;LRLRLR&quot;,35.0f)" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedBoard_GoesStraight(&quot;LRLRLR&quot;,35.0f)" methodname="A1_BalancedBoard_GoesStraight" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1663173114" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002616" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LRLRLR @ 35 m/s: max|yaw rate| pinned 0.0000 deg/s, held 0.0000 deg/s
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-case id="1052" name="A1_BalancedWithPositionNoise_StaysBelowOneDegreePerSecond" fullname="Game.Tests.BoardAcceptanceTests.A1_BalancedWithPositionNoise_StaysBelowOneDegreePerSecond" methodname="A1_BalancedWithPositionNoise_StaysBelowOneDegreePerSecond" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="881078959" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.018122" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1054" name="A2_AllFarOneSide_WobblesThenCrashesWithinDeadline_BothSides" fullname="Game.Tests.BoardAcceptanceTests.A2_AllFarOneSide_WobblesThenCrashesWithinDeadline_BothSides" methodname="A2_AllFarOneSide_WobblesThenCrashesWithinDeadline_BothSides" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1962626294" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.001479" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[LLLLLL @ 8: wobble at 0.43s, crash at 1.65s
+LLLLLL @ 20: wobble at 0.35s, crash at 1.20s
+LLLLLL @ 35: wobble at 0.28s, crash at 1.00s
+RRRRRR @ 8: wobble at 0.43s, crash at 1.65s
+RRRRRR @ 20: wobble at 0.35s, crash at 1.20s
+RRRRRR @ 35: wobble at 0.28s, crash at 1.00s
+]]></output>
+            </test-case>
+            <test-case id="1053" name="A2_ImbalanceTurnsGraduallyAndProportionally_BothSides" fullname="Game.Tests.BoardAcceptanceTests.A2_ImbalanceTurnsGraduallyAndProportionally_BothSides" methodname="A2_ImbalanceTurnsGraduallyAndProportionally_BothSides" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="194165058" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.010494" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[8 m/s: 4L/2R -3.92 deg/s (63% after 0.68s), 5L/1R -11.78 deg/s
+20 m/s: 4L/2R -5.79 deg/s (63% after 0.68s), 5L/1R -17.18 deg/s
+35 m/s: 4L/2R -8.09 deg/s (63% after 0.67s), 5L/1R -23.66 deg/s
+]]></output>
+            </test-case>
+            <test-case id="1055" name="A3_FrontWeightAccelerates_RearWeightBrakes" fullname="Game.Tests.BoardAcceptanceTests.A3_FrontWeightAccelerates_RearWeightBrakes" methodname="A3_FrontWeightAccelerates_RearWeightBrakes" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1158066005" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.003612" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[start 12: after 5 s center 12.00, front 19.56, rear 3.00 m/s
+start 20: after 5 s center 20.00, front 27.56, rear 8.66 m/s
+]]></output>
+            </test-case>
+            <test-case id="1056" name="A3_FrontWeightRespectsSoftCap" fullname="Game.Tests.BoardAcceptanceTests.A3_FrontWeightRespectsSoftCap" methodname="A3_FrontWeightRespectsSoftCap" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="781038829" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002495" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[all front at cap: 37.04 m/s
+]]></output>
+            </test-case>
+            <test-case id="1059" name="A4_SteeringIsNormalizedByPlayerCount" fullname="Game.Tests.BoardAcceptanceTests.A4_SteeringIsNormalizedByPlayerCount" methodname="A4_SteeringIsNormalizedByPlayerCount" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="347267763" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.000159" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1058" name="A4_TwoPlayers_BothAtEdge_CanCrash" fullname="Game.Tests.BoardAcceptanceTests.A4_TwoPlayers_BothAtEdge_CanCrash" methodname="A4_TwoPlayers_BothAtEdge_CanCrash" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1377572689" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.000327" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[2p both edge @ 8: crash at 1.65s
+2p both edge @ 20: crash at 1.20s
+2p both edge @ 35: crash at 1.00s
+]]></output>
+            </test-case>
+            <test-case id="1057" name="A4_TwoPlayers_EdgePlusCenter_IsControllableTurn" fullname="Game.Tests.BoardAcceptanceTests.A4_TwoPlayers_EdgePlusCenter_IsControllableTurn" methodname="A4_TwoPlayers_EdgePlusCenter_IsControllableTurn" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="122915197" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002935" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[2p edge+center @ 8: 7.46 deg/s, max danger 0.35
+2p edge+center @ 20: 10.95 deg/s, max danger 0.40
+2p edge+center @ 35: 15.18 deg/s, max danger 0.45
+]]></output>
+            </test-case>
+            <test-case id="1060" name="A5_AtRest_NoMotionNoDrift" fullname="Game.Tests.BoardAcceptanceTests.A5_AtRest_NoMotionNoDrift" methodname="A5_AtRest_NoMotionNoDrift" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="224042635" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.007636" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[rest @ 8: max|yaw rate| 0.00E+000, max|roll| 0.00E+000, player drift 0.00E+000 m
+rest @ 20: max|yaw rate| 0.00E+000, max|roll| 0.00E+000, player drift 0.00E+000 m
+rest @ 35: max|yaw rate| 0.00E+000, max|roll| 0.00E+000, player drift 0.00E+000 m
+]]></output>
+            </test-case>
+            <test-case id="1067" name="A5_ChaosFuzz_StaysFinite" fullname="Game.Tests.BoardAcceptanceTests.A5_ChaosFuzz_StaysFinite" methodname="A5_ChaosFuzz_StaysFinite" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1728230486" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.087697" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1065" name="A5_SteadyTurn_NoOvershootNoOscillation" fullname="Game.Tests.BoardAcceptanceTests.A5_SteadyTurn_NoOvershootNoOscillation" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.013321" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1061" name="A5_SteadyTurn_NoOvershootNoOscillation(&quot;LLLLLR&quot;,8.0f)" fullname="Game.Tests.BoardAcceptanceTests.A5_SteadyTurn_NoOvershootNoOscillation(&quot;LLLLLR&quot;,8.0f)" methodname="A5_SteadyTurn_NoOvershootNoOscillation" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1983904240" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.004199" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LLLLLR pinned @ 8: steady -11.77, peak 11.82, std 0.0142 deg/s, turning points 1, max danger 0.55
+LLLLLR held @ 8: steady -11.77, peak 11.82, std 0.0138 deg/s, turning points 1, max danger 0.55
+]]></output>
+              </test-case>
+              <test-case id="1062" name="A5_SteadyTurn_NoOvershootNoOscillation(&quot;LLLLLR&quot;,20.0f)" fullname="Game.Tests.BoardAcceptanceTests.A5_SteadyTurn_NoOvershootNoOscillation(&quot;LLLLLR&quot;,20.0f)" methodname="A5_SteadyTurn_NoOvershootNoOscillation" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="532598257" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.003577" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LLLLLR pinned @ 20: steady -17.15, peak 17.39, std 0.0489 deg/s, turning points 1, max danger 0.63
+LLLLLR held @ 20: steady -17.16, peak 17.39, std 0.0475 deg/s, turning points 1, max danger 0.63
+]]></output>
+              </test-case>
+              <test-case id="1063" name="A5_SteadyTurn_NoOvershootNoOscillation(&quot;LLLLRR&quot;,35.0f)" fullname="Game.Tests.BoardAcceptanceTests.A5_SteadyTurn_NoOvershootNoOscillation(&quot;LLLLRR&quot;,35.0f)" methodname="A5_SteadyTurn_NoOvershootNoOscillation" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1188571427" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.003334" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[LLLLRR pinned @ 35: steady -8.08, peak 8.14, std 0.0144 deg/s, turning points 1, max danger 0.24
+LLLLRR held @ 35: steady -8.08, peak 8.14, std 0.0141 deg/s, turning points 1, max danger 0.24
+]]></output>
+              </test-case>
+              <test-case id="1064" name="A5_SteadyTurn_NoOvershootNoOscillation(&quot;RC&quot;,35.0f)" fullname="Game.Tests.BoardAcceptanceTests.A5_SteadyTurn_NoOvershootNoOscillation(&quot;RC&quot;,35.0f)" methodname="A5_SteadyTurn_NoOvershootNoOscillation" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1506633351" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.001230" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[RC pinned @ 35: steady 15.20, peak 15.43, std 0.0483 deg/s, turning points 1, max danger 0.45
+RC held @ 35: steady 15.20, peak 15.44, std 0.0472 deg/s, turning points 1, max danger 0.45
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-case id="1066" name="A5_WobbleOnlyInDangerZone" fullname="Game.Tests.BoardAcceptanceTests.A5_WobbleOnlyInDangerZone" methodname="A5_WobbleOnlyInDangerZone" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="858069099" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.001191" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1069" name="A6_CoincidentPlayers_AreSeparated" fullname="Game.Tests.BoardAcceptanceTests.A6_CoincidentPlayers_AreSeparated" methodname="A6_CoincidentPlayers_AreSeparated" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="1227340367" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.000524" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1068" name="A6_CrowdStress_NoOverlapNoUnderDeckSafeRespawn" fullname="Game.Tests.BoardAcceptanceTests.A6_CrowdStress_NoOverlapNoUnderDeckSafeRespawn" methodname="A6_CrowdStress_NoOverlapNoUnderDeckSafeRespawn" classname="Game.Tests.BoardAcceptanceTests" runstate="Runnable" seed="911972356" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.154092" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[crowd stress: min separation 0.659 m (diameter 0.66), falls 2, respawns 2, staggers 58, longest time off board 1.52s
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1070" name="BoardFlowTests" fullname="Game.Tests.BoardFlowTests" classname="Game.Tests.BoardFlowTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.056381" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1075" name="Bots_DisagreeVisibly_AndRunsSurvive" fullname="Game.Tests.BoardFlowTests.Bots_DisagreeVisibly_AndRunsSurvive" methodname="Bots_DisagreeVisibly_AndRunsSurvive" classname="Game.Tests.BoardFlowTests" runstate="Runnable" seed="858925815" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.050844" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[6 bots, 180 s (speed ramps to cap): crashes 0, falls 21, steering std 0.033, turning 11 % of the time, wobbling 0 %, max speed 35.3 m/s, staggers 68
+]]></output>
+            </test-case>
+            <test-case id="1072" name="Crash_EjectsPlayers_RestartPutsEveryoneBack" fullname="Game.Tests.BoardFlowTests.Crash_EjectsPlayers_RestartPutsEveryoneBack" methodname="Crash_EjectsPlayers_RestartPutsEveryoneBack" classname="Game.Tests.BoardFlowTests" runstate="Runnable" seed="1736779634" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.001747" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1074" name="JumpingPlayersWeighLess" fullname="Game.Tests.BoardFlowTests.JumpingPlayersWeighLess" methodname="JumpingPlayersWeighLess" classname="Game.Tests.BoardFlowTests" runstate="Runnable" seed="676838169" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.000175" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1073" name="PlayerCountChange_RenormalizesSteering" fullname="Game.Tests.BoardFlowTests.PlayerCountChange_RenormalizesSteering" methodname="PlayerCountChange_RenormalizesSteering" classname="Game.Tests.BoardFlowTests" runstate="Runnable" seed="940427237" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.000234" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[lateral with 6 players 0.283, after dropping to 2 0.850
+]]></output>
+            </test-case>
+            <test-case id="1071" name="Ramp_LaunchesLandsAndStaggersWithoutCrash" fullname="Game.Tests.BoardFlowTests.Ramp_LaunchesLandsAndStaggersWithoutCrash" methodname="Ramp_LaunchesLandsAndStaggersWithoutCrash" classname="Game.Tests.BoardFlowTests" runstate="Runnable" seed="878883637" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:29Z" duration="0.002251" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[ramp @18 m/s: airtime 0.47s, peak 1.12 m above road, landing 7.6 m/s, hard True, staggered 6
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1015" name="BoardPlayModeTests" fullname="Game.Tests.BoardPlayModeTests" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:04:29Z" duration="59.585032" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1018" name="AllLeft_CrashesThenRespawnsOnRoad" fullname="Game.Tests.BoardPlayModeTests.AllLeft_CrashesThenRespawnsOnRoad" methodname="AllLeft_CrashesThenRespawnsOnRoad" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1592866885" result="Passed" start-time="2026-10-07 20:03:29Z" end-time="2026-10-07 20:03:34Z" duration="4.714334" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1016" name="Balanced_FollowsRoadStraightAndStable" fullname="Game.Tests.BoardPlayModeTests.Balanced_FollowsRoadStraightAndStable" methodname="Balanced_FollowsRoadStraightAndStable" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1329259130" result="Passed" start-time="2026-10-07 20:03:34Z" end-time="2026-10-07 20:03:38Z" duration="4.063671" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1020" name="Bots_PlayersNeverBelowDeckOrInsideEachOther" fullname="Game.Tests.BoardPlayModeTests.Bots_PlayersNeverBelowDeckOrInsideEachOther" methodname="Bots_PlayersNeverBelowDeckOrInsideEachOther" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1957918489" result="Passed" start-time="2026-10-07 20:03:38Z" end-time="2026-10-07 20:04:18Z" duration="40.081337" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[bots 20 s: min player local y 0.862 (deck top 0.85), min separation 0.660
+]]></output>
+            </test-case>
+            <test-case id="1017" name="FiveLeftOneRight_TurnsLeft" fullname="Game.Tests.BoardPlayModeTests.FiveLeftOneRight_TurnsLeft" methodname="FiveLeftOneRight_TurnsLeft" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1303147567" result="Passed" start-time="2026-10-07 20:04:18Z" end-time="2026-10-07 20:04:20Z" duration="2.568206" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1019" name="Ramp_LaunchesAndLandsWithoutCrash" fullname="Game.Tests.BoardPlayModeTests.Ramp_LaunchesAndLandsWithoutCrash" methodname="Ramp_LaunchesAndLandsWithoutCrash" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1807442849" result="Passed" start-time="2026-10-07 20:04:20Z" end-time="2026-10-07 20:04:26Z" duration="5.066418" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="TwoPlayerMode_OnlyTwoPlayersVisibleAndSteer" fullname="Game.Tests.BoardPlayModeTests.TwoPlayerMode_OnlyTwoPlayersVisibleAndSteer" methodname="TwoPlayerMode_OnlyTwoPlayersVisibleAndSteer" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="620227672" result="Passed" start-time="2026-10-07 20:04:26Z" end-time="2026-10-07 20:04:29Z" duration="3.089655" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1022" name="CoastalSceneryPlayModeTests" fullname="Game.Tests.CoastalSceneryPlayModeTests" classname="Game.Tests.CoastalSceneryPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-07 20:04:29Z" end-time="2026-10-07 20:04:29Z" duration="0.097336" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1023" name="SceneryFollowsCurvesWithoutChangingGroundOrAddingColliders" fullname="Game.Tests.CoastalSceneryPlayModeTests.SceneryFollowsCurvesWithoutChangingGroundOrAddingColliders" methodname="SceneryFollowsCurvesWithoutChangingGroundOrAddingColliders" classname="Game.Tests.CoastalSceneryPlayModeTests" runstate="Runnable" seed="1791586764" result="Passed" start-time="2026-10-07 20:04:29Z" end-time="2026-10-07 20:04:29Z" duration="0.080804" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1024" name="EndlessRunPlayModeTests" fullname="Game.Tests.EndlessRunPlayModeTests" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-07 20:04:29Z" end-time="2026-10-07 20:04:30Z" duration="0.808977" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1026" name="BoardCollectsEachDiamondOnceAndHazardsReduceSpeed" fullname="Game.Tests.EndlessRunPlayModeTests.BoardCollectsEachDiamondOnceAndHazardsReduceSpeed" methodname="BoardCollectsEachDiamondOnceAndHazardsReduceSpeed" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" seed="143149049" result="Passed" start-time="2026-10-07 20:04:29Z" end-time="2026-10-07 20:04:29Z" duration="0.176181" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1027" name="EndlessModeDoesNotRestartAtTheFormerTestTrackEnd" fullname="Game.Tests.EndlessRunPlayModeTests.EndlessModeDoesNotRestartAtTheFormerTestTrackEnd" methodname="EndlessModeDoesNotRestartAtTheFormerTestTrackEnd" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" seed="1118586410" result="Passed" start-time="2026-10-07 20:04:29Z" end-time="2026-10-07 20:04:29Z" duration="0.134833" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1025" name="StreamingRetiresOldRoadAndKeepsContinuousGroundBeyondTenKilometers" fullname="Game.Tests.EndlessRunPlayModeTests.StreamingRetiresOldRoadAndKeepsContinuousGroundBeyondTenKilometers" methodname="StreamingRetiresOldRoadAndKeepsContinuousGroundBeyondTenKilometers" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" seed="1168730764" result="Passed" start-time="2026-10-07 20:04:29Z" end-time="2026-10-07 20:04:30Z" duration="0.490429" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1028" name="ReleaseFlowPlayModeTests" fullname="Game.Tests.ReleaseFlowPlayModeTests" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-07 20:04:30Z" end-time="2026-10-07 20:04:36Z" duration="6.545718" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1030" name="LeavingTheRoadEndsTheSessionInsteadOfFallingForever" fullname="Game.Tests.ReleaseFlowPlayModeTests.LeavingTheRoadEndsTheSessionInsteadOfFallingForever" methodname="LeavingTheRoadEndsTheSessionInsteadOfFallingForever" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1803249851" result="Passed" start-time="2026-10-07 20:04:30Z" end-time="2026-10-07 20:04:30Z" duration="0.204920" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1031" name="MenuPauseRestartAndFatalDamageRespectSessionState" fullname="Game.Tests.ReleaseFlowPlayModeTests.MenuPauseRestartAndFatalDamageRespectSessionState" methodname="MenuPauseRestartAndFatalDamageRespectSessionState" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1336967145" result="Passed" start-time="2026-10-07 20:04:30Z" end-time="2026-10-07 20:04:36Z" duration="6.251310" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1029" name="PointerButtonsSelectCrewStartMuteAndReturnToMenu" fullname="Game.Tests.ReleaseFlowPlayModeTests.PointerButtonsSelectCrewStartMuteAndReturnToMenu" methodname="PointerButtonsSelectCrewStartMuteAndReturnToMenu" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1072132923" result="Passed" start-time="2026-10-07 20:04:36Z" end-time="2026-10-07 20:04:36Z" duration="0.075943" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1032" name="RiderPresentationPlayModeTests" fullname="Game.Tests.RiderPresentationPlayModeTests" classname="Game.Tests.RiderPresentationPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-07 20:04:36Z" end-time="2026-10-07 20:04:37Z" duration="1.210751" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1034" name="WheelDustEmitsOnlyDuringPlayAndFreezesOnPause" fullname="Game.Tests.RiderPresentationPlayModeTests.WheelDustEmitsOnlyDuringPlayAndFreezesOnPause" methodname="WheelDustEmitsOnlyDuringPlayAndFreezesOnPause" classname="Game.Tests.RiderPresentationPlayModeTests" runstate="Runnable" seed="960405732" result="Passed" start-time="2026-10-07 20:04:36Z" end-time="2026-10-07 20:04:37Z" duration="0.805762" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1033" name="WideBoardClearsAdjacentCrateAndRidersKeepThreeRows" fullname="Game.Tests.RiderPresentationPlayModeTests.WideBoardClearsAdjacentCrateAndRidersKeepThreeRows" methodname="WideBoardClearsAdjacentCrateAndRidersKeepThreeRows" classname="Game.Tests.RiderPresentationPlayModeTests" runstate="Runnable" seed="1107518607" result="Passed" start-time="2026-10-07 20:04:37Z" end-time="2026-10-07 20:04:37Z" duration="0.388851" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/Kai Kai/Kai Kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

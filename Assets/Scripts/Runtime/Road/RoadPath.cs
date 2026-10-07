@@ -11,6 +11,7 @@ namespace Game
         readonly List<float> _yaw = new List<float>();
 
         public float HalfWidth { get; }
+        public float StartDistance => _distance.Count == 0 ? 0f : _distance[0];
         public float Length => _distance.Count == 0 ? 0f : _distance[_distance.Count - 1];
         public int Count => _points.Count;
 
@@ -27,6 +28,20 @@ namespace Game
             _yaw.Add(yawRad);
         }
 
+        public void Clear()
+        {
+            _points.Clear(); _distance.Clear(); _yaw.Clear();
+        }
+
+        /// <summary>Keep absolute distances while discarding old samples; retain a boundary point.</summary>
+        public void DiscardBefore(float distance)
+        {
+            int count = 0;
+            while (count + 1 < _distance.Count && _distance[count + 1] <= distance) count++;
+            if (count == 0) return;
+            _points.RemoveRange(0, count); _distance.RemoveRange(0, count); _yaw.RemoveRange(0, count);
+        }
+
         public Vector3 PointAt(int index) => _points[index];
         public float YawAt(int index) => _yaw[index];
         public float DistanceAt(int index) => _distance[index];
@@ -36,7 +51,7 @@ namespace Game
         {
             int n = _points.Count;
             if (n == 0) { position = Vector3.zero; yawRad = 0f; return; }
-            if (distance <= 0f || n == 1) { position = _points[0]; yawRad = _yaw[0]; return; }
+            if (distance <= StartDistance || n == 1) { position = _points[0]; yawRad = _yaw[0]; return; }
             if (distance >= Length) { position = _points[n - 1]; yawRad = _yaw[n - 1]; return; }
 
             int lo = 0, hi = n - 1;

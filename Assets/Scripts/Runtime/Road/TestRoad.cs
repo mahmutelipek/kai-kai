@@ -42,13 +42,20 @@ namespace Game
         };
 
         public RoadPath Path { get; private set; }
+        public EndlessRoad Streamer { get; private set; }
 
-        public static TestRoad Build(Transform parent)
+        public static TestRoad Build(Transform parent, bool endless = false)
         {
             var go = new GameObject("TestRoad");
             go.transform.SetParent(parent, false);
             var road = go.AddComponent<TestRoad>();
-            road.BuildInternal();
+            if (endless)
+            {
+                road.Path = new RoadPath(RoadWidth);
+                road.Streamer = go.AddComponent<EndlessRoad>();
+                road.Streamer.Initialize(road.Path);
+            }
+            else road.BuildInternal();
             return road;
         }
 
@@ -70,6 +77,7 @@ namespace Game
                 ConeObstacle.Create(obstacles, p + SimConvert.YawRight(yaw) * spot.y + Vector3.up * 0.02f, yaw * Mathf.Rad2Deg);
             }
             BuildRamp(RampDistance, 0f);
+            CoastalScenery.Build(this);
         }
 
         static RoadPath BuildPath()

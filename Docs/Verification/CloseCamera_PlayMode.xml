@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.1518169">
+  <test-suite type="TestSuite" id="1099" name="kai kai" fullname="kai kai" runstate="Runnable" testcasecount="73" result="Passed" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.151817" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1093" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="73" result="Passed" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.147234" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="49890" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1094" name="Game" fullname="Game" runstate="Runnable" testcasecount="73" result="Passed" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.146462" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1095" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="73" result="Passed" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.145787" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1041" name="RiderPresentationPlayModeTests" fullname="Game.Tests.RiderPresentationPlayModeTests" classname="Game.Tests.RiderPresentationPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.144342" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1043" name="CloseCameraPullsInForTreesAndRestoresItsFramingWhenClear" fullname="Game.Tests.RiderPresentationPlayModeTests.CloseCameraPullsInForTreesAndRestoresItsFramingWhenClear" methodname="CloseCameraPullsInForTreesAndRestoresItsFramingWhenClear" classname="Game.Tests.RiderPresentationPlayModeTests" runstate="Runnable" seed="216099507" result="Passed" start-time="2026-10-07 23:06:32Z" end-time="2026-10-07 23:06:32Z" duration="0.139217" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/Kai Kai/kai kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

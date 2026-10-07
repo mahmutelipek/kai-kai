@@ -95,10 +95,13 @@ namespace Game.Simulation
                 Roll = board.Roll,
                 BoardAcceleration = board.Acceleration,
             };
+            bool driftRequested = false;
             for (int i = 0; i < ActivePlayerCount; i++)
             {
                 PlayerInputState input = inputs != null && i < inputs.Count ? inputs[i] : PlayerInputState.None;
                 Players[i].Step(dt, input, ctx, t);
+                Players[i].ConstrainToDeck(t);
+                driftRequested |= input.Drift && Players[i].IsOnBoard && !Players[i].IsAirborne;
             }
 
             // 2) bumps / no interpenetration
@@ -131,7 +134,7 @@ namespace Game.Simulation
 
             // 5) weight model -> board physics
             LastWeight = ComputeWeight();
-            events.Board = Board.Step(dt, LastWeight, t, Ground);
+            events.Board = Board.Step(dt, LastWeight, t, Ground, driftRequested);
 
             // 6) reactions to board events
             if (events.Board.Crashed)

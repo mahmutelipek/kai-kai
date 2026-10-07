@@ -157,10 +157,32 @@ namespace Game.Simulation
             }
         }
 
+        /// <summary>Arcade edge support. Feet remain inside the rounded deck; large jump overshoots still fall.</summary>
+        public void ConstrainToDeck(BoardTuningData t)
+        {
+            if (t.edgeAssist <= .5f || !IsOnBoard || IsAirborne || Pinned) return;
+            float radius = Math.Max(.1f, t.HalfWidth - t.playerRadius * .35f);
+            float straight = Math.Max(0f, t.HalfLength - t.HalfWidth);
+            Vector2 center = new Vector2(0, SimMath.Clamp(LocalPosition.Y, -straight, straight));
+            Vector2 delta = LocalPosition - center;
+            float distance = delta.Length();
+            if (distance <= radius || distance - radius > .4f) return;
+            Vector2 normal = delta / distance;
+            LocalPosition = center + normal * radius;
+            float outward = Vector2.Dot(Velocity, normal);
+            if (outward > 0) Velocity -= normal * outward;
+        }
+
         /// <summary>True if the player is standing (not in the air) past the deck edge.</summary>
         public bool IsOverEdge(BoardTuningData t)
         {
             if (Height > 1e-4f) return false;
+            if (t.edgeAssist > .5f)
+            {
+                float straight = Math.Max(0,t.HalfLength-t.HalfWidth);
+                Vector2 center = new Vector2(0,SimMath.Clamp(LocalPosition.Y,-straight,straight));
+                return Vector2.DistanceSquared(LocalPosition,center) > t.HalfWidth*t.HalfWidth;
+            }
             return Math.Abs(LocalPosition.X) > t.HalfWidth || Math.Abs(LocalPosition.Y) > t.HalfLength;
         }
     }

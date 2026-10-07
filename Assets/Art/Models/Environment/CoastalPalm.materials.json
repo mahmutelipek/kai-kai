@@ -1,0 +1,48 @@
+{
+  "source": "/Users/mahmutelipek/Desktop/Untitled.blend",
+  "sourceObjects": [
+    "PalmTrunk",
+    "PalmTrunk.001",
+    "PalmTrunk.002",
+    "PalmTrunk.003",
+    "PalmTrunk.004",
+    "PalmTrunk.005",
+    "PalmTrunk.006",
+    "PalmTrunk.007",
+    "Frond",
+    "Frond.001",
+    "Frond.002",
+    "Frond.003",
+    "Frond.004",
+    "Frond.005",
+    "Frond.006",
+    "Frond.007",
+    "Frond.008"
+  ],
+  "vertexCount": 1158,
+  "meshCount": 1,
+  "materials": [
+    {
+      "name": "rubber_8A6A48.009",
+      "linearColor": [
+        0.2590273320674896,
+        0.14497213065624237,
+        0.06190747395157814,
+        1.0
+      ],
+      "roughness": 0.6000000238418579,
+      "metallic": 0.0
+    },
+    {
+      "name": "fabric_3E8A34.009",
+      "linearColor": [
+        0.044552627950906754,
+        0.2590273320674896,
+        0.030256519094109535,
+        1.0
+      ],
+      "roughness": 0.9200000166893005,
+      "metallic": 0.0
+    }
+  ]
+}

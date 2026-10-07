@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="4.208888">
+  <test-suite type="TestSuite" id="1082" name="Kai Kai" fullname="Kai Kai" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="4.208888" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1076" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="4.204862" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40148" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1077" name="Game" fullname="Game" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="4.204418" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1078" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="60" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="4.204142" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1004" name="ArcadeContentTests" fullname="Game.Tests.ArcadeContentTests" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="4.202896" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1005" name="CoinAndNitroTriggersCountOnceAndRestartClearsResources" fullname="Game.Tests.ArcadeContentTests.CoinAndNitroTriggersCountOnceAndRestartClearsResources" methodname="CoinAndNitroTriggersCountOnceAndRestartClearsResources" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="280497547" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:51Z" duration="0.186526" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1007" name="NitroAddsSpeedWithoutSettingSteeringAndRecoversAfterRelease" fullname="Game.Tests.ArcadeContentTests.NitroAddsSpeedWithoutSettingSteeringAndRecoversAfterRelease" methodname="NitroAddsSpeedWithoutSettingSteeringAndRecoversAfterRelease" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="10204453" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:51Z" duration="0.004093" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="NitroPausesExpiresAndCannotStartInMenus" fullname="Game.Tests.ArcadeContentTests.NitroPausesExpiresAndCannotStartInMenus" methodname="NitroPausesExpiresAndCannotStartInMenus" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="1984780599" result="Passed" start-time="2026-10-07 20:12:51Z" end-time="2026-10-07 20:12:55Z" duration="3.897543" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="StreamedRampLaunchesAndLandsWithoutCrashing" fullname="Game.Tests.ArcadeContentTests.StreamedRampLaunchesAndLandsWithoutCrashing" methodname="StreamedRampLaunchesAndLandsWithoutCrashing" classname="Game.Tests.ArcadeContentTests" runstate="Runnable" seed="1729122489" result="Passed" start-time="2026-10-07 20:12:55Z" end-time="2026-10-07 20:12:55Z" duration="0.108643" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/Kai Kai/Kai Kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

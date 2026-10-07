@@ -4,18 +4,23 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// Primitive placeholder character that mirrors one PlayerSim: interpolated deck position, lean,
-    /// crouch, panic arms while the board wobbles, a tumbling fall when knocked off, a pop on respawn.
+    /// Character that mirrors one PlayerSim: imported rider art with a primitive fallback; deck position, lean,
+    /// balance, panic arms while the board wobbles, a tumbling fall when knocked off, a pop on respawn.
     /// Purely visual: it never feeds anything back into the simulation.
     /// </summary>
     public sealed class PlayerView : MonoBehaviour
     {
+        public const float VisualScale = .8f;
+
         BoardController _board;
         PlayerInputRouter _router;
         BoardView _boardView;
         int _slot;
 
         Transform _pose, _armL, _armR, _marker;
+        RiderArtRig _artRig;
+        readonly UnityGroundProvider _flightGround = new UnityGroundProvider();
+        Renderer[] _bodyRenderers;
         bool _detached;
         Vector3 _flightVelocity, _spin;
         float _flightTime, _popTimer, _facingYaw;
@@ -43,6 +48,13 @@ namespace Game
 
             _pose = new GameObject("Pose").transform;
             _pose.SetParent(transform, false);
+            _pose.localScale = Vector3.one * VisualScale;
+
+            if (TryBuildImported())
+            {
+                CreateMarker(main);
+                return;
+            }
 
             for (int side = -1; side <= 1; side += 2)
             {
@@ -77,7 +89,24 @@ namespace Game
                     break;
             }
 
-            _marker = PrimitiveFactory.Visual(PrimitiveType.Cube, transform, new Vector3(0f, 1.55f, 0f), new Vector3(0.16f, 0.16f, 0.16f), main, "YouMarker").transform;
+            CreateMarker(main);
+        }
+
+        bool TryBuildImported()
+        {
+            GameObject prefab = Resources.Load<GameObject>("Art/Riders/" + RiderArtRig.AssetNames[_slot % RiderArtRig.AssetNames.Length]);
+            if (prefab == null) return false;
+            GameObject visual = Instantiate(prefab, _pose, false);
+            _artRig = visual.GetComponent<RiderArtRig>();
+            if (_artRig != null) return true;
+            visual.SetActive(false);
+            Destroy(visual);
+            return false;
+        }
+
+        void CreateMarker(Color main)
+        {
+            _marker = PrimitiveFactory.Visual(PrimitiveType.Cube, transform, new Vector3(0f, 1.8f * VisualScale, 0f), Vector3.one * (.16f * VisualScale), main, "YouMarker").transform;
             _marker.localRotation = Quaternion.Euler(45f, 0f, 45f);
         }
 
@@ -122,36 +151,49 @@ namespace Game
 
             // face where you walk; otherwise face the nose
             Vector2 v = p.Velocity.ToUnity();
-            float targetYaw = v.sqrMagnitude > 0.25f ? Mathf.Atan2(v.x, v.y) * Mathf.Rad2Deg : 0f;
+            float targetYaw = v.sqrMagnitude > 0.25f ? Mathf.Atan2(v.x, v.y) * Mathf.Rad2Deg : (_slot % 2 == 0 ? -12f : 12f);
             _facingYaw = Mathf.MoveTowardsAngle(_facingYaw, targetYaw, 540f * Time.deltaTime);
 
             // lean into own motion, counter-lean against the board roll, shake while staggered
             float speedNorm = Mathf.Clamp01(board.Speed / Mathf.Max(t.softCapSpeed, 1f));
-            float leanForward = Mathf.Clamp(v.magnitude * 5f, 0f, 18f) + speedNorm * 10f;
-            float counterRoll = board.Roll * Mathf.Rad2Deg * 0.6f;
+            float leanForward = Mathf.Clamp(v.magnitude * 3f, 0f, 10f) + speedNorm * 5f;
+            float balance = _board.enabled ? Mathf.Sin(Time.time * 2.2f + _slot * 1.37f) * 1.2f * speedNorm : 0f;
+            float counterRoll = board.Roll * Mathf.Rad2Deg * 0.6f + balance;
             float shake = p.StaggerTimer > 0f ? Mathf.Sin(Time.time * 40f) * 12f : 0f;
             _pose.localRotation = Quaternion.Euler(0f, _facingYaw, 0f) * Quaternion.Euler(leanForward, 0f, counterRoll + shake);
 
-            // crouch with speed and danger; pop after respawn
-            float crouch = 1f - 0.12f * speedNorm - 0.15f * board.Wobble;
+            // Keep the standing silhouette; balance comes from lean and arms.
             _popTimer = Mathf.Max(0f, _popTimer - Time.deltaTime);
             float pop = 1f + Mathf.Sin(_popTimer / 0.3f * Mathf.PI) * 0.25f;
-            _pose.localScale = new Vector3(pop, crouch * pop, pop);
+            _pose.localScale = Vector3.one * (VisualScale * pop);
 
             // arms: balance out wide at speed, flail when wobbling
-            float spread = 15f + 35f * speedNorm + 90f * board.Wobble;
+            float spread = 18f + 28f * speedNorm + 75f * board.Wobble + _slot % 3 * 3f;
             float flail = board.Wobble * Mathf.Sin(Time.time * 18f + _slot) * 40f;
-            _armL.localRotation = Quaternion.Euler(0f, 0f, -spread - flail);
-            _armR.localRotation = Quaternion.Euler(0f, 0f, spread - flail);
+            PoseArms(spread, flail);
+            if (_artRig != null) _artRig.PoseMovement(_board.enabled ? v.magnitude : 0f, p.IsAirborne, board.Steering, _board.enabled ? Time.deltaTime : 0f);
 
-            _marker.localPosition = new Vector3(0f, 1.55f + Mathf.Sin(Time.time * 4f) * 0.06f, 0f);
+            _pose.localPosition=Vector3.up*(_artRig!=null?_artRig.StepBob:0);
+
+            _marker.localPosition = new Vector3(0f, 1.8f * VisualScale + Mathf.Sin(Time.time * 4f) * 0.04f, 0f);
             _marker.Rotate(0f, 180f * Time.deltaTime, 0f, Space.World);
+        }
+
+        void PoseArms(float spread, float flail)
+        {
+            if (_artRig != null) _artRig.PoseArms(spread, flail);
+            else
+            {
+                _armL.localRotation = Quaternion.Euler(0f, 0f, -spread - flail);
+                _armR.localRotation = Quaternion.Euler(0f, 0f, spread - flail);
+            }
         }
 
         void Detach(PlayerSim p, BoardState board)
         {
             _detached = true;
             _flightTime = 0f;
+            if (_bodyRenderers == null) _bodyRenderers = _pose.GetComponentsInChildren<Renderer>();
             Transform deck = _boardView.DeckTop;
             Vector3 outward = deck.TransformDirection(new Vector3(p.FallDirection.X, 0f, p.FallDirection.Y)).normalized;
             Vector3 boardVelocity = SimConvert.YawForward(board.TravelYaw) * board.Speed + Vector3.up * board.VerticalVelocity;
@@ -162,13 +204,28 @@ namespace Game
 
         void UpdateFlight()
         {
+            if (!_board.enabled) return;
+            float searchFrom = transform.position.y + 3f;
             _flightTime += Time.deltaTime;
             _flightVelocity += Vector3.down * 20f * Time.deltaTime;
             transform.position += _flightVelocity * Time.deltaTime;
             transform.Rotate(_spin * Time.deltaTime, Space.Self);
-            _armL.localRotation = Quaternion.Euler(0f, 0f, -160f);
-            _armR.localRotation = Quaternion.Euler(0f, 0f, 160f);
-            if (_flightTime > 1.3f && _pose.gameObject.activeSelf) _pose.gameObject.SetActive(false);
+            PoseArms(160f, 0f);
+            GroundSample ground = _flightGround.Sample(transform.position.x, transform.position.z, Mathf.Max(searchFrom,transform.position.y+3f));
+            if (ground.Found)
+            {
+                float lowest = float.PositiveInfinity;
+                foreach (Renderer body in _bodyRenderers) lowest = Mathf.Min(lowest,body.bounds.min.y);
+                if (lowest < ground.Height + .025f)
+                {
+                    transform.position += Vector3.up * (ground.Height + .025f - lowest);
+                    if (_flightVelocity.y < 0) _flightVelocity.y = -_flightVelocity.y * .12f;
+                    float friction = Mathf.Exp(-7f * Time.deltaTime);
+                    _flightVelocity.x *= friction; _flightVelocity.z *= friction;
+                    _spin *= Mathf.Exp(-12f * Time.deltaTime);
+                }
+            }
+            if (_flightTime > 1.75f && _pose.gameObject.activeSelf) _pose.gameObject.SetActive(false);
         }
 
         void Reattach()

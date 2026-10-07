@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:15Z" duration="5.0916156">
+  <test-suite type="TestSuite" id="1054" name="kai-kai" fullname="kai-kai" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:15Z" duration="5.091616" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1048" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:15Z" duration="5.087472" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="23628" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1049" name="Game" fullname="Game" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:15Z" duration="5.085261" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1050" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="39" result="Passed" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:15Z" duration="5.084996" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="AllRidersPlayModeTests" fullname="Game.Tests.AllRidersPlayModeTests" classname="Game.Tests.AllRidersPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:12Z" duration="2.493898" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1003" name="SixImportedRiders_FallAndRespawnWithoutLosingTheirRig" fullname="Game.Tests.AllRidersPlayModeTests.SixImportedRiders_FallAndRespawnWithoutLosingTheirRig" methodname="SixImportedRiders_FallAndRespawnWithoutLosingTheirRig" classname="Game.Tests.AllRidersPlayModeTests" runstate="Runnable" seed="808842888" result="Passed" start-time="2026-10-07 16:23:10Z" end-time="2026-10-07 16:23:12Z" duration="1.889611" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="SixImportedRiders_HaveDistinctArtAndFollowWalkingAndJumping" fullname="Game.Tests.AllRidersPlayModeTests.SixImportedRiders_HaveDistinctArtAndFollowWalkingAndJumping" methodname="SixImportedRiders_HaveDistinctArtAndFollowWalkingAndJumping" classname="Game.Tests.AllRidersPlayModeTests" runstate="Runnable" seed="693271909" result="Passed" start-time="2026-10-07 16:23:12Z" end-time="2026-10-07 16:23:12Z" duration="0.598078" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1004" name="BlueRiderPlayModeTests" fullname="Game.Tests.BlueRiderPlayModeTests" classname="Game.Tests.BlueRiderPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-07 16:23:12Z" end-time="2026-10-07 16:23:15Z" duration="2.488082" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1006" name="ImportedRider_FallsAndRespawnsWithRigIntact" fullname="Game.Tests.BlueRiderPlayModeTests.ImportedRider_FallsAndRespawnsWithRigIntact" methodname="ImportedRider_FallsAndRespawnsWithRigIntact" classname="Game.Tests.BlueRiderPlayModeTests" runstate="Runnable" seed="1121354743" result="Passed" start-time="2026-10-07 16:23:12Z" end-time="2026-10-07 16:23:14Z" duration="1.873265" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="ImportedRider_WalksAndJumpsWithSimulation" fullname="Game.Tests.BlueRiderPlayModeTests.ImportedRider_WalksAndJumpsWithSimulation" methodname="ImportedRider_WalksAndJumpsWithSimulation" classname="Game.Tests.BlueRiderPlayModeTests" runstate="Runnable" seed="1803834183" result="Passed" start-time="2026-10-07 16:23:14Z" end-time="2026-10-07 16:23:15Z" duration="0.599591" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1014" name="CoastalSceneryPlayModeTests" fullname="Game.Tests.CoastalSceneryPlayModeTests" classname="Game.Tests.CoastalSceneryPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-07 16:23:15Z" end-time="2026-10-07 16:23:15Z" duration="0.101824" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1015" name="SceneryFollowsCurvesWithoutChangingGroundOrAddingColliders" fullname="Game.Tests.CoastalSceneryPlayModeTests.SceneryFollowsCurvesWithoutChangingGroundOrAddingColliders" methodname="SceneryFollowsCurvesWithoutChangingGroundOrAddingColliders" classname="Game.Tests.CoastalSceneryPlayModeTests" runstate="Runnable" seed="1486454384" result="Passed" start-time="2026-10-07 16:23:15Z" end-time="2026-10-07 16:23:15Z" duration="0.085249" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/DefaultCompany/kai-kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

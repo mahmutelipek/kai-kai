@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.6775641">
+  <test-suite type="TestSuite" id="1083" name="Kai Kai" fullname="Kai Kai" runstate="Runnable" testcasecount="61" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.677564" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1077" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="61" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.673277" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40307" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1078" name="Game" fullname="Game" runstate="Runnable" testcasecount="61" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.672489" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1079" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="61" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.671820" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1028" name="ReleaseFlowPlayModeTests" fullname="Game.Tests.ReleaseFlowPlayModeTests" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.668950" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1031" name="LeavingTheRoadEndsTheSessionInsteadOfFallingForever" fullname="Game.Tests.ReleaseFlowPlayModeTests.LeavingTheRoadEndsTheSessionInsteadOfFallingForever" methodname="LeavingTheRoadEndsTheSessionInsteadOfFallingForever" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1763968332" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:31Z" duration="0.194065" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1032" name="MenuPauseRestartAndFatalDamageRespectSessionState" fullname="Game.Tests.ReleaseFlowPlayModeTests.MenuPauseRestartAndFatalDamageRespectSessionState" methodname="MenuPauseRestartAndFatalDamageRespectSessionState" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1342939301" result="Passed" start-time="2026-10-07 20:17:31Z" end-time="2026-10-07 20:17:38Z" duration="6.248903" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1030" name="MenuSettingsCreditsAndCrewBackKeepSimulationFrozen" fullname="Game.Tests.ReleaseFlowPlayModeTests.MenuSettingsCreditsAndCrewBackKeepSimulationFrozen" methodname="MenuSettingsCreditsAndCrewBackKeepSimulationFrozen" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1282406459" result="Passed" start-time="2026-10-07 20:17:38Z" end-time="2026-10-07 20:17:38Z" duration="0.154687" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1029" name="PointerButtonsSelectCrewStartMuteAndReturnToMenu" fullname="Game.Tests.ReleaseFlowPlayModeTests.PointerButtonsSelectCrewStartMuteAndReturnToMenu" methodname="PointerButtonsSelectCrewStartMuteAndReturnToMenu" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="964829251" result="Passed" start-time="2026-10-07 20:17:38Z" end-time="2026-10-07 20:17:38Z" duration="0.066053" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/Kai Kai/Kai Kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

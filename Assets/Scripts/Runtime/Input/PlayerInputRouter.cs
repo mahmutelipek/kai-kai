@@ -30,6 +30,7 @@ namespace Game
         readonly int[] _gamepadForSlot = new int[BoardSimulation.MaxPlayers];
         RoadPath _road;
         int _roadHint;
+        public EndlessRoad Streamer { get; set; }
 
         public int KeyboardSlot { get; private set; }
         public bool BotsEnabled { get; set; } = true;
@@ -75,37 +76,36 @@ namespace Game
             AssignSources(active);
 
             BoardState board = sim.Board.State;
-            LastSteerHint = ComputeSteerHint(sim);
-            var ctx = new BotContext
-            {
-                Players = sim.Players,
-                ActivePlayerCount = active,
-                Board = board,
-                Tuning = sim.Tuning,
-                SteerHint = LastSteerHint,
-                Time = sim.Time,
-                Dt = dt,
-            };
-
+            float humanIntent = 0; int humans = 0; bool balance = false;
+            // Read humans first so cooperative crew members can support their intent by moving their own weight.
             for (int i = 0; i < active; i++)
             {
-                switch (_sources[i])
+                into[i] = _sources[i] == InputSourceKind.Keyboard ? LocalDeviceInput.ReadKeyboard()
+                    : _sources[i] == InputSourceKind.Gamepad ? LocalDeviceInput.ReadGamepad(LocalDeviceInput.GetGamepad(_gamepadForSlot[i]))
+                    : PlayerInputState.None;
+                if (!IsHumanControlled(i) || !sim.Players[i].IsOnBoard) continue;
+                humanIntent += into[i].Move.X; humans++; balance |= into[i].Action;
+                if (into[i].Action)
                 {
-                    case InputSourceKind.Keyboard:
-                        into[i] = LocalDeviceInput.ReadKeyboard();
-                        break;
-                    case InputSourceKind.Gamepad:
-                        into[i] = LocalDeviceInput.ReadGamepad(LocalDeviceInput.GetGamepad(_gamepadForSlot[i]));
-                        break;
-                    case InputSourceKind.Bot:
-                        ctx.Self = i;
-                        into[i] = _bots[i].Decide(ctx);
-                        break;
-                    default:
-                        into[i] = PlayerInputState.None;
-                        break;
+                    var position = sim.Players[i].LocalPosition;
+                    into[i].Move = -position / System.Math.Max(.6f, position.Length());
                 }
             }
+            LastSteerHint = ComputeSteerHint(sim);
+            if (Streamer != null && Preset == BotPreset.AllCooperative && humans > 0)
+            {
+                humanIntent /= humans;
+                float authority = Mathf.InverseLerp(.1f,.6f,Mathf.Abs(humanIntent));
+                LastSteerHint = balance ? 0 : Mathf.Lerp(LastSteerHint,humanIntent*.55f,authority);
+            }
+            var ctx = new BotContext
+            {
+                Players = sim.Players, ActivePlayerCount = active, Board = board, Tuning = sim.Tuning,
+                SteerHint = LastSteerHint, KeepFormation = Streamer != null && Preset == BotPreset.AllCooperative,
+                Time = sim.Time, Dt = dt,
+            };
+            for (int i = 0; i < active; i++)
+                if (_sources[i] == InputSourceKind.Bot) { ctx.Self = i; into[i] = _bots[i].Decide(ctx); }
         }
 
         void AssignSources(int active)
@@ -133,6 +133,8 @@ namespace Game
             BoardState s = sim.Board.State;
             BoardTuningData t = sim.Tuning;
             float maxYawRate = (t.yawRateBaseDeg + t.yawRatePerSpeedDeg * s.Speed) * Mathf.Deg2Rad;
+            if (Streamer != null && Preset == BotPreset.AllCooperative)
+                return Streamer.RouteSteerHint(s.Position.ToUnity(), s.Yaw, s.Speed, maxYawRate, ref _roadHint);
             return _road.SteerHint(s.Position.ToUnity(), s.Yaw, s.Speed, maxYawRate, ref _roadHint);
         }
     }

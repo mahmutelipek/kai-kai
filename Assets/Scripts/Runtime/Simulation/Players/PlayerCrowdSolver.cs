@@ -18,7 +18,7 @@ namespace Game.Simulation
             float minDist = t.playerRadius * 2f;
             float verticalClearance = t.playerHeight * 0.8f;
 
-            for (int iter = 0; iter < Iterations; iter++)
+            for (int iter = 0; iter < (t.edgeAssist > .5f ? 10 : Iterations); iter++)
             {
                 for (int i = 0; i < count; i++)
                 {
@@ -48,10 +48,29 @@ namespace Game.Simulation
                             n = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
                         }
 
-                        float penetration = minDist - dist;
+                        // At a supported side edge, separate along the deck rather than pushing someone off.
+                        if (t.edgeAssist > .5f && !a.IsAirborne && !b.IsAirborne &&
+                            Math.Abs(a.LocalPosition.X) > t.HalfWidth - t.playerRadius * .7f &&
+                            Math.Abs(b.LocalPosition.X) > t.HalfWidth - t.playerRadius * .7f &&
+                            MathF.Sign(a.LocalPosition.X) == MathF.Sign(b.LocalPosition.X))
+                            n = new Vector2(0, d.Y < 0 ? -1 : 1);
+                        float penetration = n.X == 0 && t.edgeAssist > .5f
+                            ? Math.Max(0, MathF.Sqrt(Math.Max(0,minDist * minDist - d.X * d.X)) - Math.Abs(d.Y))
+                            : minDist - dist;
                         a.LocalPosition -= n * (penetration * wa / wSum);
                         b.LocalPosition += n * (penetration * wb / wSum);
 
+                        if (t.edgeAssist > .5f)
+                        {
+                            a.ConstrainToDeck(t); b.ConstrainToDeck(t);
+                            float remaining = minDist - Vector2.Distance(a.LocalPosition,b.LocalPosition);
+                            if (remaining > 0)
+                            {
+                                a.LocalPosition -= n * remaining * wa / wSum;
+                                b.LocalPosition += n * remaining * wb / wSum;
+                                a.ConstrainToDeck(t); b.ConstrainToDeck(t);
+                            }
+                        }
                         float approach = Vector2.Dot(b.Velocity - a.Velocity, n);
                         if (approach < 0f)
                         {

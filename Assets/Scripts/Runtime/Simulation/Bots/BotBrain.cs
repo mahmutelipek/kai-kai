@@ -24,6 +24,7 @@ namespace Game.Simulation
         public BoardTuningData Tuning;
         /// <summary>Steering the road currently asks for, -1..1 (0 when unknown). Only cooperative bots care.</summary>
         public float SteerHint;
+        public bool KeepFormation;
         public float Time;
         public float Dt;
     }
@@ -124,7 +125,9 @@ namespace Game.Simulation
             float wantedLateral = SimMath.SignedPow(wantedSteer, 1f / Math.Max(t.steeringExponent, 0.1f));
             float error = wantedLateral - ctx.Board.Lateral;
             float x = self.LocalPosition.X + error * t.HalfWidth * 1.5f;
-            return new Vector2(x, 0f);
+            int rows = (ctx.ActivePlayerCount + 1) / 2;
+            float z = !ctx.KeepFormation || rows <= 1 ? 0f : t.HalfLength * .55f * (1f - 2f * (ctx.Self / 2) / (rows - 1f));
+            return new Vector2(x, z);
         }
 
         protected override bool WantsToJump(in BotContext ctx) => false;

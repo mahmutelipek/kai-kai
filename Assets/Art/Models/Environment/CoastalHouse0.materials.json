@@ -1,0 +1,33 @@
+{
+  "source": "/Users/mahmutelipek/Desktop/Untitled.blend",
+  "sourceObjects": [
+    "House",
+    "Roof"
+  ],
+  "vertexCount": 16,
+  "meshCount": 1,
+  "materials": [
+    {
+      "name": "plastic_A9B4BF.023",
+      "linearColor": [
+        0.4045408368110657,
+        0.46474114060401917,
+        0.5295231938362122,
+        1.0
+      ],
+      "roughness": 0.8949999809265137,
+      "metallic": 0.0
+    },
+    {
+      "name": "plastic_B0553A.017",
+      "linearColor": [
+        0.4423229396343231,
+        0.08919350802898407,
+        0.038472745567560196,
+        1.0
+      ],
+      "roughness": 0.8600000143051147,
+      "metallic": 0.0
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Failed(Child)" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:38Z" duration="39.2383861">
+  <test-suite type="TestSuite" id="1046" name="kai-kai" fullname="kai-kai" runstate="Runnable" testcasecount="34" result="Failed" site="Child" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:38Z" duration="39.238386" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1040" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="34" result="Failed" site="Child" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:38Z" duration="39.234002" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="13285" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1041" name="Game" fullname="Game" runstate="Runnable" testcasecount="34" result="Failed" site="Child" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:38Z" duration="39.233384" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1042" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="34" result="Failed" site="Child" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:38Z" duration="39.232942" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1001" name="BoardPlayModeTests" fullname="Game.Tests.BoardPlayModeTests" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:38Z" duration="39.231852" total="6" passed="4" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1004" name="AllLeft_CrashesThenRespawnsOnRoad" fullname="Game.Tests.BoardPlayModeTests.AllLeft_CrashesThenRespawnsOnRoad" methodname="AllLeft_CrashesThenRespawnsOnRoad" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1285781588" result="Passed" start-time="2026-10-07 15:26:59Z" end-time="2026-10-07 15:27:04Z" duration="4.687631" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="Balanced_FollowsRoadStraightAndStable" fullname="Game.Tests.BoardPlayModeTests.Balanced_FollowsRoadStraightAndStable" methodname="Balanced_FollowsRoadStraightAndStable" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="439300478" result="Failed" start-time="2026-10-07 15:27:04Z" end-time="2026-10-07 15:27:08Z" duration="4.008513" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: less than 0.150000006f
+  But was:  0.851528883f
+]]></message>
+                <stack-trace><![CDATA[at Game.Tests.BoardPlayModeTests+<Balanced_FollowsRoadStraightAndStable>d__6.MoveNext () [0x0009d] in /Users/mahmutelipek/Desktop/kai-kai/Assets/Scripts/Tests/PlayMode/BoardPlayModeTests.cs:62
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@80f691d4262b/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:52
+]]></stack-trace>
+              </failure>
+            </test-case>
+            <test-case id="1006" name="Bots_PlayersNeverBelowDeckOrInsideEachOther" fullname="Game.Tests.BoardPlayModeTests.Bots_PlayersNeverBelowDeckOrInsideEachOther" methodname="Bots_PlayersNeverBelowDeckOrInsideEachOther" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1039152183" result="Failed" start-time="2026-10-07 15:27:08Z" end-time="2026-10-07 15:27:28Z" duration="20.008307" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  player below the deck surface
+  Expected: greater than or equal to 0.830000043f
+  But was:  -15.5434971f
+]]></message>
+                <stack-trace><![CDATA[at Game.Tests.BoardPlayModeTests+<Bots_PlayersNeverBelowDeckOrInsideEachOther>d__10.MoveNext () [0x001e9] in /Users/mahmutelipek/Desktop/kai-kai/Assets/Scripts/Tests/PlayMode/BoardPlayModeTests.cs:136
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@80f691d4262b/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:52
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[bots 20 s: min player local y -15.544 (deck top 0.85), min separation 0.660
+]]></output>
+            </test-case>
+            <test-case id="1003" name="FiveLeftOneRight_TurnsLeft" fullname="Game.Tests.BoardPlayModeTests.FiveLeftOneRight_TurnsLeft" methodname="FiveLeftOneRight_TurnsLeft" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1010401792" result="Passed" start-time="2026-10-07 15:27:28Z" end-time="2026-10-07 15:27:30Z" duration="2.507365" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="Ramp_LaunchesAndLandsWithoutCrash" fullname="Game.Tests.BoardPlayModeTests.Ramp_LaunchesAndLandsWithoutCrash" methodname="Ramp_LaunchesAndLandsWithoutCrash" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="1998278829" result="Passed" start-time="2026-10-07 15:27:30Z" end-time="2026-10-07 15:27:35Z" duration="5.005211" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1007" name="TwoPlayerMode_OnlyTwoPlayersVisibleAndSteer" fullname="Game.Tests.BoardPlayModeTests.TwoPlayerMode_OnlyTwoPlayersVisibleAndSteer" methodname="TwoPlayerMode_OnlyTwoPlayersVisibleAndSteer" classname="Game.Tests.BoardPlayModeTests" runstate="Runnable" seed="556890083" result="Passed" start-time="2026-10-07 15:27:35Z" end-time="2026-10-07 15:27:38Z" duration="3.008921" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/DefaultCompany/kai-kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

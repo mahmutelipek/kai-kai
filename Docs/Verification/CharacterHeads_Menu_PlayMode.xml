@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:47:00Z" duration="6.8238973">
+  <test-suite type="TestSuite" id="1090" name="Kai Kai" fullname="Kai Kai" runstate="Runnable" testcasecount="66" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:47:00Z" duration="6.823897" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1084" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="66" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:47:00Z" duration="6.816750" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="47128" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1085" name="Game" fullname="Game" runstate="Runnable" testcasecount="66" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:47:00Z" duration="6.815739" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1086" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="66" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:47:00Z" duration="6.814981" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1028" name="ReleaseFlowPlayModeTests" fullname="Game.Tests.ReleaseFlowPlayModeTests" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:47:00Z" duration="6.693514" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1031" name="LeavingTheRoadEndsTheSessionInsteadOfFallingForever" fullname="Game.Tests.ReleaseFlowPlayModeTests.LeavingTheRoadEndsTheSessionInsteadOfFallingForever" methodname="LeavingTheRoadEndsTheSessionInsteadOfFallingForever" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="919002543" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:46:53Z" duration="0.218811" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1032" name="MenuPauseRestartAndFatalDamageRespectSessionState" fullname="Game.Tests.ReleaseFlowPlayModeTests.MenuPauseRestartAndFatalDamageRespectSessionState" methodname="MenuPauseRestartAndFatalDamageRespectSessionState" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1391609875" result="Passed" start-time="2026-10-07 22:46:53Z" end-time="2026-10-07 22:46:59Z" duration="6.216120" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1030" name="MenuSettingsCreditsAndCrewBackKeepSimulationFrozen" fullname="Game.Tests.ReleaseFlowPlayModeTests.MenuSettingsCreditsAndCrewBackKeepSimulationFrozen" methodname="MenuSettingsCreditsAndCrewBackKeepSimulationFrozen" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="2045272674" result="Passed" start-time="2026-10-07 22:46:59Z" end-time="2026-10-07 22:46:59Z" duration="0.162485" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1029" name="PointerButtonsSelectCrewStartMuteAndReturnToMenu" fullname="Game.Tests.ReleaseFlowPlayModeTests.PointerButtonsSelectCrewStartMuteAndReturnToMenu" methodname="PointerButtonsSelectCrewStartMuteAndReturnToMenu" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="1424091778" result="Passed" start-time="2026-10-07 22:46:59Z" end-time="2026-10-07 22:47:00Z" duration="0.089586" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1036" name="RunResultsTests" fullname="Game.Tests.RunResultsTests" classname="Game.Tests.RunResultsTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.119147" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1042" name="ActualPickupAttributionAndFatalCrashFreezeIndividualRanking" fullname="Game.Tests.RunResultsTests.ActualPickupAttributionAndFatalCrashFreezeIndividualRanking" methodname="ActualPickupAttributionAndFatalCrashFreezeIndividualRanking" classname="Game.Tests.RunResultsTests" runstate="Runnable" seed="1762879571" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.087864" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1037" name="RankedPodiumUsesRealPointsAndStableTiesAndFreezesTheSnapshot" fullname="Game.Tests.RunResultsTests.RankedPodiumUsesRealPointsAndStableTiesAndFreezesTheSnapshot" methodname="RankedPodiumUsesRealPointsAndStableTiesAndFreezesTheSnapshot" classname="Game.Tests.RunResultsTests" runstate="Runnable" seed="1742329054" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.001192" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1041" name="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback" fullname="Game.Tests.RunResultsTests.ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback" classname="Game.Tests.RunResultsTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.014983" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1038" name="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback(2)" fullname="Game.Tests.RunResultsTests.ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback(2)" methodname="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback" classname="Game.Tests.RunResultsTests" runstate="Runnable" seed="142866904" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.000234" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback(3)" fullname="Game.Tests.RunResultsTests.ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback(3)" methodname="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback" classname="Game.Tests.RunResultsTests" runstate="Runnable" seed="1567703017" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.000038" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback(6)" fullname="Game.Tests.RunResultsTests.ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback(6)" methodname="ResultsOnlyIncludeActiveCrewAndEmptyNicksHaveFallback" classname="Game.Tests.RunResultsTests" runstate="Runnable" seed="1776947125" result="Passed" start-time="2026-10-07 22:47:00Z" end-time="2026-10-07 22:47:00Z" duration="0.000034" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/Kai Kai/Kai Kai/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

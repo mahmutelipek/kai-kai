@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:40Z" duration="3.8450097">
+  <test-suite type="TestSuite" id="1060" name="Kai Kai" fullname="Kai Kai" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:40Z" duration="3.845010" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1054" name="Game.Tests.dll" fullname="/Users/mahmutelipek/Desktop/kai-kai/Library/ScriptAssemblies/Game.Tests.dll" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:40Z" duration="3.839260" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="27075" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1055" name="Game" fullname="Game" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:40Z" duration="3.838460" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1056" name="Tests" fullname="Game.Tests" runstate="Runnable" testcasecount="43" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:40Z" duration="3.837752" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1016" name="EndlessRunPlayModeTests" fullname="Game.Tests.EndlessRunPlayModeTests" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:37Z" duration="0.553406" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1018" name="BoardCollectsEachDiamondOnceAndHazardsReduceSpeed" fullname="Game.Tests.EndlessRunPlayModeTests.BoardCollectsEachDiamondOnceAndHazardsReduceSpeed" methodname="BoardCollectsEachDiamondOnceAndHazardsReduceSpeed" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" seed="1222431295" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:36Z" duration="0.123152" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1019" name="EndlessModeDoesNotRestartAtTheFormerTestTrackEnd" fullname="Game.Tests.EndlessRunPlayModeTests.EndlessModeDoesNotRestartAtTheFormerTestTrackEnd" methodname="EndlessModeDoesNotRestartAtTheFormerTestTrackEnd" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" seed="1626033392" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:36Z" duration="0.113269" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1017" name="StreamingRetiresOldRoadAndKeepsContinuousGroundBeyondTenKilometers" fullname="Game.Tests.EndlessRunPlayModeTests.StreamingRetiresOldRoadAndKeepsContinuousGroundBeyondTenKilometers" methodname="StreamingRetiresOldRoadAndKeepsContinuousGroundBeyondTenKilometers" classname="Game.Tests.EndlessRunPlayModeTests" runstate="Runnable" seed="19492695" result="Passed" start-time="2026-10-07 17:09:36Z" end-time="2026-10-07 17:09:37Z" duration="0.310302" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1020" name="ReleaseFlowPlayModeTests" fullname="Game.Tests.ReleaseFlowPlayModeTests" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-07 17:09:37Z" end-time="2026-10-07 17:09:40Z" duration="3.282936" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1021" name="MenuPauseRestartAndFatalDamageRespectSessionState" fullname="Game.Tests.ReleaseFlowPlayModeTests.MenuPauseRestartAndFatalDamageRespectSessionState" methodname="MenuPauseRestartAndFatalDamageRespectSessionState" classname="Game.Tests.ReleaseFlowPlayModeTests" runstate="Runnable" seed="919792083" result="Passed" start-time="2026-10-07 17:09:37Z" end-time="2026-10-07 17:09:40Z" duration="3.267529" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /Users/mahmutelipek/Library/Application Support/Kai Kai/Kai Kai/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -10,9 +10,18 @@ namespace Game
         const float MaxProbeDistance = 200f;
         readonly RaycastHit[] _hits = new RaycastHit[16];
         readonly Dictionary<Collider, GroundSurface> _surfaceCache = new Dictionary<Collider, GroundSurface>();
+        readonly List<Collider> _expired = new List<Collider>();
+        int _samples;
+        public int CachedColliderCount => _surfaceCache.Count;
 
         public GroundSample Sample(float x, float z, float searchFromHeight)
         {
+            if (++_samples % 128 == 0)
+            {
+                _expired.Clear();
+                foreach (var entry in _surfaceCache) if (entry.Key == null) _expired.Add(entry.Key);
+                foreach (Collider collider in _expired) _surfaceCache.Remove(collider);
+            }
             var origin = new Vector3(x, searchFromHeight, z);
             int count = Physics.RaycastNonAlloc(origin, Vector3.down, _hits, MaxProbeDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
             float bestDistance = float.PositiveInfinity;

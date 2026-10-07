@@ -34,6 +34,7 @@ namespace Game.Simulation
         public float WobblePhase;
         /// <summary>1 = full grip.</summary>
         public float Grip;
+        public float DriftAmount;
         /// <summary>0..1 accumulator while danger >= 1; reaching 1 crashes the board.</summary>
         public float Tip;
         public float Acceleration;
@@ -66,6 +67,7 @@ namespace Game.Simulation
     public sealed class BoardPhysicsSim
     {
         public BoardState State;
+        public bool NitroActive { get; set; }
 
         const float WobbleYawRateDeg = 8f;
         const float SlipSpeedLoss = 0.6f;
@@ -79,6 +81,7 @@ namespace Game.Simulation
 
         public void Reset(Vector3 position, float yaw, float speed, float runTime = 0f)
         {
+            NitroActive = false;
             State = new BoardState
             {
                 Position = position,
@@ -110,7 +113,7 @@ namespace Game.Simulation
             State.CrashDirection = State.Steering >= 0f ? 1f : -1f;
         }
 
-        public BoardStepEvents Step(float dt, in WeightResult weight, BoardTuningData t, IGroundProvider ground)
+        public BoardStepEvents Step(float dt, in WeightResult weight, BoardTuningData t, IGroundProvider ground, bool driftRequested = false)
         {
             var ev = new BoardStepEvents();
             if (!(dt > 0f)) return ev;
@@ -127,7 +130,7 @@ namespace Game.Simulation
             }
 
             s.RunTime += dt;
-            s.TargetSpeed = Math.Min(t.startSpeed + t.speedRampPerSecond * s.RunTime, t.softCapSpeed);
+            s.TargetSpeed = Math.Min(t.startSpeed + t.speedRampPerSecond * s.RunTime, t.softCapSpeed) + (NitroActive ? 9f : 0f);
 
             // 1) smoothed steering: heavy, delayed, momentum-like
             s.Steering += (weight.RawSteering - s.Steering) * SimMath.LagAlpha(dt, t.steeringSmoothingTime);
@@ -138,7 +141,10 @@ namespace Game.Simulation
                               * (1f + t.frontWeightInstability * Math.Max(0f, s.Longitudinal) * speedNorm);
             s.Danger = Math.Abs(s.Steering) * stability / t.crashThreshold;
             s.Wobble = SimMath.SmoothStep(t.wobbleStartFraction, 1f, s.Danger);
-            s.Grip = 1f - t.gripLossMax * s.Wobble;
+            float driftTarget = t.driftGripLoss > 0 && driftRequested && s.Grounded && s.Speed > 8f
+                ? SimMath.SmoothStep(.08f,.35f,Math.Abs(s.Steering)) : 0f;
+            s.DriftAmount += (driftTarget - s.DriftAmount) * SimMath.LagAlpha(dt, driftTarget > 0 ? .22f : .18f);
+            s.Grip = Math.Max(.15f, (1f - t.gripLossMax * s.Wobble) * (1f - t.driftGripLoss * s.DriftAmount));
             s.WobblePhase = SimMath.WrapAngle(s.WobblePhase + SimMath.TwoPi * t.wobbleFrequencyHz * (0.8f + 0.4f * s.Wobble) * dt);
             float wobbleWave = MathF.Sin(s.WobblePhase);
 
@@ -161,6 +167,12 @@ namespace Game.Simulation
             {
                 float alignRate = Math.Max(t.tractionAlignRate * s.Grip, 0.1f);
                 s.TravelYaw = SimMath.WrapAngle(s.TravelYaw + slip * SimMath.LagAlpha(dt, 1f / alignRate));
+                if (t.driftGripLoss > 0)
+                {
+                    float limit = t.driftMaxSlipDeg * SimMath.Deg2Rad;
+                    float remainingSlip = SimMath.Clamp(SimMath.WrapAngle(s.Yaw-s.TravelYaw), -limit, limit);
+                    s.TravelYaw = SimMath.WrapAngle(s.Yaw-remainingSlip);
+                }
             }
 
             // 5) speed
@@ -168,8 +180,9 @@ namespace Game.Simulation
             {
                 float fade = 1f - SimMath.SmoothStep(t.softCapSpeed * (1f - t.frontAccelFadeAboveCap),
                                                      t.softCapSpeed * (1f + t.frontAccelFadeAboveCap), s.Speed);
-                float accel = t.cruiseGain * (s.TargetSpeed - s.Speed)
+                float accel = (NitroActive ? 5f : 0f) + t.cruiseGain * (s.TargetSpeed - s.Speed)
                               + t.frontAcceleration * Math.Max(0f, s.Longitudinal) * fade
+                              + t.slopeAccelerationScale * t.gravity * -MathF.Sin(s.Pitch) * fade
                               - t.rearBraking * Math.Max(0f, -s.Longitudinal)
                               - (s.Surface == SurfaceKind.Offroad ? t.offroadDrag : 0f)
                               - SlipSpeedLoss * MathF.Abs(MathF.Sin(slip)) * s.Speed;
@@ -279,6 +292,7 @@ namespace Game.Simulation
             s.Yaw = SimMath.WrapAngle(s.Yaw + s.YawRate * dt);
             s.TravelYaw = SimMath.WrapAngle(s.TravelYaw + SimMath.WrapAngle(s.Yaw - s.TravelYaw) * SimMath.LagAlpha(dt, 0.5f));
             s.Wobble = 0f;
+            s.DriftAmount = 0f;
             s.Grip = 0f;
             s.Tip = 1f;
             float flipTarget = s.CrashDirection * 110f * SimMath.Deg2Rad;

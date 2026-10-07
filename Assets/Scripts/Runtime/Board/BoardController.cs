@@ -56,6 +56,19 @@ namespace Game
             _rb.rotation = transform.rotation;
         }
 
+        void OnDisable()
+        {
+            if (_rb == null || Simulation == null) return;
+            _rb.interpolation = RigidbodyInterpolation.None;
+            _rb.position = State.Position.ToUnity();
+            _rb.rotation = SimConvert.PoseRotation(State.Yaw, State.Pitch, State.Roll);
+            transform.SetPositionAndRotation(_rb.position, _rb.rotation);
+        }
+        void OnEnable()
+        {
+            if (_rb != null) _rb.interpolation = RigidbodyInterpolation.Interpolate;
+        }
+
         public void SetInputProvider(IPlayerInputProvider provider) => _inputProvider = provider;
 
         void FixedUpdate()
@@ -112,6 +125,7 @@ namespace Game
                     break;
                 default:
                     Simulation.Board.ForceCrash();
+                    for (int i = 0; i < Simulation.ActivePlayerCount; i++) Simulation.Players[i].FallOff(float.MaxValue);
                     Impact?.Invoke(1f);
                     Crashed?.Invoke();
                     break;

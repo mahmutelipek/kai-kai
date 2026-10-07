@@ -24,6 +24,12 @@ namespace Game.Simulation
         [TuningRange("Steering", 0.02f, 1f)] public float yawResponseTime = 0.25f;
         [TuningRange("Steering", 1f, 30f)] public float tractionAlignRate = 8f;
 
+        // ---------------- Arcade handling (zero preserves the original test tuning) ----------------
+        [TuningRange("Steering", 0f, .85f)] public float driftGripLoss = 0f;
+        [TuningRange("Steering", 5f, 25f)] public float driftMaxSlipDeg = 18f;
+        [TuningRange("Speed", 0f, 2f)] public float slopeAccelerationScale = 0f;
+        [TuningRange("Players", 0f, 1f)] public float edgeAssist = 0f;
+
         // ---------------- Roll ----------------
         [TuningRange("Roll", 0f, 35f)] public float maxRollDeg = 18f;
         [TuningRange("Roll", 0.02f, 1f)] public float rollResponseTime = 0.2f;

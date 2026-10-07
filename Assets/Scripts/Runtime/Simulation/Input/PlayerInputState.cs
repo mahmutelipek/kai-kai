@@ -11,14 +11,16 @@ namespace Game.Simulation
         public Vector2 Move;
         public bool Jump;
         public bool Action;
+        public bool Drift;
 
         public static readonly PlayerInputState None = default;
 
-        public PlayerInputState(Vector2 move, bool jump = false, bool action = false)
+        public PlayerInputState(Vector2 move, bool jump = false, bool action = false, bool drift = false)
         {
             Move = move;
             Jump = jump;
             Action = action;
+            Drift = drift;
         }
 
         public Vector2 ClampedMove()

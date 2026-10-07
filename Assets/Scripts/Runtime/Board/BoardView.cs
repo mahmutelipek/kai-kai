@@ -3,11 +3,13 @@ using UnityEngine;
 
 namespace Game
 {
-    /// <summary>Primitive placeholder longboard: deck, grip, stripes, trucks, spinning oversized wheels.</summary>
+    /// <summary>Blender longboard visuals, with a primitive fallback for projects without imported art.</summary>
     public sealed class BoardView : MonoBehaviour
     {
         BoardController _board;
         Transform[] _wheels;
+        Quaternion[] _wheelRestRotations;
+        Vector3[] _wheelAxes;
         float _wheelAngle;
 
         /// <summary>Parent for anything that stands on the deck; local (0, 0, 0) is deck-top centre.</summary>
@@ -23,6 +25,7 @@ namespace Game
         void Build(BoardController board)
         {
             _board = board;
+            if (TryBuildImported(board)) return;
             BoardTuningData t = board.Tuning.data;
             float w = t.boardWidth, l = t.boardLength, r = t.wheelRadius, deckTop = t.deckHeight;
             const float deckThickness = 0.14f;
@@ -64,16 +67,62 @@ namespace Game
             DeckTop = new GameObject("DeckTop").transform;
             DeckTop.SetParent(transform, false);
             DeckTop.localPosition = new Vector3(0f, deckTop + 0.01f, 0f);
+            CaptureWheelRotations();
+        }
+
+        bool TryBuildImported(BoardController board)
+        {
+            GameObject prefab = Resources.Load<GameObject>("Art/PartyBoard");
+            if (prefab == null) return false;
+            GameObject visual = Instantiate(prefab, transform, false);
+            visual.name = "Visual";
+            BoardTuningData t = board.Tuning.data;
+            visual.transform.localScale = new Vector3(t.boardWidth / 2.4f, t.deckHeight / 0.85f, t.boardLength / 6f);
+            Transform[] children = visual.GetComponentsInChildren<Transform>();
+            _wheels = new Transform[4];
+            foreach (Transform child in children)
+            {
+                if (child.name == "DeckTop") DeckTop = child;
+                for (int i = 0; i < 4; i++)
+                    if (child.name == "WheelPivot" + i) _wheels[i] = child;
+            }
+            if (DeckTop == null || System.Array.Exists(_wheels, wheel => wheel == null))
+            {
+                Debug.LogWarning("Imported board is missing anchors; using primitive visuals.");
+                visual.SetActive(false);
+                Destroy(visual);
+                DeckTop = null;
+                return false;
+            }
+            CaptureWheelRotations();
+            // Players use board-local meters and heading, independent of FBX root transforms and art scale.
+            Vector3 deckPosition = transform.InverseTransformPoint(DeckTop.position);
+            DeckTop = new GameObject("DeckTop").transform;
+            DeckTop.SetParent(transform, false);
+            DeckTop.localPosition = deckPosition;
+            return true;
+        }
+
+        void CaptureWheelRotations()
+        {
+            _wheelRestRotations = new Quaternion[_wheels.Length];
+            _wheelAxes = new Vector3[_wheels.Length];
+            for (int i = 0; i < _wheels.Length; i++)
+            {
+                _wheelRestRotations[i] = _wheels[i].localRotation;
+                _wheelAxes[i] = _wheels[i].parent.InverseTransformDirection(transform.right).normalized;
+            }
         }
 
         void Update()
         {
-            if (_board == null || _board.Simulation == null) return;
+            if (_board == null || _board.Simulation == null || !_board.enabled) return;
             BoardState s = _board.State;
             float r = Mathf.Max(_board.Tuning.data.wheelRadius, 0.05f);
             if (s.Grounded || s.Crashed) _wheelAngle += s.Speed / r * Mathf.Rad2Deg * Time.deltaTime;
             _wheelAngle %= 360f;
-            for (int i = 0; i < _wheels.Length; i++) _wheels[i].localRotation = Quaternion.Euler(_wheelAngle, 0f, 0f);
+            for (int i = 0; i < _wheels.Length; i++)
+                _wheels[i].localRotation = Quaternion.AngleAxis(_wheelAngle, _wheelAxes[i]) * _wheelRestRotations[i];
         }
     }
 }

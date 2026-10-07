@@ -1,0 +1,36 @@
+{
+  "source": "/Users/mahmutelipek/Desktop/Untitled.blend",
+  "sourceObjects": [
+    "Barrier",
+    "Barrier.001",
+    "Barrier.002",
+    "Barrier.003",
+    "BarrierFoot"
+  ],
+  "vertexCount": 40,
+  "meshCount": 1,
+  "materials": [
+    {
+      "name": "plastic_F2F0EA.020",
+      "linearColor": [
+        0.8912620544433594,
+        0.8751375675201416,
+        0.8277257680892944,
+        1.0
+      ],
+      "roughness": 0.6850000023841858,
+      "metallic": 0.0
+    },
+    {
+      "name": "plastic_F06A1E.011",
+      "linearColor": [
+        0.8751375675201416,
+        0.14497213065624237,
+        0.00902149174362421,
+        1.0
+      ],
+      "roughness": 0.6850000023841858,
+      "metallic": 0.0
+    }
+  ]
+}

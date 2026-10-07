@@ -28,6 +28,8 @@ namespace Game
             Keyboard kb = Keyboard.current;
             if (kb == null || _board == null) return;
 
+            if (kb[Key.Escape].wasPressedThisFrame) _run.TogglePause();
+            if (_run.SessionEnabled && !_run.AcceptsGameplay) return;
             if (kb[Key.Tab].wasPressedThisFrame) _router.CycleKeyboardSlot(_board.Simulation.ActivePlayerCount);
             if (kb[Key.B].wasPressedThisFrame) _router.BotsEnabled = !_router.BotsEnabled;
             if (kb[Key.C].wasPressedThisFrame) _router.CyclePreset();

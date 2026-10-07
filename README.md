@@ -1,9 +1,20 @@
-# Downhill Party Board
+# Kai Kai — Downhill Crew
 
 Co-op endless downhill party game prototype (Unity 6, URP). 2–6 players stand on one giant longboard.
 There is no steering input: **the board is steered only by where the players stand.**
 
-Current state: **Milestone 1 – core board control** (primitive placeholder art, test road).
+Current state: **playable desktop release** — endless streamed road, weight-based
+steering, six imported riders, menu/pause/results, hull damage, diamond combos,
+local best score, coins, nitro, physical jump ramps, procedural audio and collection/impact effects.
+Roadside hills, palms, shrubs and reflectors support the route; no bridge or city
+is spawned. See `Docs/RELEASE.md` for launch and gameplay details.
+
+The existing Blender board is now exported separately and loaded through
+`Assets/Resources/Art/PartyBoard.prefab`. See `Docs/BOARD_ART_IMPORT.md` for re-export,
+URP material setup, review capture, and verification results. All six riders now use optimized articulated copies of the source models; see
+`Docs/RIDERS_ART_IMPORT.md` for export, runtime animation, and verification details.
+The previous coastal art pass is documented in `Docs/ENVIRONMENT_ART_IMPORT.md`.
+The active endless mode streams a stylized roadside environment.
 
 ---
 
@@ -27,6 +38,11 @@ when URP is active and fall back to `Standard` otherwise.
 | Key | Action |
 |---|---|
 | WASD / arrows | Move your player on the deck (W = toward the nose) |
+| Q / gamepad RB | Activate a full nitro charge (3.5 s burst) |
+| E | Recenter your rider and ask the cooperative crew to balance |
+| Shift / gamepad LT | Hold while steering to drift; release to recover grip |
+| Escape | Pause / resume |
+| Enter | Start from the menu or results |
 | Space | Jump (airborne players weigh 25 %) |
 | Tab | Switch which player the keyboard controls |
 | Gamepad | Each connected gamepad takes over one more player (left stick / d-pad, A/Cross = jump) |
@@ -37,9 +53,11 @@ when URP is active and fall back to `Standard` otherwise.
 | F1 | Debug overlay: centre-of-mass dot (magenta), smoothed steering (cyan), lateral/longitudinal/steering/roll/speed/danger |
 | F2 | Live tuning panel (every `BoardTuning` value) |
 
-Crash → players are thrown off → the board respawns on the road ~2.5 s later.
-The test road is ~2.3 km: straight, left curve, straight, right curve, then a long straight with cones and one ramp.
-At the end the run restarts from the top.
+The active scene opens a crew-selection menu. Enter starts; Escape pauses. Each run
+has three hull points, and diamonds build a combo up to ×5. Hull exhaustion or a
+tip ends the run with a score screen. Cooperative bots fill unused player slots.
+R starts a new run. The finite M1 track and immediate-start test flow remain
+available through `GameManager.Create(..., endless: false)`.
 
 ## How steering works
 
@@ -129,7 +147,7 @@ Assets/Scripts/
       Input/PlayerInputState.cs the only input the sim reads
       Tuning/BoardTuningData.cs every tuning value
     Board/                      BoardController (FixedUpdate host, kinematic Rigidbody), BoardView
-    Players/PlayerView.cs       primitive character visuals
+    Players/PlayerView.cs       six imported riders with primitive fallback
     Input/                      PlayerInputRouter (keyboard / gamepads / bots), LocalDeviceInput
     Road/                       TestRoad (M1 track), RoadPath, UnityGroundProvider, GroundSurface
     Obstacles/                  ObstacleBase, ConeObstacle

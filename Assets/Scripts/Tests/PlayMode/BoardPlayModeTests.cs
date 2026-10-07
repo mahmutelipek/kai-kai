@@ -46,8 +46,9 @@ namespace Game.Tests
         float RoadHeightUnderBoard()
         {
             Vector3 p = _gm.Board.transform.position;
-            Assert.IsTrue(Physics.Raycast(p + Vector3.up * 5f, Vector3.down, out RaycastHit hit, 50f));
-            return hit.point.y;
+            GroundSample ground = new UnityGroundProvider().Sample(p.x, p.z, p.y + 5f);
+            Assert.IsTrue(ground.Found);
+            return ground.Height;
         }
 
         [UnityTest]
@@ -122,9 +123,12 @@ namespace Game.Tests
             while (t < 20f)
             {
                 t += Time.deltaTime;
+                yield return null;
                 foreach (PlayerView view in Object.FindObjectsByType<PlayerView>(FindObjectsSortMode.None))
                 {
                     if (view.Slot >= sim.ActivePlayerCount || !sim.Players[view.Slot].IsOnBoard) continue;
+                    // A respawn can update the simulation before LateUpdate reattaches its visual.
+                    if (view.transform.parent != _gm.BoardView.DeckTop) continue;
                     Vector3 local = _gm.Board.transform.InverseTransformPoint(view.transform.position);
                     Assert.IsFalse(float.IsNaN(local.x) || float.IsNaN(local.y) || float.IsNaN(local.z));
                     minLocalY = Mathf.Min(minLocalY, local.y);

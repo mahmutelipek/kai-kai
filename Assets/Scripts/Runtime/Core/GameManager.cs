@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// Scene bootstrap. Builds the Milestone 1 test setup from code (road, board, players, camera, run flow,
+    /// Scene bootstrap. Builds the endless game or finite test setup from code (road, board, players, camera, run flow,
     /// debug tools) so the scene only needs this one component.
     /// </summary>
     public sealed class GameManager : MonoBehaviour
@@ -12,6 +12,8 @@ namespace Game
         [Range(2, 6)] [SerializeField] int playerCount = 6;
         [SerializeField] bool botsEnabled = true;
         [SerializeField] bool keyboardEnabled = true;
+        [SerializeField] bool endlessRoad = true;
+        [SerializeField] bool showMenu = true;
 
         public BoardTuning Tuning => tuning;
         public TestRoad Road { get; private set; }
@@ -23,7 +25,7 @@ namespace Game
         public DebugOverlay Overlay { get; private set; }
 
         /// <summary>Programmatic bootstrap (Play Mode tests, or an empty scene).</summary>
-        public static GameManager Create(BoardTuning tuning = null, int players = 6, bool bots = true, bool keyboard = true)
+        public static GameManager Create(BoardTuning tuning = null, int players = 6, bool bots = true, bool keyboard = true, bool endless = false)
         {
             var go = new GameObject("GameManager");
             go.SetActive(false); // configure before Awake runs
@@ -32,6 +34,8 @@ namespace Game
             gm.playerCount = players;
             gm.botsEnabled = bots;
             gm.keyboardEnabled = keyboard;
+            gm.endlessRoad = endless;
+            gm.showMenu = false;
             go.SetActive(true);
             return gm;
         }
@@ -44,7 +48,7 @@ namespace Game
             if (!tuning.data.Validate(out string error)) Debug.LogError("BoardTuning invalid: " + error);
 
             EnsureLight();
-            Road = TestRoad.Build(transform);
+            Road = TestRoad.Build(transform, endlessRoad);
             Road.Path.Sample(0f, out Vector3 start, out float startYaw);
 
             Board = BoardController.Create(tuning, new UnityGroundProvider(), start, startYaw, playerCount);
@@ -54,13 +58,24 @@ namespace Game
             InputRouter = Board.gameObject.AddComponent<PlayerInputRouter>();
             InputRouter.Initialize(Road.Path, botsEnabled);
             InputRouter.KeyboardEnabled = keyboardEnabled;
+            InputRouter.Streamer = Road.Streamer;
             Board.SetInputProvider(InputRouter);
 
             for (int i = 0; i < Game.Simulation.BoardSimulation.MaxPlayers; i++) PlayerView.Create(i, Board, BoardView, InputRouter);
 
             CameraRig = CameraController.Create(Board);
             Run = gameObject.AddComponent<RunManager>();
-            Run.Initialize(Board, Road.Path, CameraRig);
+            Run.Initialize(Board, Road.Path, CameraRig, Road.Streamer);
+            if (Road.Streamer != null)
+            {
+                Road.Streamer.Attach(Board);
+                gameObject.AddComponent<RunFeedback>().Initialize(Board, Run);
+                Run.ConfigureSession(showMenu);
+                if (showMenu) InputRouter.CyclePreset();
+                RoadAtmosphere.Apply();
+                RunVisualPolish.Apply(transform, CameraRig.GetComponent<Camera>(), Board, Run);
+                gameObject.AddComponent<RunHud>().Initialize(Board, Run);
+            }
 
             Overlay = gameObject.AddComponent<DebugOverlay>();
             Overlay.Initialize(Board, BoardView, InputRouter, Run);
