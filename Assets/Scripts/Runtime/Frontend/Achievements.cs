@@ -34,7 +34,7 @@ namespace Game.Frontend
             new AchievementInfo { Id = AchievementId.NearMissMaster, ApiName = "ACH_NEAR_MISS_10", Name = "Close Shave", Description = "Get 10 near misses in one run." },
             new AchievementInfo { Id = AchievementId.SmoothLanding, ApiName = "ACH_CLEAN_LANDINGS_5", Name = "Butter Landing", Description = "Land 5 clean jumps in one run." },
             new AchievementInfo { Id = AchievementId.NitroRush, ApiName = "ACH_NITRO", Name = "Nitro Rush", Description = "Fire a nitro boost." },
-            new AchievementInfo { Id = AchievementId.FullCrew, ApiName = "ACH_FULL_CREW", Name = "Full Crew", Description = "Ride with six human players." },
+            new AchievementInfo { Id = AchievementId.FullCrew, ApiName = "ACH_FULL_CREW", Name = "Full Crew", Description = "Ride with four human players." },
             new AchievementInfo { Id = AchievementId.Unstoppable, ApiName = "ACH_NO_CRASH_3KM", Name = "Unstoppable", Description = "Ride 3 km without a crash." },
             new AchievementInfo { Id = AchievementId.HighScorer, ApiName = "ACH_SCORE_50K", Name = "High Roller", Description = "Score 50,000 points in one run." },
             new AchievementInfo { Id = AchievementId.Wipeout, ApiName = "ACH_WIPEOUT", Name = "Epic Wipeout", Description = "Crash the board for the first time." },
@@ -71,7 +71,7 @@ namespace Game.Frontend
         {
             _crashFreeFrom = 0f;
             _cleanLandings = 0;
-            if (humans >= 6) Unlock(AchievementId.FullCrew);
+            if (humans >= Lobby.MaxRiders) Unlock(AchievementId.FullCrew);
         }
 
         public void OnStep(in RunStepEvents ev, RunSimulation r)

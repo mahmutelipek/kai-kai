@@ -31,6 +31,7 @@ namespace Game.EditorTools
             if (!force && GraphicsSettings.defaultRenderPipeline != null)
             {
                 EnsurePostProcessData();
+                ShadowSetup.Apply(); // idempotent: sharper, steadier shadows on every machine
                 return true;
             }
 
@@ -48,6 +49,7 @@ namespace Game.EditorTools
             QualitySettings.SetQualityLevel(current, false);
             AssetDatabase.SaveAssets();
             EnsurePostProcessData();
+            ShadowSetup.Apply();
             Debug.Log("Downhill: URP is now the active render pipeline (" + PipelinePath + ").");
             return true;
         }

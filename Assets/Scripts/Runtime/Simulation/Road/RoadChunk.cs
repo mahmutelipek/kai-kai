@@ -48,6 +48,10 @@ namespace Game.Simulation
         public readonly List<EdgeKind> LeftEdges = new List<EdgeKind>(160);
         public readonly List<EdgeKind> RightEdges = new List<EdgeKind>(160);
         public readonly List<RampFeature> Ramps = new List<RampFeature>(2);
+        /// <summary>Solid roadside buildings (filled by the view when it builds the scenery; physics treats their front face as a wall).</summary>
+        public readonly List<BuildingBox> Buildings = new List<BuildingBox>(16);
+        /// <summary>Solid poles and trunks beside the road (filled by the view like <see cref="Buildings"/>).</summary>
+        public readonly List<PostCircle> Posts = new List<PostCircle>(64);
         public readonly List<int> ObstacleSlots = new List<int>(32);
         /// <summary>Pool generation per slot: a slot freed early (knocked, traffic left) may be reused by another chunk.</summary>
         public readonly List<int> ObstacleGenerations = new List<int>(32);
@@ -79,6 +83,8 @@ namespace Game.Simulation
             Entry = entry;
             Points.Clear(); Yaws.Clear(); HalfWidths.Clear(); LeftEdges.Clear(); RightEdges.Clear();
             Ramps.Clear();
+            Buildings.Clear();
+            Posts.Clear();
             ObstacleSlots.Clear();
             ObstacleGenerations.Clear();
             PickupSlots.Clear();

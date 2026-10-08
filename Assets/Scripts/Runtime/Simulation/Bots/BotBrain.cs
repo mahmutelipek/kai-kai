@@ -114,7 +114,7 @@ namespace Game.Simulation
             if (ctx.Board.Danger > 0.68f) wantedSteer = 0f; // safety first (wobble starts at 0.7)
             float wantedLateral = SimMath.SignedPow(wantedSteer, 1f / Math.Max(t.steeringExponent, 0.1f));
             float error = wantedLateral - ctx.Board.Lateral;
-            return self.LocalPosition.X + error * t.HalfWidth * 1.5f;
+            return self.LocalPosition.X + error * t.HalfWidth * 1.0f; // 1.5 overshot at 35-40 m/s: a lone rider wove into dodges and crashed on ~1 in 4 seeds
         }
 
         /// <summary>Own lane along the deck so bots do not all pile onto the same spot.</summary>
@@ -177,6 +177,7 @@ namespace Game.Simulation
         protected override float ReactionMax => 0.2f;
         public override BotBehavior Behavior => BotBehavior.Cooperative;
         public CooperativeBot(int seed) : base(seed) { }
+
 
         protected override Vector2 ChooseTarget(in BotContext ctx, PlayerSim self)
         {

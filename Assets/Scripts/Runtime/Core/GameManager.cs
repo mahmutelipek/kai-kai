@@ -13,7 +13,10 @@ namespace Game
         [Tooltip("0 = new random road every run")]
         [SerializeField] int seed = 0;
         // Renamed from playerCount so scenes saved with the old default (6) start solo too.
-        [Range(1, 6)] [SerializeField] int startPlayerCount = 1;
+        [Range(1, 4)] [SerializeField] int startPlayerCount = 1;
+
+        /// <summary>Test hook: where the high-score table is stored (tests must not write into the player's own save).</summary>
+        public static string HighScorePath;
         [SerializeField] bool botsEnabled = true;
         [SerializeField] bool keyboardEnabled = true;
         [Tooltip("3-2-1-GO before every run")]
@@ -77,7 +80,7 @@ namespace Game
             ObstacleViews.Create(transform, Board.Run.Obstacles);
             PickupViews.Create(transform, Board.Run.Pickups);
             Board.Run.HighScores = new Game.Simulation.HighScoreManager(new Game.Simulation.FileHighScoreStore(
-                System.IO.Path.Combine(Application.persistentDataPath, "highscores.txt")));
+                HighScorePath ?? System.IO.Path.Combine(Application.persistentDataPath, "highscores.txt")));
 
             InputRouter = Board.gameObject.AddComponent<PlayerInputRouter>();
             InputRouter.Initialize(Board.Run, botsEnabled);

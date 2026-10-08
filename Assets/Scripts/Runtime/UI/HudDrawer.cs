@@ -46,7 +46,9 @@ namespace Game
             var rect = new Rect(c.X, c.Y, c.W, c.H);
             if (c.Text != null)
             {
-                _text.fontSize = Mathf.Max(1, Mathf.RoundToInt(c.FontSize));
+                int fontSize = Mathf.Max(1, Mathf.RoundToInt(c.FontSize));
+                // text never spills out of its box (panels, pills, cards): shrink it to fit instead
+                _text.fontSize = FitFontSize(c.Text, fontSize, c.W, c.Outline);
                 _text.alignment = c.Align == HudAlign.Left ? TextAnchor.MiddleLeft : c.Align == HudAlign.Center ? TextAnchor.MiddleCenter : TextAnchor.MiddleRight;
                 if (c.Outline > 0f)
                 {
@@ -70,6 +72,26 @@ namespace Game
             }
         }
 
+
+        static readonly GUIContent Measure = new GUIContent();
+        static readonly Dictionary<(string, int), float> Widths = new Dictionary<(string, int), float>(256);
+
+        /// <summary>Largest font size (at most <paramref name="size"/>) at which the text, outline included, stays inside <paramref name="boxWidth"/>.</summary>
+        static int FitFontSize(string text, int size, float boxWidth, float outline)
+        {
+            if (boxWidth <= 1f || string.IsNullOrEmpty(text)) return size;
+            float avail = boxWidth - 2f * outline;
+            if (!Widths.TryGetValue((text, size), out float w))
+            {
+                if (Widths.Count > 2000) Widths.Clear(); // numbers change every frame: keep the cache bounded
+                _text.fontSize = size;
+                Measure.text = text;
+                w = _text.CalcSize(Measure).x;
+                Widths[(text, size)] = w;
+            }
+            if (w <= avail || w <= 0f) return size;
+            return Mathf.Max(8, Mathf.FloorToInt(size * avail / w));
+        }
         static Color ToColor(HudColor c) => new Color(c.R, c.G, c.B, c.A);
 
         static Texture2D Texture(HudTex t)

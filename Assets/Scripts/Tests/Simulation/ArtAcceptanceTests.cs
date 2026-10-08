@@ -152,6 +152,8 @@ namespace Game.Tests
                 // M4.5 ("the board should be bigger next to the riders")
                 ["boardLength"] = (6f, 6.75f),
                 ["boardWidth"] = (2.4f, 2.7f),
+                // ramps really launch the board: landings are only "hard" from higher speeds
+                ["hardLandingSpeed"] = (6f, 22f),
             };
             var d = new BoardTuningData();
             float Get(string name) => (float)typeof(BoardTuningData).GetField(name).GetValue(d);
@@ -164,6 +166,7 @@ namespace Game.Tests
                 "carveMinSteering", "carveMinTime", "carveBoostSpeed", "carveBoostTime", "carveBoostAcceleration",
                 "slipstreamDistance", "slipstreamWidth", "slipstreamBonus", "slipstreamBuildTime",
                 "olliePoints", "carveBoostPoints", "slipstreamPoints",
+                "rampLaunchBoost", "rampLaunchBase", "rampLaunchMinRise", "rampLaunchMax",
             };
             // everything else must still equal the M3 defaults (hash of the remaining fields)
             double sum = 0;
@@ -200,8 +203,8 @@ namespace Game.Tests
         // From the M3 defaults (tag m3-done, commit 0fededf) excluding the fields listed above;
         // `git diff 0fededf -- BoardTuningData.cs` shows only those fields changed.
         // (M4.5: boardLength / boardWidth moved to the requested changes: 68 fields remain, same values as at M3)
-        const int M3UnchangedFieldCount = 68;
-        const double M3UnchangedWeightedSum = 42179.68000065535;
+        const int M3UnchangedFieldCount = 67;
+        const double M3UnchangedWeightedSum = 42238.000000149012; // hardLandingSpeed left the unchanged set (6 -> 14), which re-weights the rest
 
         [Test]
         public void M4_RiderCountKeys_OneLeavesExactlyOneRider()

@@ -11,6 +11,8 @@ namespace Game.Simulation
     public sealed class RoadModel : IGroundProvider
     {
         public const float ShoulderWidth = 20f;
+        /// <summary>Road behind the very start of a run (the chase camera and the rear wheels look back there); drawn by ChunkGeometry.LeadIn.</summary>
+        public const float LeadInLength = 70f;
         public const float VoidEdgeMargin = 0.25f;
 
         public readonly List<RoadChunk> Chunks = new List<RoadChunk>(16);
@@ -85,17 +87,30 @@ namespace Game.Simulation
             if (!p.Valid) return GroundSample.Missing;
             RoadChunk c = p.Chunk;
             // before the first / after the last spawned chunk there is no road
+            float leadInRise = 0f;
             if (p.Along <= StartAlong + 1e-3f || p.Along >= EndAlong - 1e-3f)
             {
                 Vector3 fwd = SimMath.Forward3(p.Yaw);
-                Vector3 edgePoint = c.Points[p.Along <= StartAlong + 1e-3f ? 0 : c.SampleCount - 1];
+                bool atStart = p.Along <= StartAlong + 1e-3f;
+                Vector3 edgePoint = c.Points[atStart ? 0 : c.SampleCount - 1];
                 float beyond = (x - edgePoint.X) * fwd.X + (z - edgePoint.Z) * fwd.Z;
-                if (p.Along <= StartAlong + 1e-3f ? beyond < -0.5f : beyond > 0.5f) return GroundSample.Missing;
+                if (atStart && c.StartAlong <= 1e-3f && c.SampleCount > 1)
+                {
+                    // the first chunk of a run: keep the road going straight back so nothing hangs over the sea behind the start line
+                    if (beyond < -LeadInLength) return GroundSample.Missing;
+                    if (beyond < 0f)
+                    {
+                        Vector3 next = c.Points[1];
+                        float run = MathF.Max(1e-3f, MathF.Sqrt((next.X - edgePoint.X) * (next.X - edgePoint.X) + (next.Z - edgePoint.Z) * (next.Z - edgePoint.Z)));
+                        leadInRise = (edgePoint.Y - next.Y) / run * -beyond;
+                    }
+                }
+                else if (atStart ? beyond < -0.5f : beyond > 0.5f) return GroundSample.Missing;
             }
 
             float absLat = Math.Abs(p.Lateral);
             EdgeKind edge = p.Lateral < 0f ? p.LeftEdge : p.RightEdge;
-            float y = p.CenterHeight;
+            float y = p.CenterHeight + leadInRise;
             for (int i = 0; i < c.Ramps.Count; i++) y += c.Ramps[i].HeightAt(p.Along, p.Lateral);
 
             if (absLat <= p.HalfWidth) return y > searchFromHeight ? GroundSample.Missing : GroundSample.At(y, SurfaceKind.Road);
@@ -110,6 +125,46 @@ namespace Game.Simulation
             }
         }
 
+
+        /// <summary>
+        /// Offset outside the road edge of the front face of a building on <paramref name="side"/> within
+        /// <paramref name="reach"/> of <paramref name="along"/> (global distance), or +infinity when there is none.
+        /// </summary>
+        public float BuildingOffset(float along, int side, float reach)
+        {
+            float best = float.PositiveInfinity;
+            for (int i = 0; i < Chunks.Count; i++)
+            {
+                RoadChunk c = Chunks[i];
+                if (along + reach < c.StartAlong || along - reach > c.StartAlong + c.Length) continue;
+                for (int k = 0; k < c.Buildings.Count; k++)
+                {
+                    BuildingBox b = c.Buildings[k];
+                    if (b.Side != side) continue;
+                    if (along + reach < c.StartAlong + b.AlongMin || along - reach > c.StartAlong + b.AlongMax) continue;
+                    if (b.Near < best) best = b.Near;
+                }
+            }
+            return best;
+        }
+
+        /// <summary>Solid poles within <paramref name="reach"/> of <paramref name="along"/>: (global along, signed lateral, radius).</summary>
+        public void PostsNear(float along, float reach, List<PostCircle> into)
+        {
+            into.Clear();
+            for (int i = 0; i < Chunks.Count; i++)
+            {
+                RoadChunk c = Chunks[i];
+                if (along + reach < c.StartAlong || along - reach > c.StartAlong + c.Length) continue;
+                for (int k = 0; k < c.Posts.Count; k++)
+                {
+                    PostCircle p = c.Posts[k];
+                    float a = c.StartAlong + p.Along;
+                    if (a < along - reach || a > along + reach) continue;
+                    into.Add(new PostCircle { Along = a, Lateral = p.Lateral, Radius = p.Radius });
+                }
+            }
+        }
         /// <summary>Planned (obstacle-free, reachable) lateral line at a distance.</summary>
         public float PlannedLateral(float along)
         {

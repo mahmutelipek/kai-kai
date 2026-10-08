@@ -22,7 +22,7 @@ namespace Game.Tests
             Assert.AreEqual(s.Serialize(), back.Serialize());
             GameSettings junk = GameSettings.Parse("display=9\nmaster=abc\nlanguage=-4\ncrew=99\n???\nvsync=0");
             Assert.AreEqual(new GameSettings().Display, junk.Display, "invalid values keep defaults");
-            Assert.AreEqual(6, junk.CrewSize, "crew clamped to 6");
+            Assert.AreEqual(Lobby.MaxRiders, junk.CrewSize, "crew clamped to the lobby maximum");
             Assert.IsFalse(junk.VSync);
             Assert.AreEqual(Language.Turkish, GameSettings.LanguageFor("Turkish"));
             Assert.AreEqual(Language.English, GameSettings.LanguageFor("German"));
@@ -136,9 +136,9 @@ namespace Game.Tests
             l.BotsFill = false;
             Assert.AreEqual(3, l.RiderCount);
             for (int i = 0; i < 5; i++) l.Join(JoinedDevice.Pad(20 + i));
-            Assert.AreEqual(6, l.Joined.Count, "never more than 6");
+            Assert.AreEqual(Lobby.MaxRiders, l.Joined.Count, "never more than four");
             Assert.IsTrue(l.Leave(JoinedDevice.Pad(11)));
-            Assert.AreEqual(5, l.Joined.Count);
+            Assert.AreEqual(Lobby.MaxRiders - 1, l.Joined.Count);
         }
 
         [Test]

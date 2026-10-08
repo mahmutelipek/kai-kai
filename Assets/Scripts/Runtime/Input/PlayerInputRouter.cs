@@ -148,6 +148,9 @@ namespace Game
             }
         }
 
+        /// <summary>Re-reads who drives which slot without stepping the sim (the board is frozen during the 3-2-1 countdown).</summary>
+        public void RefreshSources(int active) => AssignSources(active);
+
         void AssignSources(int active)
         {
             for (int i = 0; i < _sources.Length; i++) _sources[i] = InputSourceKind.None;

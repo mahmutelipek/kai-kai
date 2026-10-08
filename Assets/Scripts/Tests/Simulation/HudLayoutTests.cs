@@ -12,6 +12,10 @@ namespace Game.Tests
     /// </summary>
     public class HudLayoutTests
     {
+        // points, combo, coins and diamonds are off in the shipped game; these tests cover the rule set itself
+        [SetUp] public void ScoringOn() { GameRules.Scoring = true; GameRules.Nitro = true; }
+        [TearDown] public void ScoringOff() { GameRules.Scoring = false; GameRules.Nitro = false; }
+
         static readonly (string name, float w, float h, float sx, float sy, float sw, float sh)[] Screens =
         {
             ("1080p 16:9", 1920, 1080, 0, 0, 1920, 1080),

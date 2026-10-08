@@ -23,7 +23,7 @@ namespace Game.Frontend
         public Language Language = Language.English;
         public float MasterVolume = 0.8f, MusicVolume = 0.7f, EffectsVolume = 0.9f;
         /// <summary>Crew size the lobby starts with (bots fill up to it).</summary>
-        public int CrewSize = 6;
+        public int CrewSize = 1;
         public bool BotsFill = true;
         /// <summary>First-run coaching tips during rides; <see cref="TipsSeen"/> is a bit mask of tips already shown.</summary>
         public bool ShowTips = true;
@@ -76,7 +76,7 @@ namespace Game.Frontend
                     case "master": if (isFloat) s.MasterVolume = Clamp01(fv); break;
                     case "music": if (isFloat) s.MusicVolume = Clamp01(fv); break;
                     case "effects": if (isFloat) s.EffectsVolume = Clamp01(fv); break;
-                    case "crew": if (isInt) s.CrewSize = Math.Max(1, Math.Min(6, iv)); break;
+                    case "crew": if (isInt) s.CrewSize = Math.Max(1, Math.Min(Lobby.MaxRiders, iv)); break;
                     case "botsFill": if (isInt) s.BotsFill = iv != 0; break;
                     case "tips": if (isInt) s.ShowTips = iv != 0; break;
                     case "tipsSeen": if (isInt && iv >= 0) s.TipsSeen = iv; break;

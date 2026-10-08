@@ -36,11 +36,13 @@ namespace Game
         {
             if (_board == null || _board.Simulation == null) return;
             float travel = _board.State.TravelYaw * Mathf.Rad2Deg;
-            if (!_snapped) { _yaw = travel; _snapped = true; }
+            bool first = !_snapped;
+            if (first) { _yaw = travel; _snapped = true; }
             _yaw = Mathf.LerpAngle(_yaw, travel, 1f - Mathf.Exp(-Time.deltaTime / YawTimeConstant));
             Vector3 p = _board.transform.position;
             transform.SetPositionAndRotation(p, Quaternion.Euler(0f, _yaw, 0f));
-            if (_sun != null)
+            // the sun is placed once per run: turning it with the road made the shadow map re-project every frame, so shadows crawled and shimmered
+            if (_sun != null && first)
             {
                 System.Numerics.Vector3 f = Atmosphere.SunForward;
                 _sun.transform.rotation = Quaternion.Euler(0f, _yaw, 0f) * Quaternion.LookRotation(new Vector3(f.X, f.Y, f.Z));

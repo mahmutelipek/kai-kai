@@ -40,12 +40,12 @@ namespace Game.Frontend
         public override int GetHashCode() => (int)Kind * 1000 + GamepadId;
     }
 
-    /// <summary>Local co-op lobby: up to 6 riders join with their own device, bots fill up to the crew size.</summary>
+    /// <summary>Local co-op lobby: up to 4 riders join with their own device, bots fill up to the crew size.</summary>
     public sealed class Lobby
     {
-        public const int MaxRiders = 6;
+        public const int MaxRiders = 4;
         public readonly List<JoinedDevice> Joined = new List<JoinedDevice>(MaxRiders);
-        public int CrewSize = 6;
+        public int CrewSize = 1;
         public bool BotsFill = true;
 
         public bool IsJoined(JoinedDevice d) => Joined.Contains(d);
@@ -87,6 +87,10 @@ namespace Game.Frontend
 
         public MenuScreen Screen { get; private set; } = MenuScreen.Title;
         public int Focus { get; private set; }
+        /// <summary>The pointer was used last: only the row under it is highlighted (nothing when it is over empty space), instead of the keyboard focus.</summary>
+        public bool MouseMode;
+        /// <summary>Row under the pointer (index into Items), or -1.</summary>
+        public int Hover = -1;
         public GameSettings Settings;
         public readonly Lobby Lobby = new Lobby();
         /// <summary>Resolution names shown in Settings (filled by the platform, e.g. "1920 x 1080").</summary>
@@ -119,6 +123,11 @@ namespace Game.Frontend
                     default: return Array.Empty<MenuItem>();
                 }
             }
+        }
+
+        public void SetFocus(int index)
+        {
+            if (index >= 0 && index < Items.Length) Focus = index;
         }
 
         public MenuItem Focused => Items.Length > 0 ? Items[Math.Min(Focus, Items.Length - 1)] : MenuItem.Back;

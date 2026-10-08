@@ -42,6 +42,11 @@ namespace Game.Simulation
     {
         const float RespawnBackOff = 10f;
         const float WallMargin = 0.3f;
+        /// <summary>Seconds the board may stay off the asphalt (grass, sidewalk) before it wipes out; back on the road resets it.</summary>
+        public const float OffroadLimit = 8f;
+
+        /// <summary>Continuous seconds spent off the road (0 while on it).</summary>
+        public float OffroadTime { get; private set; }
 
         public readonly BoardTuningData Tuning;
         public readonly RoadModel Road = new RoadModel();
@@ -157,6 +162,7 @@ namespace Game.Simulation
             Slipstream = 0f;
             Crew.Reset();
             _wasCrashed = false;
+            OffroadTime = 0f;
             _scoredDistance = 0f;
             _sectionSerial = -1;
             _sectionClean = true;
@@ -205,8 +211,10 @@ namespace Game.Simulation
             if (Projection.Valid) Distance = Projection.Along;
             MaxDistance = Math.Max(MaxDistance, Distance);
 
-            ResolveObstacles(ref ev);
+            ResolveObstacles(dt, ref ev);
             ResolveWalls(dt, ref ev);
+            ResolvePosts(dt, ref ev);
+            UpdateOffroad(dt);
             UpdateScoring(dt, ref ev);
 
             if (Board.RestartDue)
@@ -371,17 +379,17 @@ namespace Game.Simulation
             ev.RunEnded = true;
             if (HighScores != null)
             {
-                HighScores.Submit(Score.Score, MaxDistance, Board.ActivePlayerCount, out bool bestScore, out bool bestDistance, out int rank);
+                HighScores.Submit(GameRules.Scoring ? Score.Score : MaxDistance, MaxDistance, Board.ActivePlayerCount, out bool bestScore, out bool bestDistance, out int rank);
                 NewBestScore = bestScore;
                 NewBestDistance = bestDistance;
                 LastRank = rank;
             }
         }
 
-        void ResolveObstacles(ref RunStepEvents ev)
+        void ResolveObstacles(float dt, ref RunStepEvents ev)
         {
             BoardTuningData t = Tuning;
-            if (Obstacles.Collide(Board.Board.State, t, Distance, _hits) == 0) return;
+            if (Obstacles.Collide(Board.Board.State, t, Distance, _hits, Board.Board.State.Speed * dt) == 0) return;
             for (int h = 0; h < _hits.Count; h++)
             {
                 ImpactEvent hit = _hits[h];
@@ -408,6 +416,8 @@ namespace Game.Simulation
                 else if (hit.ClosingSpeed > t.crashImpactSpeed)
                 {
                     hit.Severity = ImpactSeverity.Crash;
+                    // the board is up to a step inside the obstacle: put it back at the contact point so the wreck starts there
+                    Board.Board.Deflect(hit.Normal * (hit.Depth + 0.02f), velocity, 0f);
                     Board.CrashNow();
                 }
                 else
@@ -429,6 +439,74 @@ namespace Game.Simulation
             }
         }
 
+        /// <summary>Grass and sidewalks are drivable, but not for ever: after <see cref="OffroadLimit"/> seconds the board wipes out and respawns on the road.</summary>
+        void UpdateOffroad(float dt)
+        {
+            ref BoardState s = ref Board.Board.State;
+            if (!s.Crashed && s.Grounded && s.Surface == SurfaceKind.Offroad)
+            {
+                OffroadTime += dt;
+                if (OffroadTime >= OffroadLimit) { OffroadTime = 0f; Board.CrashNow(); }
+            }
+            else if (!s.Crashed && s.Grounded) OffroadTime = 0f; // back on the asphalt (airborne keeps the clock where it was)
+            else if (s.Crashed) OffroadTime = 0f;
+        }
+
+        readonly List<PostCircle> _posts = new List<PostCircle>(16);
+        float _postCooldown;
+
+        /// <summary>Poles, signs and trunks beside the road are solid: a board that touches one is pushed back, and a fast hit wipes it out.</summary>
+        void ResolvePosts(float dt, ref RunStepEvents ev)
+        {
+            _postCooldown = Math.Max(0f, _postCooldown - dt);
+            ref BoardState s = ref Board.Board.State;
+            RoadProjection p = Projection;
+            if (!p.Valid || s.Crashed) return;
+            float reach = Tuning.HalfLength + Tuning.HalfWidth + 1f;
+            Road.PostsNear(p.Along, reach, _posts);
+            if (_posts.Count == 0) return;
+
+            Vector3 fwd = SimMath.Forward3(p.Yaw), right = SimMath.Right3(p.Yaw);
+            float rel = SimMath.WrapAngle(s.Yaw - p.Yaw);
+            float cos = MathF.Cos(rel), sin = MathF.Sin(rel);
+            for (int k = 0; k < _posts.Count; k++)
+            {
+                // post relative to the board centre in road axes (x lateral, y along), then into board axes
+                float dx = _posts[k].Lateral - p.Lateral, dy = _posts[k].Along - p.Along;
+                float lx = dx * cos - dy * sin, ly = dx * sin + dy * cos;
+                float cx = SimMath.Clamp(lx, -Tuning.HalfWidth, Tuning.HalfWidth), cy = SimMath.Clamp(ly, -Tuning.HalfLength, Tuning.HalfLength);
+                float ox = lx - cx, oy = ly - cy;
+                float dist = MathF.Sqrt(ox * ox + oy * oy);
+                float pen = _posts[k].Radius - dist;
+                if (pen <= 0f) continue;
+
+                // push direction (post -> board) in road axes, then world XZ
+                float nx, ny;
+                if (dist > 1e-4f) { float bx = -ox / dist, by = -oy / dist; nx = bx * cos + by * sin; ny = -bx * sin + by * cos; }
+                else { nx = -dx; ny = -dy; float l = MathF.Sqrt(nx * nx + ny * ny); if (l < 1e-4f) { nx = 0f; ny = -1f; } else { nx /= l; ny /= l; } }
+                var normal = new Vector2(right.X * nx + fwd.X * ny, right.Z * nx + fwd.Z * ny);
+                Vector2 velocity = SimMath.HeadingToDirection(s.TravelYaw) * s.Speed;
+                float into = -Vector2.Dot(velocity, normal);
+                if (into > Tuning.crashImpactSpeed)
+                {
+                    Board.Board.Deflect(normal * (pen + 0.02f), velocity, 0f);
+                    Board.CrashNow();
+                    LastImpacts.Add(new ImpactEvent { Slot = -1, Severity = ImpactSeverity.Crash, Normal = normal, Depth = pen, ClosingSpeed = into });
+                    return;
+                }
+                if (into > 0f) velocity += normal * into * 1.3f;
+                velocity *= 1f - Tuning.heavyImpactSpeedLoss * SimMath.Clamp(into / 12f, 0.1f, 1f);
+                Board.Board.Deflect(normal * (pen + 0.02f), velocity, 0f);
+                if (_postCooldown <= 0f && into > 2f)
+                {
+                    _postCooldown = 0.4f;
+                    Board.StaggerAll(Tuning.staggerTime * 0.7f);
+                    LastImpacts.Add(new ImpactEvent { Slot = -1, Severity = ImpactSeverity.Heavy, Normal = normal, Depth = pen, ClosingSpeed = into, IsWall = true });
+                    ev.WallScrapes++;
+                }
+            }
+        }
+
         void ResolveWalls(float dt, ref RunStepEvents ev)
         {
             _wallCooldown = Math.Max(0f, _wallCooldown - dt);
@@ -436,11 +514,18 @@ namespace Game.Simulation
             RoadProjection p = Projection;
             if (!p.Valid || s.Crashed) return;
             float sign = p.Lateral >= 0f ? 1f : -1f;
-            if ((sign > 0f ? p.RightEdge : p.LeftEdge) != EdgeKind.Wall) return;
-
             float rel = SimMath.WrapAngle(s.Yaw - p.Yaw);
             float extent = Tuning.HalfWidth * MathF.Abs(MathF.Cos(rel)) + Tuning.HalfLength * MathF.Abs(MathF.Sin(rel));
-            float over = MathF.Abs(p.Lateral) + extent - (p.HalfWidth + WallMargin);
+            float limit; // lateral distance (from the centre line) the board may not cross
+            if ((sign > 0f ? p.RightEdge : p.LeftEdge) == EdgeKind.Wall) limit = p.HalfWidth + WallMargin;
+            else
+            {
+                // houses beside the road are solid: their front face acts like a wall (only where one stands)
+                float front = Road.BuildingOffset(p.Along, sign > 0f ? 1 : -1, Tuning.HalfLength * MathF.Abs(MathF.Cos(rel)) + Tuning.HalfWidth * MathF.Abs(MathF.Sin(rel)));
+                if (float.IsPositiveInfinity(front)) return;
+                limit = p.HalfWidth + front;
+            }
+            float over = MathF.Abs(p.Lateral) + extent - limit;
             if (over <= 0f) return;
 
             Vector3 right3 = SimMath.Right3(p.Yaw);
@@ -481,6 +566,7 @@ namespace Game.Simulation
             float resumeSpeed = Board.Board.State.TargetSpeed * Tuning.respawnSpeedFraction;
             Board.Restart(p, yaw, resumeSpeed);
             _wasCrashed = false;
+            OffroadTime = 0f;
             Projection = Road.Project(p, ref _projectionHint);
             Distance = Projection.Along;
         }

@@ -115,8 +115,14 @@ namespace Game.Simulation
 
         // ---------------- Vertical ----------------
         [TuningRange("Vertical", 5f, 40f)] public float gravity = 20f;
-        [TuningRange("Vertical", 1f, 20f)] public float hardLandingSpeed = 6f;
+        [TuningRange("Vertical", 1f, 30f)] public float hardLandingSpeed = 22f;
         [TuningRange("Vertical", 2f, 50f)] public float fallOutOfWorldDepth = 15f;
+        /// <summary>Leaving the top of a ramp: the climb speed is multiplied and topped up so ramps really throw the board into the air.</summary>
+        [TuningRange("Vertical", 1f, 4f)] public float rampLaunchBoost = 2.4f;
+        [TuningRange("Vertical", 0f, 8f)] public float rampLaunchBase = 4f;
+        [TuningRange("Vertical", 0f, 5f)] public float rampLaunchMinRise = 1f;
+        /// <summary>Upper limit of the launch speed: keeps even a fast board in the air under ~1.7 s so it lands on the same stretch of road.</summary>
+        [TuningRange("Vertical", 4f, 20f)] public float rampLaunchMax = 9.5f;
 
         // ---------------- Crash ----------------
         [TuningRange("Crash", 0.5f, 6f)] public float crashRestartDelay = 2.5f;

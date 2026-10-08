@@ -31,8 +31,8 @@ namespace Game.Hud
                 into.Add(new ScoreRow
                 {
                     Rank = "#" + (i + 1).ToString(Ci),
-                    Score = ((long)e.Score).ToString("N0", Ci),
-                    Distance = ((long)e.Distance).ToString("N0", Ci) + " m",
+                    Score = GameRules.Scoring ? ((long)e.Score).ToString("N0", Ci) : ((long)e.Distance).ToString("N0", Ci) + " m",
+                    Distance = GameRules.Scoring ? ((long)e.Distance).ToString("N0", Ci) + " m" : "",
                     Crew = "x" + e.Crew.ToString(Ci),
                     Date = e.Date ?? "",
                     Highlight = i + 1 == highlightRank,

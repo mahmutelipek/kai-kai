@@ -50,7 +50,7 @@ namespace Game.Hud
             if (Current != null || _sinceLast < MinGap) return;
 
             if (!Seen(Tip.Steer) && _rideTime > 1.5f) Show(Tip.Steer);
-            else if (!Seen(Tip.JumpTogether) && ((r.Crew.FromHazard && r.Crew.Age < 0.2f) || _rideTime > 40f)) Show(Tip.JumpTogether);
+            else if (GameRules.PlayerJump && !Seen(Tip.JumpTogether) && ((r.Crew.FromHazard && r.Crew.Age < 0.2f) || _rideTime > 40f)) Show(Tip.JumpTogether);
             else if (!Seen(Tip.Nitro) && r.NitroCharges > 0) Show(Tip.Nitro);
             else if (!Seen(Tip.Carve) && (b.CarveCharge > 0.35f || _rideTime > 70f)) Show(Tip.Carve);
             else if (!Seen(Tip.Draft) && _rideTime > 100f) Show(Tip.Draft);

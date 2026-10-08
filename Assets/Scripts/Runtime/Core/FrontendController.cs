@@ -73,6 +73,7 @@ namespace Game
             _gm.InputRouter.BotsEnabled = lobby.BotsFill;
             _gm.InputRouter.SetJoinedDevices(lobby.Joined);
             _gm.Board.Simulation.SetActivePlayerCount(lobby.RiderCount);
+            _gm.InputRouter.RefreshSources(lobby.RiderCount);
             _model.Close();
             _gm.Hud.Visible = true;
             if (_gm.Audio != null) _gm.Audio.Attract = false;
@@ -133,8 +134,11 @@ namespace Game
                 if (now > riders) _gm.Audio?.Ui(Audio.Sfx.Join);
                 else if (now < riders) _gm.Audio?.Ui(Audio.Sfx.UiBack);
             }
+            Cursor.visible = true;
             MenuInput input = ReadMenuInput();
             if (!input.Any) return;
+            // START with nobody joined (mouse-only players): the keyboard rider joins automatically
+            if (input.Submit && _model.Screen == MenuScreen.Lobby && _model.Focused == MenuItem.Start && _model.Lobby.Joined.Count == 0) JoinKeyboard();
             MenuScreen screenBefore = _model.Screen;
             int focusBefore = _model.Focus;
             MenuAction action = _model.Handle(input);
@@ -231,6 +235,8 @@ namespace Game
                 input.Submit |= pad.buttonSouth.wasPressedThisFrame;
                 input.Back |= pad.buttonEast.wasPressedThisFrame || (_model.Screen == MenuScreen.Pause && pad.startButton.wasPressedThisFrame);
             }
+            if (dir != 0 || input.Submit || input.Back) _model.MouseMode = false; // keys / pad: the focus highlight is back
+            ReadMouse(ref input);
             if (_consumeSubmit) { input.Submit = false; _consumeSubmit = false; }
             if (_consumeBack) { input.Back = false; _consumeBack = false; }
 
@@ -242,6 +248,49 @@ namespace Game
                 if (_repeatTimer <= 0f) { _repeatTimer = RepeatRate; Fire(ref input, dir); }
             }
             return input;
+        }
+
+        Vector2 _lastMouse;
+
+        /// <summary>Mouse: hover focuses an item, left click activates it (right half of a value row steps it, left half of the "&lt;" steps back), right click goes back.</summary>
+        void ReadMouse(ref MenuInput input)
+        {
+            Mouse mouse = Mouse.current;
+            if (mouse == null) return;
+            Vector2 pos = mouse.position.ReadValue();
+            float gx = pos.x, gy = Screen.height - pos.y;
+            bool moved = (pos - _lastMouse).sqrMagnitude > 0.25f;
+            _lastMouse = pos;
+            bool click = mouse.leftButton.wasPressedThisFrame;
+            if (moved || click) _model.MouseMode = true;
+            if (mouse.rightButton.wasPressedThisFrame) input.Back = true;
+
+            if (_model.Screen == MenuScreen.Lobby && click)
+            {
+                int slot = FrontendLayout.HitSlot(gx, gy);
+                if (slot >= _model.Lobby.Joined.Count && slot >= 0) { JoinKeyboard(); return; }
+            }
+
+            int hit = FrontendLayout.HitItem(_model, gx, gy, out float fraction);
+            _model.Hover = hit;
+            if (hit < 0) return;
+            if (moved || click) _model.SetFocus(hit);
+            if (!click) return;
+            MenuItem item = _model.Items[hit];
+            bool valued = _model.Describe(item).value != null;
+            // value rows read "label     <  value  >" right-aligned: the middle of the row lowers, the far right end raises
+            if (valued && fraction >= 0.5f) { if (fraction < 0.875f) input.Left = true; else input.Right = true; }
+            else input.Submit = true;
+        }
+
+        /// <summary>Joins the next free keyboard half (WASD first, then arrows) so a mouse player can get into the lobby.</summary>
+        bool JoinKeyboard()
+        {
+            Lobby lobby = _model.Lobby;
+            JoinedDevice left = JoinedDevice.Keyboard(false), right = JoinedDevice.Keyboard(true);
+            if (!lobby.IsJoined(left)) return lobby.Join(left);
+            if (!lobby.IsJoined(right)) return lobby.Join(right);
+            return false;
         }
 
         static void Fire(ref MenuInput input, int dir)

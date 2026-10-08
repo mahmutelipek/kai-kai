@@ -12,6 +12,10 @@ namespace Game
         Transform _visual;
         float _wheelAngle;
         float _squash, _squashVelocity;
+        float _lift;
+        /// <summary>Current height the deck is raised by to keep the lowest wheel on the road (tests, debugging).</summary>
+        public float Lift => _lift;
+        public Transform[] Wheels => _wheels;
 
         /// <summary>Parent for anything that stands on the deck; local (0, 0, 0) is deck-top centre.</summary>
         public Transform DeckTop { get; private set; }
@@ -69,7 +73,23 @@ namespace Game
             float heave = Mathf.Lerp(f.PreviousHeave, f.Heave, alpha);
             float roll = Mathf.Lerp(f.PreviousRoll, f.Roll, alpha) * Mathf.Rad2Deg;
             float pitch = Mathf.Lerp(f.PreviousPitch, f.Pitch, alpha) * Mathf.Rad2Deg;
-            _flex.localPosition = new Vector3(0f, heave, 0f);
+            // The board banks (lean, wobble, deck rock) about the ground point under its middle, which pushed the
+            // low-side wheels into the asphalt. Lift the whole deck so the lowest wheel rests on the road.
+            // Uses the board's rendered (interpolated) tilt, not the 50 Hz simulation state, and an envelope that
+            // rises at once but sinks slowly: a wobbling board used to make the lift flicker, which looked like jitter.
+            BoardTuningData t = _board.Tuning.data;
+            float wheelR = Mathf.Max(t.wheelRadius, 0.05f);
+            float track = t.boardWidth * 0.5f - 0.08f, axle = t.boardLength * 0.35f;
+            // the rendered pose trails the simulation by up to one step: take the larger of the two so a fast roll never dips a wheel
+            float bodyBank = Mathf.Max(Mathf.Asin(Mathf.Clamp01(Mathf.Abs(transform.right.y))), Mathf.Abs(s.Roll - s.GroundRoll));
+            float bank = bodyBank + Mathf.Abs(Mathf.Lerp(f.PreviousRoll, f.Roll, alpha));         // plus deck rock (radians)
+            float tilt = Mathf.Abs(Mathf.Lerp(f.PreviousPitch, f.Pitch, alpha));                    // deck rock only: the road slope is followed by the board
+            const float tireHalfWidth = 0.22f; // the tire is a wide cylinder: its outer rim dips below the hub when the board banks
+            float lift = wheelR * (2f - Mathf.Cos(bank) - Mathf.Cos(tilt)) + (track + tireHalfWidth) * Mathf.Sin(bank) + (axle + tireHalfWidth) * Mathf.Sin(tilt);
+            float target = Mathf.Max(heave, 0f) + Mathf.Min(lift, 1.8f);
+            _lift = Mathf.Max(target, _lift - 4f * dt);
+            // straight up in the WORLD (a local-up lift of a banked board only rose by lift * cos(bank) and the wheels still dipped)
+            _flex.localPosition = transform.InverseTransformDirection(Vector3.up) * _lift;
             _flex.localRotation = Quaternion.Euler(pitch, 0f, -roll); // +x nose down; -z drops the right side
         }
     }

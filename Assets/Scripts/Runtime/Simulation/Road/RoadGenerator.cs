@@ -224,6 +224,7 @@ namespace Game.Simulation
             if (def.MinDistance > along) return 0f;
             if (def.Kind == _lastKind && def.Kind != ChunkKind.GentleCurve) return 0f;
             if (_lastIntense && def.IsIntense && !combined) return 0f;
+            // a ramp throws the board along a straight line for up to ~60 m: no bend right after it, or the landing is off the road
             if (_lastKind == ChunkKind.Ramp && def.Kind == ChunkKind.HardCurve && !combined) return 0f;
             float diff = (def.Rating - target) / 2.2f;
             float w = def.Weight * MathF.Exp(-diff * diff);
@@ -337,7 +338,7 @@ namespace Game.Simulation
             _road.Chunks.Add(chunk);
             if (spec.Cones != null)
                 for (int i = 0; i < spec.Cones.Length; i++) Place(chunk, ObstacleKind.Cone, spec.Cones[i].X, spec.Cones[i].Y);
-            if (spec.HasRamp) AddRamp(chunk, spec.RampAt.X, spec.RampAt.Y, 5f, 8f, 1.3f);
+            if (spec.HasRamp) AddRamp(chunk, spec.RampAt.X, spec.RampAt.Y, 6f, 14f, 2.6f);
         }
 
         // ------------------------------------------------------------------ obstacles
@@ -444,7 +445,7 @@ namespace Game.Simulation
                 {
                     float a = L * 0.45f;
                     float lat = Range(-2f, 2f);
-                    float width = 5f, len = 8f, height = SimMath.Lerp(1.1f, 1.6f, d);
+                    float width = 6f, len = 14f, height = SimMath.Lerp(2.4f, 3.2f, d);
                     AddRamp(chunk, a, lat, width, len, height);
                     Place(chunk, ObstacleKind.Cone, a - 1f, lat - width * 0.5f - 0.8f);
                     Place(chunk, ObstacleKind.Cone, a - 1f, lat + width * 0.5f + 0.8f);
@@ -585,12 +586,40 @@ namespace Game.Simulation
                     break;
                 }
             }
+            ScatterExtras(chunk, d, density);
+        }
+
+        /// <summary>
+        /// More to dodge on the open stretches: potholes, cones and crates scattered along
+        /// straights, bends and bridges. Own random stream (the road layout and its other obstacles stay as they were).
+        /// Only things that slow the board down, never ones that can wreck it: the ideal driver must still finish.
+        /// </summary>
+        void ScatterExtras(RoadChunk chunk, float d, float density)
+        {
+            if (chunk.Kind != ChunkKind.Straight && chunk.Kind != ChunkKind.GentleCurve && chunk.Kind != ChunkKind.SCurve && chunk.Kind != ChunkKind.Bridge) return;
+            var rng = new System.Random(Seed * 7919 + chunk.Serial * 104729 + 13);
+            float L = chunk.Length;
+            int count = (int)(L / 50f * (0.7f + 1.5f * density));
+            for (int i = 0; i < count; i++)
+            {
+                float a = EndClearance + 12f + (float)rng.NextDouble() * (L - 2f * EndClearance - 12f);
+                if (a < EndClearance || a > L - EndClearance) continue;
+                if (chunk.Ramps.Count > 0 && Math.Abs(a - chunk.Ramps[0].Along + chunk.StartAlong) < 30f) continue;
+                float hw = HalfWidthAt(chunk, a) - 1.4f;
+                if (hw < 1f) continue;
+                float lateral = (float)(rng.NextDouble() * 2.0 - 1.0) * hw;
+                double pick = rng.NextDouble();
+                ObstacleKind kind = pick < 0.3 ? ObstacleKind.Pothole : pick < 0.72 ? ObstacleKind.Cone : ObstacleKind.Crate;
+                Place(chunk, kind, a, lateral);
+            }
         }
 
         // ------------------------------------------------------------------ pickups
 
         void AddPickup(RoadChunk chunk, PickupKind kind, float localAlong, float lateral, float hover)
         {
+            if (!GameRules.Scoring && (kind == PickupKind.Coin || kind == PickupKind.Diamond)) return; // no points
+            if (!GameRules.Nitro && kind == PickupKind.Nitro) return;
             int slot = _pickups.Spawn(kind, chunk.Serial, chunk.StartAlong + localAlong, lateral, hover, _road);
             if (slot < 0) return;
             chunk.PickupSlots.Add(slot);

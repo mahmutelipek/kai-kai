@@ -6,12 +6,12 @@ namespace Game.Frontend
         /// <summary>Six cards: heading, two short lines. Order = reading order (left to right, top to bottom).</summary>
         public static readonly (string heading, string line1, string line2)[] HowToPlay =
         {
-            ("STEER BY STANDING", "EVERYONE RIDES ONE GIANT BOARD.", "WHERE THE CREW STANDS, IT GOES."),
-            ("CREW OLLIE", "JUMP TOGETHER TO HOP POTHOLES AND CONES.", "ALL AT ONCE = PERFECT OLLIE!"),
+            ("STEER BY STANDING", "WALK WITH STICK / WASD: THE BOARD GOES", "WHERE THE CREW STANDS."),
+            ("RAMPS", "HIT A RAMP FAST TO TAKE OFF AND FLY.", "STAY BALANCED FOR THE LANDING!"),
             ("CARVE BOOST", "HOLD A HARD CARVE, THEN STRAIGHTEN OUT", "CLEANLY FOR A BURST OF SPEED."),
             ("DRAFT", "RIDE RIGHT BEHIND A CAR GOING YOUR WAY", "AND GET PULLED ALONG FASTER."),
-            ("NITRO", "GRAB THE LIGHTNING, THEN PRESS", "ACTION: (X) / E TO FIRE IT."),
-            ("COMBO", "COINS, NEAR MISSES AND TRICKS BUILD IT.", "CRASH OR TUMBLE AND IT'S GONE!"),
+            ("OFF ROAD", "GRASS IS FAIR GAME, BUT YOU HAVE", "8 SECONDS TO GET BACK ON THE ROAD."),
+            ("BEST DISTANCE", "NO POINTS: RIDE AS FAR AS YOU CAN.", "THREE WIPEOUTS END THE RUN!"),
         };
 
         /// <summary>Credit lines: (role, name). Studio name: set it here and in BuildScript.companyName.</summary>

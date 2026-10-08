@@ -11,6 +11,10 @@ namespace Game.Tests
     /// </summary>
     public class MovesTests
     {
+        // jumping is off in the shipped game; these tests cover the rule itself
+        [SetUp] public void JumpsOn() => GameRules.PlayerJump = true;
+        [TearDown] public void JumpsOff() => GameRules.PlayerJump = false;
+
         static PlayerInputState Jump => new PlayerInputState(Vector2.Zero, true, false);
 
         [Test]

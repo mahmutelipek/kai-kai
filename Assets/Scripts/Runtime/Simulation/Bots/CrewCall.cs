@@ -36,6 +36,7 @@ namespace Game.Simulation
         public void Update(RunSimulation run, PlayerInputState[] inputs, bool[] human, float dt)
         {
             Age += dt;
+            if (!GameRules.PlayerJump) return; // no jumping: no crew calls
             _hazardCooldown = Math.Max(0f, _hazardCooldown - dt);
             BoardSimulation sim = run.Board;
             for (int i = 0; i < sim.ActivePlayerCount && i < human.Length; i++)

@@ -10,6 +10,10 @@ namespace Game.Tests
     /// <summary>Milestone 3 acceptance: score / combo rules, near miss and airtime detection, nitro, high scores.</summary>
     public class ScoringAcceptanceTests
     {
+        // points, combo, coins and diamonds are off in the shipped game; these tests cover the rule set itself
+        [SetUp] public void ScoringOn() { GameRules.Scoring = true; GameRules.Nitro = true; }
+        [TearDown] public void ScoringOff() { GameRules.Scoring = false; GameRules.Nitro = false; }
+
         static BoardTuningData T() => new BoardTuningData();
 
         // ------------------------------------------------------------------ 1. score math and combo rules
@@ -214,6 +218,7 @@ namespace Game.Tests
 
             // a big drop (3 m ramp): lands hard, airtime still scores
             BoardTuningData fast = BoardScenario.TuningAtSpeed(22f);
+            fast.hardLandingSpeed = 6f; // a 3 m drop is a hard landing at the old threshold (the shipped one is higher so ramp flights land clean)
             var sim = BoardScenario.Create(6, fast, new RampGround { RampHeight = 3f, RampLength = 8f });
             bool hard = false; float air = 0f, landedAir = 0f;
             BoardScenario.Run(sim, 6f, null, onStep: (s, ev) =>

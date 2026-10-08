@@ -31,13 +31,13 @@ namespace Game.Art
     public static class CameraRigDefaults
     {
         // M4: a low 3/4 view from behind-right like the reference image (was 7 m behind, 3.5 m up, centred)
-        public const float Distance = 4.7f;
+        public const float Distance = 5.6f;
         public const float ExtraDistanceAtSpeed = 1.2f;
-        public const float Height = 2.6f;
+        public const float Height = 3.8f;
         public const float LookAhead = 10f;
-        public const float LookHeight = 1.4f;
+        public const float LookHeight = 1.2f;
         /// <summary>Camera sits this far to the right of the board; it also slides toward the outside of turns.</summary>
-        public const float LateralOffset = 1.8f;
+        public const float LateralOffset = 0.5f;
         public const float FovMin = 70f;
         public const float FovMax = 86f;
     }

@@ -93,7 +93,16 @@ namespace Game.Hud
             bool humanRiding = false;
             for (int i = 0; i < s.Human.Length; i++) humanRiding |= s.Human[i] && s.OnBoard[i];
             s.MoveLabel = null;
-            if (b.BoostTimer > 0f && !b.Crashed)
+            if (r.OffroadTime > 0.75f && !b.Crashed)
+            {
+                // off the asphalt: a few seconds to find the road again
+                float left = RunSimulation.OffroadLimit - r.OffroadTime;
+                s.MoveLabel = Loc.T("OFF ROAD! GET BACK") + "  " + Math.Max(1, (int)Math.Ceiling(left)).ToString(Ci);
+                s.MoveFill = Math.Max(0f, left / RunSimulation.OffroadLimit);
+                s.MoveColor = HudLayout.Red;
+                s.MoveReady = left < 3f;
+            }
+            else if (b.BoostTimer > 0f && !b.Crashed)
             {
                 _boostMax = Math.Max(_boostMax, b.BoostTimer);
                 s.MoveLabel = Loc.T("BOOST!");
@@ -133,23 +142,26 @@ namespace Game.Hud
         public void OnStep(in RunStepEvents ev, RunSimulation r)
         {
             int mult = r.Score.Multiplier;
-            if (ev.NearMisses > 0) Push(Loc.T("NEAR MISS!") + "  +" + ((int)(r.Tuning.nearMissPoints * mult)).ToString(Ci), HudLayout.Yellow);
-            if (ev.CleanLanding) Push(Loc.T("CLEAN LANDING!") + "  " + ev.Airtime.ToString("0.0", Ci) + Loc.T("S AIR"), HudColor.Hex(0x5CFF8F));
+            bool pts = GameRules.Scoring;
+            if (pts && ev.NearMisses > 0) Push(Loc.T("NEAR MISS!") + "  +" + ((int)(r.Tuning.nearMissPoints * mult)).ToString(Ci), HudLayout.Yellow);
+            if (!pts) { }
+            else if (ev.CleanLanding) Push(Loc.T("CLEAN LANDING!") + "  " + ev.Airtime.ToString("0.0", Ci) + Loc.T("S AIR"), HudColor.Hex(0x5CFF8F));
             else if (ev.Landed && ev.Airtime >= r.Tuning.minScoredAirtime) Push(ev.Airtime.ToString("0.0", Ci) + Loc.T("S AIR"), HudColor.White);
-            if (ev.SectionCleared) Push(Loc.T("SECTION CLEARED!"), HudLayout.Cyan);
-            if (ev.Diamonds > 0) Push(Loc.T("DIAMOND!") + "  +" + ((int)(r.Tuning.diamondPoints * mult)).ToString(Ci), HudColor.Hex(0xD08CFF));
+            if (pts && ev.SectionCleared) Push(Loc.T("SECTION CLEARED!"), HudLayout.Cyan);
+            if (pts && ev.Diamonds > 0) Push(Loc.T("DIAMOND!") + "  +" + ((int)(r.Tuning.diamondPoints * mult)).ToString(Ci), HudColor.Hex(0xD08CFF));
             if (ev.NitroPickups > 0) Push(Loc.T("NITRO GET!"), HudLayout.Cyan);
             if (ev.NitroStarted) Push(Loc.T("NITRO BOOST!"), HudLayout.Cyan);
             Feel.OnStep(ev);
             if (ev.NitroStarted) Flash(HudColor.Hex(0x8FEFFF, 0.95f));
             else if (ev.CarveBoost > 0) Flash(HudColor.Hex(0xFFC070, ev.CarveBoost > 1 ? 0.6f : 0.4f));
             else if (ev.PerfectOllie) Flash(HudColor.Hex(0xFFFFFF, 0.35f));
-            if (ev.PerfectOllie) Push(Loc.T("PERFECT OLLIE!") + "  +" + ((int)(r.Tuning.olliePoints * 2f * mult)).ToString(Ci), HudLayout.Yellow);
+            if (!pts) { }
+            else if (ev.PerfectOllie) Push(Loc.T("PERFECT OLLIE!") + "  +" + ((int)(r.Tuning.olliePoints * 2f * mult)).ToString(Ci), HudLayout.Yellow);
             else if (ev.Ollie) Push(Loc.T("OLLIE!"), HudColor.White);
             if (ev.CarveBoost > 1) Push(Loc.T("MEGA CARVE BOOST!"), HudColor.Hex(0xFF8A1F));
             else if (ev.CarveBoost > 0) Push(Loc.T("CARVE BOOST!"), HudColor.Hex(0xFFB347));
             if (ev.SlipstreamStarted) Push(Loc.T("SLIPSTREAM!"), HudLayout.Cyan);
-            if (ev.HeavyHits > 0) Push(Loc.T("OUCH! COMBO LOST"), HudColor.Hex(0xFF6A50));
+            if (ev.HeavyHits > 0) Push(pts ? Loc.T("OUCH! COMBO LOST") : Loc.T("OUCH!"), HudColor.Hex(0xFF6A50));
             if (ev.Crashed) Push(r.LivesPerRun > 0 ? Loc.T("WIPEOUT!") + "  " + r.LivesLeft.ToString(Ci) + " " + Loc.T("LEFT") : Loc.T("WIPEOUT!"), HudLayout.Red);
         }
 
@@ -187,6 +199,20 @@ namespace Game.Hud
             HudState s = State;
             ScoreManager sc = r.Score;
             s.EndLines.Clear();
+            if (!GameRules.Scoring)
+            {
+                // no points: the run is its distance, and the goal is beating the best one
+                s.EndLines.Clear();
+                s.EndScore = r.MaxDistance.ToString("N0", Ci) + " m";
+                string bestD = r.HighScores != null ? Loc.T("BEST") + "  " + r.HighScores.BestDistance.ToString("N0", Ci) + " m" : "";
+                if (r.LastRank > 0 && !r.NewBestDistance) bestD = Loc.T("RANK") + " #" + r.LastRank.ToString(Ci) + "   ·   " + bestD;
+                ScoreTable.Fill(r.HighScores?.Top, r.LastRank, s.EndTable);
+                s.EndBest = bestD;
+                s.EndTitle = Loc.T("RUN OVER");
+                s.EndNewBest = r.NewBestDistance;
+                s.EndHint = Loc.T("PRESS R, SPACE OR (A) TO RIDE AGAIN");
+                return;
+            }
             s.EndLines.Add((Loc.T("DISTANCE"), r.MaxDistance.ToString("N0", Ci) + " m", "+" + sc.DistancePoints.ToString("N0", Ci)));
             s.EndLines.Add((Loc.T("COINS"), sc.Coins.ToString(Ci), "+" + sc.CoinPoints.ToString("N0", Ci)));
             s.EndLines.Add((Loc.T("DIAMONDS"), sc.Diamonds.ToString(Ci), "+" + sc.DiamondPoints.ToString("N0", Ci)));

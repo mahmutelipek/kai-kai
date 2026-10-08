@@ -63,6 +63,8 @@ namespace Game.Simulation
     {
         public bool Crashed;
         public bool LeftGround;
+        /// <summary>Left the ground off the top of a ramp (boosted into a real flight).</summary>
+        public bool RampLaunch;
         public bool Landed;
         public bool HardLanding;
         public float LandingSpeed;
@@ -91,6 +93,8 @@ namespace Game.Simulation
         // After a reset or a landing the vertical velocity does not yet match the ground slope,
         // so the next grounded step snaps to the ground instead of running the take-off test.
         bool _snapToGround = true;
+        /// <summary>First ground contact after a (re)start: the board is set onto the road, which must not turn into upward speed (it used to hop at the start).</summary>
+        bool _justPlaced = true;
 
         public void Reset(Vector3 position, float yaw, float speed, float runTime = 0f)
         {
@@ -107,6 +111,7 @@ namespace Game.Simulation
                 LastGroundHeight = position.Y,
             };
             _snapToGround = true;
+            _justPlaced = true;
         }
 
         /// <summary>Obstacle hit. speedLossFraction 0..1; yawKick in rad/s added to the yaw rate.</summary>
@@ -339,6 +344,12 @@ namespace Game.Simulation
                 {
                     _snapToGround = false;
                     s.VerticalVelocity = SimMath.Clamp((groundY - s.Position.Y) / dt, -MaxVerticalSpeed, MaxVerticalSpeed);
+                    if (_justPlaced)
+                    {
+                        // set onto the road at (re)start: follow the slope instead of launching off the correction
+                        s.VerticalVelocity = front.Found && rear.Found ? s.Speed * (front.Height - rear.Height) / (2f * axle) : 0f;
+                        _justPlaced = false;
+                    }
                     s.Position.Y = groundY;
                     s.LastGroundHeight = groundY;
                     s.Surface = front.Found ? front.Surface : rear.Surface;
@@ -349,8 +360,15 @@ namespace Game.Simulation
                     }
                     return;
                 }
+                _justPlaced = false;
                 s.Grounded = false;
                 ev.LeftGround = true;
+                if (s.VerticalVelocity > t.rampLaunchMinRise)
+                {
+                    // coming off the top of a ramp: throw the board, a plain ballistic hop looked like a bump
+                    s.VerticalVelocity = Math.Min(t.rampLaunchMax, s.VerticalVelocity * t.rampLaunchBoost + t.rampLaunchBase);
+                    ev.RampLaunch = true;
+                }
             }
 
             s.VerticalVelocity = Math.Max(s.VerticalVelocity - t.gravity * dt, -MaxVerticalSpeed);

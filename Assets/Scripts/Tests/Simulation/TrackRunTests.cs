@@ -130,7 +130,8 @@ namespace Game.Tests
             Assert.IsTrue(solo.Completed && coop.Completed && mixed.Completed);
             Assert.AreEqual(0, solo.Crashes, "solo cooperative");
             Assert.AreEqual(0, coop.Crashes, "6 cooperative");
-            Assert.That(mixed.Crashes, Is.LessThanOrEqualTo(2), "mixed crews may crash, but rarely");
+            // a squabbling crew can drift off the asphalt for more than OffroadLimit seconds, which now wipes it out
+            Assert.That(mixed.Crashes, Is.LessThanOrEqualTo(4), "mixed crews may crash, but rarely");
         }
 
         [Test]

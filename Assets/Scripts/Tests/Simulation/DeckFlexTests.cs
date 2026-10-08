@@ -8,6 +8,10 @@ namespace Game.Tests
     /// <summary>Riders jumping and landing rock the deck a little (visual flex), toward the side they stand on.</summary>
     public class DeckFlexTests
     {
+        // jumping is off in the shipped game; these tests cover the rule itself
+        [SetUp] public void JumpsOn() => GameRules.PlayerJump = true;
+        [TearDown] public void JumpsOff() => GameRules.PlayerJump = false;
+
         [Test]
         public void JumpOnTheLeftEdge_DipsAndRocksTheDeckLeft_ThenSettles()
         {

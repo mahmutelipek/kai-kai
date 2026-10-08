@@ -1,0 +1,202 @@
+{
+  "Bump": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Bump.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "skateboard wheels rolling over a small bump in the road, short muffled knock. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "9e12b15a1e794f65"
+  },
+  "CarveBoost": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\CarveBoost.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "quick speed boost swoosh with rising pitch and a small bright chime on top, skateboard arcade game. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "1adeb8e0daf88b76"
+  },
+  "Coin": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Coin.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "single bright coin pickup chime, two quick ascending metallic notes, arcade game collectible, short and clean. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "7ac5036b09d00b33"
+  },
+  "ComboUp": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\ComboUp.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "short upbeat arcade level-up blip, quick rising two-note synth, positive game UI feedback. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "1db837668e9763ac"
+  },
+  "CountdownGo": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\CountdownGo.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "race start GO signal, higher bright electronic beep chord with a short energetic whoosh, arcade racing game. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "9c75a988553a0c8f"
+  },
+  "CountdownTick": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\CountdownTick.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "race start countdown beep, single clean electronic tone, arcade racing game. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "e28f0b82d729c5ee"
+  },
+  "Crash": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Crash.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "big cartoon wipeout, giant skateboard slamming into the road, wooden crash, tumbling bodies and wheels clattering on asphalt, comedic not violent. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "b51fcb91e555c243"
+  },
+  "Diamond": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Diamond.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "magical sparkling gem pickup, shimmering ascending glass arpeggio with a twinkly tail, cartoon game reward. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "835cbccaf6acbb54"
+  },
+  "Hit": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Hit.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "skateboard crashing into a plastic traffic cone and crate, crunchy cartoon impact with a plastic clatter. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "a6bb34c00e846d5a"
+  },
+  "Join": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Join.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "player joins the game, cheerful quick ascending three-note chime with a pop, party game lobby. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "b6bab73ab68f82e6"
+  },
+  "Land": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Land.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "big longboard landing on asphalt, heavy wooden deck thud with urethane wheels slapping the ground, single impact. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "a728a0dc349e3468"
+  },
+  "Music": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Music.mp3",
+    "kind": "music",
+    "model": "music (default model)",
+    "prompt": "upbeat energetic instrumental party game music, sunny summer surf-pop meets electro, 128 BPM, driving drums, funky bass, bright synth hooks, fun and exciting, seamless loopable, no vocals",
+    "sha256_16": "c1565b0e23331f46"
+  },
+  "NearMiss": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\NearMiss.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "fast close pass-by whoosh, air rushing past an object at high speed, doppler swish. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "434c4003411607cc"
+  },
+  "NitroBurn": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\NitroBurn.wav",
+    "kind": "loop",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "continuous jet booster roar, steady rocket thruster burn with slight flutter, arcade racing nitro. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "faca2b35a385780e"
+  },
+  "NitroFire": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\NitroFire.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "nitro boost ignition, deep punchy thump followed by a roaring jet whoosh accelerating away, arcade racing game turbo. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "be325e9cc1e75cdc"
+  },
+  "NitroPickup": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\NitroPickup.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "power-up pickup, quick rising electric synth whoosh with a charged-up zap at the end, arcade racing game. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "0a96d4ade852ab09"
+  },
+  "Ollie": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Ollie.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "skateboard ollie pop, sharp wooden tail snap on concrete, single clean hit, close up. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "8a7302fe23f98869"
+  },
+  "PerfectOllie": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\PerfectOllie.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "skateboard ollie pop, sharp wooden tail snap followed by a bright magical sparkle chime, arcade game perfect trick. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "ff64c0c2bf26a7bb"
+  },
+  "Respawn": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Respawn.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "respawn sound, soft magical rising whoosh with a gentle shimmer, cartoon game. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "c781897083b5230f"
+  },
+  "Roll": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Roll.wav",
+    "kind": "loop",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "continuous rolling of big urethane skateboard wheels on smooth asphalt, steady low rumble with fine road grain. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "a63ad374f4bd2a92"
+  },
+  "Slipstream": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Slipstream.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "soft airy wind tunnel whoosh building up, drafting behind a car at speed. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "edada86217b7009e"
+  },
+  "UiBack": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\UiBack.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "menu back sound, short soft two-note pop downward, cartoon game UI. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "e586d1f012f2502e"
+  },
+  "UiMove": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\UiMove.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "tiny soft menu cursor tick, clean short UI click for a cartoon game. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "9d7c60b56dbca0c7"
+  },
+  "UiSelect": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\UiSelect.wav",
+    "kind": "sfx",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "friendly menu confirm sound, short bright two-note pop upward, cartoon game UI. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "012b9b4f6602551f"
+  },
+  "Wind": {
+    "date": "2026-10-08",
+    "file": "Assets\\Resources\\Audio\\Wind.wav",
+    "kind": "loop",
+    "model": "eleven_text_to_sound_v2",
+    "prompt": "steady strong wind rushing past the ears while riding fast downhill, continuous airflow, no gusts dropping out. Style: bright cartoon arcade game, clean, punchy, no voice, no music unless stated.",
+    "sha256_16": "865c0b2965d06471"
+  }
+}

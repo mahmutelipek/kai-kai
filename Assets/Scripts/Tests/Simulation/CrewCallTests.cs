@@ -11,6 +11,10 @@ namespace Game.Tests
     /// </summary>
     public class CrewCallTests
     {
+        // jumping is off in the shipped game; these tests cover the rule itself
+        [SetUp] public void JumpsOn() => GameRules.PlayerJump = true;
+        [TearDown] public void JumpsOff() => GameRules.PlayerJump = false;
+
         sealed class Rig
         {
             public readonly RunSimulation Run;

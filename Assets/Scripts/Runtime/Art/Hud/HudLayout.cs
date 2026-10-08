@@ -167,11 +167,11 @@ namespace Game.Hud
             // ---- top-left: distance + best (the F1 debug panel uses this corner when open)
             if (!s.DebugPanelOpen)
             {
-                Img(o, HudTex.Panel, L + m - 14f * k, T + m, 440f * k, 104f * k, Dark, skew: -0.15f);
-                Txt(o, s.Distance, L + m + 18f * k, T + m + 8f * k, 420f * k, 88f * k, 70f * k, HudColor.White, HudAlign.Left, 4f * k);
-                Img(o, HudTex.Panel, L + m - 6f * k, T + m + 106f * k, 330f * k, 50f * k, Dark, skew: -0.15f);
-                Txt(o, Loc.T("BEST"), L + m + 18f * k, T + m + 110f * k, 110f * k, 42f * k, 28f * k, Cyan, HudAlign.Left, 2f * k);
-                Txt(o, s.Best, L + m + 128f * k, T + m + 110f * k, 190f * k, 42f * k, 28f * k, HudColor.White, HudAlign.Left, 2f * k);
+                Img(o, HudTex.Panel, L + m - 14f * k, T + m, 470f * k, 104f * k, Dark, skew: -0.15f);
+                Txt(o, s.Distance, L + m + 20f * k, T + m + 8f * k, 400f * k, 88f * k, 70f * k, HudColor.White, HudAlign.Left, 4f * k);
+                Img(o, HudTex.Panel, L + m - 6f * k, T + m + 106f * k, 390f * k, 50f * k, Dark, skew: -0.15f);
+                Txt(o, Loc.T("BEST"), L + m + 20f * k, T + m + 110f * k, 110f * k, 42f * k, 28f * k, Cyan, HudAlign.Left, 2f * k);
+                Txt(o, s.Best, L + m + 134f * k, T + m + 110f * k, 210f * k, 42f * k, 28f * k, HudColor.White, HudAlign.Left, 2f * k);
                 for (int i = 0; i < s.LivesMax && i < 5; i++)
                 {
                     HudColor c = i < s.LivesLeft ? Red : HudColor.Hex(0x3A3D48, 0.9f);
@@ -180,6 +180,8 @@ namespace Game.Hud
             }
 
             // ---- top-centre: score (small, the reference keeps the centre free)
+            if (GameRules.Scoring)
+            {
             Img(o, HudTex.Pill, (L + R) * 0.5f - 130f * k, T + m, 260f * k, 54f * k, Dark);
             Txt(o, s.Score, (L + R) * 0.5f - 130f * k, T + m + 5f * k, 260f * k, 44f * k, 34f * k, HudColor.White, HudAlign.Center, 2f * k);
 
@@ -187,10 +189,11 @@ namespace Game.Hud
             float pw = 210f * k, ph = 66f * k, px = R - m - pw;
             Pill(o, HudTex.Coin, s.Coins, px, T + m, pw, ph, k, s.CoinPop);
             Pill(o, HudTex.Gem, s.Diamonds, px, T + m + ph + 14f * k, pw, ph, k, s.DiamondPop);
+            }
 
             // ---- right: COMBO banner + NITRO banner (slanted, like the reference)
             float by = T + safeH * 0.27f;
-            if (s.ShowCombo)
+            if (GameRules.Scoring && s.ShowCombo)
             {
                 float pop = 1f + 0.3f * Clamp01(s.ComboPop);
                 float bw = 420f * k, bh = 104f * k, bx = R - m - bw;
@@ -203,7 +206,7 @@ namespace Game.Hud
             }
             if (s.NitroActive || s.NitroCharges > 0)
             {
-                float nw = 330f * k, nh = 66f * k, nx = R - m - nw - 10f * k, ny = by + 118f * k;
+                float nw = 330f * k, nh = 66f * k, nx = R - m - nw - 10f * k, ny = by + (GameRules.Scoring ? 118f : 0f) * k;
                 float pulse = s.NitroActive ? 1f + 0.06f * (float)Math.Sin(s.Time * 18f) : 1f;
                 Img(o, HudTex.Panel, nx, ny, nw, nh, Cyan, rot: -8f, scale: pulse);
                 TxtR(o, s.NitroActive ? Loc.T("NITRO!") : s.NitroText, nx, ny + 8f * k, nw, nh - 12f * k, 38f * k, Navy, HudAlign.Center, -8f, pulse, nx + nw * 0.5f, ny + nh * 0.5f, 0f);
@@ -344,7 +347,7 @@ namespace Game.Hud
         static void EndScreen(HudState s, float cx, float cy, float k, List<HudCmd> o)
         {
             float t = s.EndAge;
-            float w = 700f * k, h = 640f * k, x = cx - w * 0.5f, y = cy - h * 0.5f;
+            float w = 700f * k, h = (GameRules.Scoring ? 640f : 330f + 48f * s.EndLines.Count) * k, x = cx - w * 0.5f, y = cy - h * 0.5f;
             float panel = 0.7f + 0.3f * EaseOutBack(Clamp01(t / 0.3f));
             Img(o, HudTex.Card, x, y, w, h, HudColor.Hex(0x14161E, 0.92f * Clamp01(t / 0.15f)), scale: panel);
             Img(o, HudTex.Panel, x + 90f * k, y - 34f * k, w - 180f * k, 110f * k, Yellow, rot: -4f, scale: panel);

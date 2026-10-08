@@ -30,6 +30,9 @@ namespace Game.Art
             int n = chunk.SampleCount;
             if (n < 2) return;
             bool retaining = chunk.Serial % 3 == 1 && chunk.Kind != ChunkKind.Bridge && chunk.Kind != ChunkKind.Tunnel;
+            chunk.Buildings.Clear();
+            chunk.Posts.Clear();
+            if (chunk.StartAlong <= 1e-3f) LeadIn(chunk, set);
 
             for (int i = 1; i < n; i++)
             {
@@ -196,6 +199,30 @@ namespace Game.Art
             else m.Quad(b0, b1, a1, a0);
         }
 
+        /// <summary>
+        /// The run starts at the very beginning of the first chunk, so the chase camera looked down past the road's end
+        /// at the sea 45 m below. Extends road, curbs, sidewalks and lawn straight back from the first sample.
+        /// </summary>
+        static void LeadIn(RoadChunk chunk, MeshSet set)
+        {
+            const float Length = RoadModel.LeadInLength, Lawn = 45f;
+            Vector3 c1 = chunk.Points[0], next = chunk.Points[1];
+            float yaw = chunk.Yaws[0], h = chunk.HalfWidths[0];
+            Vector3 fwd = SimMath.Forward3(yaw), r = SimMath.Right3(yaw);
+            float run = MathF.Max(1e-3f, MathF.Sqrt((next.X - c1.X) * (next.X - c1.X) + (next.Z - c1.Z) * (next.Z - c1.Z)));
+            float rise = (c1.Y - next.Y) / run; // uphill going backwards
+            Vector3 c0 = c1 - fwd * Length + Up(rise * Length);
+
+            set[Pal.Asphalt].Quad(c0 - r * h, c1 - r * h, c1 + r * h, c0 + r * h);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                Vector3 in0 = c0 + r * (side * h), in1 = c1 + r * (side * h);
+                Segment(set[Pal.Curb], in0 + r * (side * CurbWidth * 0.5f), in1 + r * (side * CurbWidth * 0.5f), CurbWidth, CurbHeight);
+                Strip(set[Pal.Sidewalk], in0, in1, r, r, side, CurbWidth, CurbWidth + SidewalkWidth, CurbHeight, CurbHeight);
+                Strip(set[Pal.Grass], in0, in1, r, r, side, CurbWidth + SidewalkWidth, Lawn, CurbHeight - 0.02f, CurbHeight - 0.02f);
+            }
+        }
+
         static void Terrain(RoadChunk chunk, MeshSet set, int i, int side, EdgeKind edge, bool roofed, bool retaining)
         {
             Vector3 c0 = chunk.Points[i - 1], c1 = chunk.Points[i];
@@ -266,10 +293,8 @@ namespace Game.Art
 
         static void Portals(RoadChunk chunk, MeshSet set)
         {
-            // the hill the tunnel runs through: an ellipsoid whose cross-section at road level stays within the roof
-            float mid = (chunk.RoofStart + chunk.RoofEnd) * 0.5f, roofLen = chunk.RoofEnd - chunk.RoofStart;
-            chunk.SampleLocal(mid, out Vector3 hc, out float hy, out float hhw);
-            set[Pal.Hill].Sphere(hc + Up(6.3f), Euler(0f, hy * SimMath.Rad2Deg, 0f), V(hhw * 2f + 90f, 44f, roofLen + 2f), 8, 16);
+            // no mound over the tunnel any more: whatever shape was tried (ellipsoid, dome) showed through the mouth as a green plug blocking it;
+            // the roof, the roofed side terrain and the portal frames give the tunnel its look
 
             for (int end = 0; end < 2; end++)
             {
@@ -278,6 +303,8 @@ namespace Game.Art
                 Quaternion rot = Euler(0f, yaw * SimMath.Rad2Deg, 0f);
                 Vector3 r = SimMath.Right3(yaw);
                 set[Pal.Concrete].Box(c + Up(7f), rot, V(hw * 2f + 4f, 2f, 1.5f));
+                // dark ceiling across the mouth: the roof quads only start at the first sample inside, which left a gap showing the hill above
+                set[Pal.TunnelInside].Box(c + Up(5.9f), rot, V(hw * 2f + 1.4f, 0.2f, 5f));
                 set[Pal.Concrete].Box(c - r * (hw + 1.4f) + Up(3.5f), rot, V(1.6f, 7f, 1.5f));
                 set[Pal.Concrete].Box(c + r * (hw + 1.4f) + Up(3.5f), rot, V(1.6f, 7f, 1.5f));
                 // hazard stripes on the portal edges
@@ -328,7 +355,7 @@ namespace Game.Art
                 if (e == EdgeKind.Wall) continue;
                 float offset = e == EdgeKind.Void ? 0.25f : CurbWidth + 0.5f;
                 float y = e == EdgeKind.Void ? 0f : CurbHeight;
-                Place(set, chunk, ArtLibrary.StreetLight(), a, side, offset, y, side < 0 ? 0f : 180f);
+                Place(set, chunk, ArtLibrary.StreetLight(), a, side, offset, y, side < 0 ? 0f : 180f, 0.3f);
             }
             if (bridge || tunnel) return;
 
@@ -339,13 +366,13 @@ namespace Game.Art
                 int outside = turn > 0f ? -1 : 1;
                 float end = chunk.Shape.SCurve ? len * 0.5f : len * 0.88f;
                 for (float a = len * 0.15f; a < end; a += 14f)
-                    Place(set, chunk, ArtLibrary.ChevronSign(turn > 0f), a, outside, CurbWidth + 0.4f, CurbHeight, 180f);
+                    Place(set, chunk, ArtLibrary.ChevronSign(turn > 0f), a, outside, CurbWidth + 0.4f, CurbHeight, 180f, 0.3f);
                 if (chunk.Shape.SCurve)
                     for (float a = len * 0.55f; a < len * 0.88f; a += 14f)
-                        Place(set, chunk, ArtLibrary.ChevronSign(turn < 0f), a, -outside, CurbWidth + 0.4f, CurbHeight, 180f);
+                        Place(set, chunk, ArtLibrary.ChevronSign(turn < 0f), a, -outside, CurbWidth + 0.4f, CurbHeight, 180f, 0.3f);
             }
             // a warning sign ahead of every chunk start
-            Place(set, chunk, ArtLibrary.RoadSign(chunk.Serial), 4f, 1, CurbWidth + 1.2f, CurbHeight, 180f);
+            Place(set, chunk, ArtLibrary.RoadSign(chunk.Serial), 4f, 1, CurbWidth + 1.2f, CurbHeight, 180f, 0.3f);
 
             // construction zone dressing on the sidewalks
             if (chunk.Kind == ChunkKind.Construction || chunk.Kind == ChunkKind.BrokenRoad)
@@ -364,7 +391,7 @@ namespace Game.Art
                 {
                     if (InCrossing(chunk, a) || InCrossing(chunk, a + 8f) || InCrossing(chunk, a - 8f) || EdgeAt(chunk, a, side) != EdgeKind.Grass) continue;
                     float o = CurbWidth + SidewalkWidth + rng.Range(0.8f, 3.5f);
-                    Place(set, chunk, ArtLibrary.Palm(rng.Range(0, 6)), a, side, o, TerrainHeightAt(side, o, retaining && side < 0) * TerrainScale(chunk, a), rng.Range(0f, 360f));
+                    Place(set, chunk, ArtLibrary.Palm(rng.Range(0, 6)), a, side, o, TerrainHeightAt(side, o, retaining && side < 0) * TerrainScale(chunk, a), rng.Range(0f, 360f), 0.5f);
                 }
 
                 // houses, apartments, trees and bushes in the terrain band
@@ -382,17 +409,21 @@ namespace Game.Art
                     if (side > 0 && rng.Chance(0.35f))
                     {
                         // gaps on the bay side keep the view open: a tree or bushes instead
-                        Place(set, chunk, rng.Chance(0.5f) ? ArtLibrary.Tree(rng.Range(0, 4)) : ArtLibrary.Bush(rng.Range(0, 4)), centre, side, o - 2f, TerrainHeightAt(side, o - 2f, false), rng.Range(0f, 360f));
+                        bool tree = rng.Chance(0.5f);
+                        Place(set, chunk, tree ? ArtLibrary.Tree(rng.Range(0, 4)) : ArtLibrary.Bush(rng.Range(0, 4)), centre, side, o - 2f, TerrainHeightAt(side, o - 2f, false), rng.Range(0f, 360f), tree ? 0.7f : 0.8f);
                     }
                     else
                     {
                         ArtModel b = apartment ? ArtLibrary.Apartment(rng.Range(0, 6)) : ArtLibrary.House(rng.Range(0, 14));
                         float lo = MathF.Min(TerrainHeightAt(side, o - 4f, retaining && side < 0), TerrainHeightAt(side, o + 4f, retaining && side < 0));
                         Place(set, chunk, b, centre, side, o, lo, side < 0 ? 90f : -90f);
+                        // solid for the board: front face a little inside the model so a scrape starts at the wall
+                        float halfAlong = apartment ? 6.2f : 4.2f, halfDepth = apartment ? 4.4f : 3.4f;
+                        chunk.Buildings.Add(new BuildingBox { AlongMin = centre - halfAlong, AlongMax = centre + halfAlong, Side = side, Near = o - halfDepth, Far = o + halfDepth });
                     }
                     // a bush between buildings
                     if (rng.Chance(0.5f))
-                        Place(set, chunk, ArtLibrary.Bush(rng.Range(0, 4)), a + width + 1.5f, side, FlatZone - 1.2f, TerrainHeightAt(side, FlatZone - 1.2f, retaining && side < 0) * TerrainScale(chunk, a + width + 1.5f), 0f);
+                        Place(set, chunk, ArtLibrary.Bush(rng.Range(0, 4)), a + width + 1.5f, side, FlatZone - 1.2f, TerrainHeightAt(side, FlatZone - 1.2f, retaining && side < 0) * TerrainScale(chunk, a + width + 1.5f), 0f, 0.8f);
                     a += width + rng.Range(2f, 6f);
                 }
             }
@@ -424,12 +455,13 @@ namespace Game.Art
         }
 
         /// <summary>Places a model beside the road: local along, side (-1 left / +1 right), offset outside the edge.</summary>
-        static void Place(MeshSet set, RoadChunk chunk, ArtModel model, float a, int side, float offset, float height, float yawOffsetDeg)
+        static void Place(MeshSet set, RoadChunk chunk, ArtModel model, float a, int side, float offset, float height, float yawOffsetDeg, float solidRadius = 0f)
         {
             if (a < 0f || a > chunk.Length) return;
             chunk.SampleLocal(a, out Vector3 c, out float yaw, out float hw);
             Vector3 pos = c + SimMath.Right3(yaw) * (side * (hw + offset)) + Up(height);
             set.Add(model, pos, Euler(0f, yaw * SimMath.Rad2Deg + yawOffsetDeg, 0f));
+            if (solidRadius > 0f) chunk.Posts.Add(new PostCircle { Along = a, Lateral = side * (hw + offset), Radius = solidRadius });
         }
     }
 }

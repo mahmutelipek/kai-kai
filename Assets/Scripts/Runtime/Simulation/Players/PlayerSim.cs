@@ -142,7 +142,7 @@ namespace Game.Simulation
             LocalPosition += Velocity * dt;
 
             // jumping
-            if (input.Jump && !airborne && JumpCooldown <= 0f && control > 0.5f)
+            if (GameRules.PlayerJump && input.Jump && !airborne && JumpCooldown <= 0f && control > 0.5f)
             {
                 VerticalVelocity = t.playerJumpVelocity;
                 JumpCooldown = t.playerJumpCooldown;

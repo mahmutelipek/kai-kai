@@ -139,13 +139,20 @@ namespace Game.Simulation
         /// Board footprint (oriented rectangle at the board pose) against every nearby active obstacle.
         /// Airborne boards pass over obstacles lower than their clearance.
         /// </summary>
-        public int Collide(in BoardState board, BoardTuningData t, float boardAlong, List<ImpactEvent> hits)
+        public int Collide(in BoardState board, BoardTuningData t, float boardAlong, List<ImpactEvent> hits, float stepDistance = 0f)
         {
             hits.Clear();
             if (board.Crashed) return 0;
-            var boardCenter = new Vector2(board.Position.X, board.Position.Z);
+            // Light obstacles (cones, crates) are knocked on touch, not once the nose is inside them: an end-of-step test
+            // only sees them up to a whole step late (0.7 m at 35 m/s), so for those the box leads the nose by half a
+            // step. Solid obstacles use the exact box (planned clearances are tight; a hit must be a real overlap),
+            // the response then puts the board back at the contact point (see RunSimulation.ResolveObstacles).
+            Vector2 travel = SimMath.HeadingToDirection(board.TravelYaw);
+            float lead = Math.Max(0f, stepDistance) * 0.5f;
+            var boardPos = new Vector2(board.Position.X, board.Position.Z);
             var boardHalf = new Vector2(t.HalfWidth, t.HalfLength);
-            Vector2 boardVel = SimMath.HeadingToDirection(board.TravelYaw) * board.Speed;
+            var leadHalf = new Vector2(t.HalfWidth, t.HalfLength + lead * 0.5f);
+            Vector2 boardVel = travel * board.Speed;
 
             for (int i = 0; i < Capacity; i++)
             {
@@ -155,7 +162,8 @@ namespace Game.Simulation
                 if (board.Position.Y > o.Position.Y + o.Height) continue; // jumped over it
 
                 var obsCenter = new Vector2(o.Position.X, o.Position.Z);
-                if (!Overlap(boardCenter, board.Yaw, boardHalf, obsCenter, o.Yaw, o.HalfExtents, out Vector2 normal, out float depth)) continue;
+                bool light = ObstacleCatalog.IsKnockable(o.Kind);
+                if (!Overlap(light ? boardPos + travel * (lead * 0.5f) : boardPos, board.Yaw, light ? leadHalf : boardHalf, obsCenter, o.Yaw, o.HalfExtents, out Vector2 normal, out float depth)) continue;
 
                 o.HitByBoard = true;
                 float closing = Vector2.Dot(boardVel - o.Velocity, -normal);

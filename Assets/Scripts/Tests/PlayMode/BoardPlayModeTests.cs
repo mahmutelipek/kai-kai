@@ -115,7 +115,7 @@ namespace Game.Tests
         {
             Start(RoadMode.TestTrack, bots: true);
             BoardSimulation sim = _gm.Board.Simulation;
-            float deckTop = _gm.Tuning.data.deckHeight;
+            Transform deck = Object.FindFirstObjectByType<BoardView>().DeckTop;
             float minLocalY = float.PositiveInfinity, minSeparation = float.PositiveInfinity;
             float t = 0f;
             while (t < 20f)
@@ -124,15 +124,16 @@ namespace Game.Tests
                 foreach (PlayerView view in Object.FindObjectsByType<PlayerView>(FindObjectsSortMode.None))
                 {
                     if (view.Slot >= sim.ActivePlayerCount || !sim.Players[view.Slot].IsOnBoard) continue;
-                    Vector3 local = _gm.Board.transform.InverseTransformPoint(view.transform.position);
+                    Vector3 local = deck.InverseTransformPoint(view.transform.position); // the deck flexes (heave / rock) and carries the riders
                     Assert.IsFalse(float.IsNaN(local.x) || float.IsNaN(local.y) || float.IsNaN(local.z));
                     minLocalY = Mathf.Min(minLocalY, local.y);
                 }
                 minSeparation = Mathf.Min(minSeparation, PlayerCrowdSolver.MinimumSeparation(sim.Players, sim.ActivePlayerCount, sim.Tuning));
                 yield return null;
+                yield return new WaitForEndOfFrame(); // views reattach in LateUpdate after a respawn; sample after it
             }
-            Debug.Log($"bots 20 s: min player local y {minLocalY:F3} (deck top {deckTop:F2}), min separation {minSeparation:F3}");
-            Assert.That(minLocalY, Is.GreaterThanOrEqualTo(deckTop - 0.02f), "player below the deck surface");
+            Debug.Log($"bots 20 s: min player local y {minLocalY:F3} (relative to the deck top), min separation {minSeparation:F3}");
+            Assert.That(minLocalY, Is.GreaterThanOrEqualTo(-0.02f), "player below the deck surface");
             Assert.That(minSeparation, Is.GreaterThan(sim.Tuning.playerRadius * 2f * 0.9f));
         }
 
@@ -167,7 +168,7 @@ namespace Game.Tests
             _gm.Run.RestartRun();
             yield return null;
             Assert.AreEqual(RunState.Running, _gm.Board.Run.State);
-            Assert.AreEqual(0f, _gm.Board.Run.Score.Score, 1e-3);
+            Assert.That(_gm.Board.Run.Score.Score, Is.LessThan(10f), "a fresh run: at most a hitch frame of riding (it was exactly 0 before frames could batch several steps)");
         }
 
         /// <summary>
@@ -190,10 +191,10 @@ namespace Game.Tests
                 t += Time.deltaTime;
                 frameMs.Add(Time.unscaledDeltaTime * 1000f);
 #if UNITY_EDITOR
-                batches += UnityEditor.UnityStats.batches;
+                batches += UnityEditor.UnityStats.drawCalls;
                 setPass += UnityEditor.UnityStats.setPassCalls;
                 tris += UnityEditor.UnityStats.triangles;
-                maxBatches = Mathf.Max(maxBatches, UnityEditor.UnityStats.batches);
+                maxBatches = Mathf.Max(maxBatches, UnityEditor.UnityStats.drawCalls);
                 samples++;
 #endif
                 yield return null;
@@ -243,6 +244,48 @@ namespace Game.Tests
             Assert.That(_gm.Run.Distance, Is.GreaterThan(d), "resumed");
         }
 
+        /// <summary>Leaning hard left / right: the deck must not jitter (frame-to-frame lift) and the wheels must not sink into the road.</summary>
+        [UnityTest]
+        public IEnumerator HardLean_NoJitter_WheelsStayOnTheRoad()
+        {
+            Start(RoadMode.Endless, players: 6);
+            BoardSimulation sim = _gm.Board.Simulation;
+            BoardView view = Object.FindFirstObjectByType<BoardView>();
+            float r = _gm.Tuning.data.wheelRadius;
+            yield return new WaitForSeconds(1f);
+            float lastLift = view.Lift, maxStep = 0f, minClearance = float.PositiveInfinity, maxLift = 0f;
+            foreach (string layout in new[] { "LLLLLL", "RRRRRR", "LLLRRR" })
+            {
+                SVec2[] spots = BoardScenario.Layout(layout, sim.Tuning);
+                for (int i = 0; i < spots.Length; i++) sim.Players[i].Pin(spots[i]);
+                float t = 0f;
+                while (t < 2.2f)
+                {
+                    t += Time.deltaTime;
+                    yield return null;
+                    if (_gm.Board.State.Crashed) break;
+
+                    maxStep = Mathf.Max(maxStep, (lastLift - view.Lift) / Mathf.Max(Time.unscaledDeltaTime, 1e-3f)); // m/s downward: flicker would show as fast drops
+                    lastLift = view.Lift;
+                    maxLift = Mathf.Max(maxLift, view.Lift);
+                    float tilt = Mathf.Asin(Mathf.Clamp01(Mathf.Abs(_gm.Board.transform.right.y)));
+                    foreach (Transform w in view.Wheels)
+                    {
+                        Vector3 p = w.position;
+                        GroundSample g = _gm.Board.Run.Road.Sample(p.x, p.z, p.y + 3f);
+                        if (g.Found)
+                        {
+                            float cl = p.y - r * Mathf.Cos(tilt) - 0.21f * Mathf.Sin(tilt) - g.Height;
+                            minClearance = Mathf.Min(minClearance, cl);
+                        }
+                    }
+                }
+            }
+            Debug.Log($"lean: max lift step {maxStep:0.0} m/s down, max lift {maxLift:0.00} m, min wheel clearance {minClearance:0.000} m");
+            Assert.That(maxStep, Is.LessThan(5f), "the deck lift drops faster than its slow decay: it flickers");
+            Assert.That(minClearance, Is.GreaterThan(-0.06f), "a wheel sank into the road");
+        }
+
         [UnityTest]
         public IEnumerator Endless_ViewsFollowSimulation_FrameTimeAndGcReport()
         {
@@ -256,6 +299,7 @@ namespace Game.Tests
                 t += Time.deltaTime;
                 frameMs.Add(Time.unscaledDeltaTime * 1000f);
                 yield return null;
+                _gm.RoadView.Sync(); // the view syncs in LateUpdate; the coroutine resumes before it
                 Assert.AreEqual(_gm.Board.Run.Road.Chunks.Count, _gm.RoadView.ActiveViews, "one chunk view per spawned chunk");
             }
             int gcCollections = System.GC.CollectionCount(0) - gcBefore;

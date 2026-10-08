@@ -30,6 +30,7 @@ namespace Game.Simulation
             ("respawnSpeedFraction", new[] { 0.6f }),
             ("comboIdleTime", new[] { 4f }),
             ("nearMissDistance", new[] { 1.2f }),
+            ("hardLandingSpeed", new[] { 6f }),
         };
 
         static readonly BoardTuningData Defaults = new BoardTuningData();
